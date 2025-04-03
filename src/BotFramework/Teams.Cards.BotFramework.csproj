@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<LangVersion>preview</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AdaptiveCards" Version="3.1.0" />
+		<PackageReference Include="Azure.Identity" Version="1.*" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.*" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="3.*" />
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.*" />
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.*" />
+		<PackageReference Include="Refit.HttpClientFactory" Version="8.*" />
+		<PackageReference Include="NeoSmart.AsyncLock" Version="3.*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="System.Collections.Concurrent" />
+		<Using Include="System.Collections.Immutable" />
+		<Using Include="System.Reflection" />
+		<Using Include="System.Text.Json" />
+		<Using Include="System.Text.Json.Serialization" />
+		<Using Include="AdaptiveCards" />
+		<Using Include="System.Text.RegularExpressions" />
+	</ItemGroup>
+
+</Project>
