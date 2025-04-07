@@ -1,7 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 using Microsoft.Graph.Beta.Models;
+using Teams.Notifications.Api.Card;
+using Teams.Notifications.Api.Util;
 
-namespace Teams.Cards.Api;
+namespace Teams.Notifications.Api.Channel;
 
 public sealed class ChannelService(GraphServiceClient GraphClient, [FromKeyedServices("channels")] Container ChannelContainer, CardService CardService, BotClientFactory BotClientFactory)
 {

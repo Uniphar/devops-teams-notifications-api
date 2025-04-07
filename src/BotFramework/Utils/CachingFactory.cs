@@ -1,4 +1,4 @@
-﻿namespace Teams.Cards.BotFramework;
+﻿namespace Teams.Cards.BotFramework.Utils;
 
 internal sealed class CachingFactory<TKey, TValue>(Func<TKey, TValue> factory)
 	where TKey : IEquatable<TKey>

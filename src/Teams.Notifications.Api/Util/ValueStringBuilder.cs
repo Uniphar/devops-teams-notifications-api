@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace Teams.Cards.BotFramework.Utils;
+namespace Teams.Notifications.Api.Util;
 
 internal ref struct ValueStringBuilder : IDisposable
 {

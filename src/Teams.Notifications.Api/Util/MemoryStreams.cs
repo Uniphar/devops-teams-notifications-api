@@ -1,6 +1,6 @@
 ﻿using Microsoft.IO;
 
-namespace Teams.Cards.Api.Util;
+namespace Teams.Notifications.Api.Util;
 
 internal static class MemoryStreams
 {

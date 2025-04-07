@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using Teams.Cards.BotFramework.Extensions;
 
 namespace Teams.Cards.BotFramework.Serialization;
 

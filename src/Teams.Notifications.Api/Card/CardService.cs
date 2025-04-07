@@ -1,7 +1,8 @@
 ﻿
 using System.Diagnostics.CodeAnalysis;
+using Teams.Notifications.Api.Channel;
 
-namespace Teams.Cards.Api;
+namespace Teams.Notifications.Api.Card;
 
 public sealed class CardService(GraphServiceClient GraphClient, [FromKeyedServices("cards")] Container CardContainer, Func<ChannelService> ChannelServiceFunc)
 {

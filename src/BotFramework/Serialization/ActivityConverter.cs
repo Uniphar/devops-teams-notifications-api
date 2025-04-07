@@ -1,4 +1,6 @@
-﻿namespace Teams.Cards.BotFramework.Serialization;
+﻿using Teams.Cards.BotFramework.Activities;
+
+namespace Teams.Cards.BotFramework.Serialization;
 
 // Ok, so why this and not [JsonPolymorphic]/[JsonDerivedType]?
 // S.T.J polymorphism support can only support a single property

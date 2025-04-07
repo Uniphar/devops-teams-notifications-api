@@ -1,6 +1,6 @@
 ﻿using Azure.Core;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Cards.BotFramework.Http;
 
 internal sealed class TokenCredentialHandler(TokenCredential Credential, params string[] Scopes) : DelegatingHandler()
 {

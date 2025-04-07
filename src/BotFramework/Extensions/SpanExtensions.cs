@@ -1,11 +1,11 @@
 ﻿using System.Buffers;
 using System.Runtime.InteropServices;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Cards.BotFramework.Extensions;
 
 internal static class SpanExtensions
 {
-	public static Span<T> AsSpan<T>(this byte[] bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
+	public static ReadOnlySpan<T> AsSpan<T>(this byte[] bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
 	public static ReadOnlySpan<T> AsReadOnlySpan<T>(this byte[] bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
 	public static Span<T> Cast<T>(this Span<byte> bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
 	public static ReadOnlySpan<T> Cast<T>(this ReadOnlySpan<byte> bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);

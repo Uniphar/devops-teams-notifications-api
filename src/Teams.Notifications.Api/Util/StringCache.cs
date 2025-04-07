@@ -1,4 +1,4 @@
-﻿namespace Teams.Cards.BotFramework.Utils;
+﻿namespace Teams.Notifications.Api.Util;
 
 internal sealed class StringCache
 {

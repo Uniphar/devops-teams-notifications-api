@@ -1,9 +1,8 @@
 ﻿using System.Buffers;
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Http.Extensions;
 using NeoSmart.AsyncLock;
 
-namespace Teams.Cards.Api
+namespace Teams.Notifications.Api.Util
 {
 	public static class HttpRequestExtensions
 	{

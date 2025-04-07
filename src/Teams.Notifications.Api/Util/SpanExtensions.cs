@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
 using System.Runtime.InteropServices;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Notifications.Api.Util;
 
 internal static class SpanExtensions
 {

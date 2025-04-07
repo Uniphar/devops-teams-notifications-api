@@ -2,7 +2,7 @@ using System.Data;
 using System.Text.Encodings.Web;
 using Azure.Core;
 using Azure.Identity;
-using Teams.Cards.Api;
+using Teams.Notifications.Api.Util;
 
 [assembly: ApiController]
 

@@ -1,4 +1,6 @@
-﻿namespace Teams.Cards.BotFramework.Serialization;
+﻿using Teams.Cards.BotFramework.Extensions;
+
+namespace Teams.Cards.BotFramework.Serialization;
 
 /// <summary>
 /// When applied to a property with a value tuple type,

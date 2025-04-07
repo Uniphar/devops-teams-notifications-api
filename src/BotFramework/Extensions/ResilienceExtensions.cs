@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Http.Resilience;
 using Polly;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Cards.BotFramework.Extensions;
 
 internal static class ResilienceExtensions
 {

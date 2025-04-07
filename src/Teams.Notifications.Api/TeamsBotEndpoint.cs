@@ -1,6 +1,7 @@
-﻿using Teams.Cards.BotFramework;
+﻿using Teams.Cards.BotFramework.Activities;
+using Teams.Notifications.Api.Util;
 
-namespace Teams.Cards.Api;
+namespace Teams.Notifications.Api;
 
 //[Authorize("TeamsJwt")]
 public sealed class TeamsBotEndpoint : ControllerBase

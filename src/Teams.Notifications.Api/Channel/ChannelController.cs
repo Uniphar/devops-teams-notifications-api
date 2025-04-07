@@ -1,4 +1,4 @@
-﻿namespace Teams.Cards.Api;
+﻿namespace Teams.Notifications.Api.Channel;
 
 [Route("/team/{teamsId}/channel/{channelId}")]
 public sealed class ChannelController(ChannelService ChannelService) : ControllerBase

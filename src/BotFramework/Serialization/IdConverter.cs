@@ -1,4 +1,6 @@
-﻿namespace Teams.Cards.BotFramework.Serialization;
+﻿using Teams.Cards.BotFramework.Extensions;
+
+namespace Teams.Cards.BotFramework.Serialization;
 
 internal sealed class IdConverter : JsonConverterFactory
 {

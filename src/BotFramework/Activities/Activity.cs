@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Teams.Cards.BotFramework.Serialization;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Cards.BotFramework.Activities;
 
 [JsonConverter(typeof(ActivityConverter))]
 public abstract record Activity

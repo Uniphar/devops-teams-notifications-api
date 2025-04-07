@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-namespace Teams.Cards.Api;
+﻿namespace Teams.Notifications.Api.Util;
 
 internal static class ReflectionExtensions
 {

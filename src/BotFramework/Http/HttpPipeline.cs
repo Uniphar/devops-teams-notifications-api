@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Http.Resilience;
 using Polly;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Cards.BotFramework.Http;
 
 internal static class HttpPipeline
 {

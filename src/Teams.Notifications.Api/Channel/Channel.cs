@@ -1,4 +1,4 @@
-﻿namespace Teams.Cards.Api;
+﻿namespace Teams.Notifications.Api.Channel;
 
 public sealed record Channel
 {

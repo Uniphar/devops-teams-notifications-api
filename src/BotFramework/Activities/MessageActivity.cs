@@ -1,4 +1,4 @@
-﻿namespace Teams.Cards.BotFramework;
+﻿namespace Teams.Cards.BotFramework.Activities;
 
 public sealed record MessageActivity : Activity
 {

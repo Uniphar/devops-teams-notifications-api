@@ -1,6 +1,6 @@
 ﻿using Azure.Core;
 
-namespace Teams.Cards.Api;
+namespace Teams.Notifications.Api.Util;
 
 internal static class CosmosServiceConfiguration
 {

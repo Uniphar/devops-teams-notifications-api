@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Cards.BotFramework.Activities;
 
 public abstract record InstallationUpdateActivity : Activity
 {

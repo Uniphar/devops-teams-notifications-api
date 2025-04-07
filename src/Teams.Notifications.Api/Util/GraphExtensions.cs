@@ -1,6 +1,6 @@
 ﻿using Microsoft.Graph.Beta.Teams.Item.Channels;
 
-namespace Teams.Cards.Api;
+namespace Teams.Notifications.Api.Util;
 
 internal static class GraphExtensions
 {

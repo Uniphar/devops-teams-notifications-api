@@ -1,7 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
-using Teams.Cards.BotFramework.Utils;
 
-namespace Teams.Cards.Api;
+namespace Teams.Notifications.Api.Util;
 
 internal static class ContainerExtensions
 {

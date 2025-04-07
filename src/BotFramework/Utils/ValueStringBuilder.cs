@@ -3,18 +3,19 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Teams.Cards.BotFramework.Extensions;
 
 namespace Teams.Cards.BotFramework.Utils;
 
 internal ref struct ValueStringBuilder : IDisposable
 {
-	private Span<char> chars;
+	private ReadOnlySpan<char> chars;
 	private ArrayPool<byte>? arrayPool;
 	private byte[]? buffer;
 	private int length;
 
 	private int AvailableCapacity => chars.Length - length;
-	private Span<char> AvailableSpan => chars.Slice(length);
+	private ReadOnlySpan<char> AvailableSpan => chars.Slice(length);
 
 	public ValueStringBuilder(Span<char> chars)
 	{

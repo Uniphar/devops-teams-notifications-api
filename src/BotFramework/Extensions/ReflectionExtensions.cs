@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Teams.Cards.BotFramework;
+namespace Teams.Cards.BotFramework.Extensions;
 
 internal static class ReflectionExtensions
 {
