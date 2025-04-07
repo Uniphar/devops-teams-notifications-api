@@ -1,0 +1,37 @@
+name: CD for Teams Notifications API
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/api-cd.yaml
+      - .github/workflows/shared-app-cd-workflow.yaml
+      - .github/workflows/shared-app-package-workflow.yaml
+      - .github/workflows/shared-app-deployment-workflow.yaml
+      - .github/workflows/shared-app-integration-tests-workflow.yaml
+      - charts/Teams.Notifications.Api/**
+      - src/Teams.Notifications.Api/**
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  TeamsNotificationsApi_CD:
+    uses: ./.github/workflows/shared-app-cd-workflow.yaml
+    secrets:
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_PLATFORM_SUBSCRIPTION_ID: ${{ secrets.AZURE_PLATFORM_SUBSCRIPTION_ID }}
+      AZURE_DEV_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
+      AZURE_PROD_SUBSCRIPTION_ID: ${{ secrets.AZURE_PROD_SUBSCRIPTION_ID }}
+      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
+      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
+    with:
+      applicationFolder: Teams.Notifications
+      applicationName: teams-notification-api
+      singleCluster: false
