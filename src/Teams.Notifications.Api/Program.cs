@@ -2,7 +2,11 @@ using System.Data;
 using System.Text.Encodings.Web;
 using Azure.Core;
 using Azure.Identity;
-using Teams.Notifications.Api.Util;
+using ContosoScuba.Bot;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Connector.Authentication;
+using Teams.Notifications.Api;
 
 [assembly: ApiController]
 
@@ -24,11 +28,18 @@ builder.Services.AddSingleton(serviceProvider =>
 	return new GraphServiceClient(credential);
 });
 
-await builder.Services.AddCosmos($"https://uni-devops-{environment}-cosmos.documents.azure.com/")
-	.AddContainer(diKey: "channels", "devops", "teams-cards-api-channels", partitionKeyPath: "/teamId")
-	.AddContainer(diKey: "cards", "devops", "teams-cards-api-cards", partitionKeyPath: "/channelId");
+//await builder.Services.AddCosmos($"https://uni-devops-{environment}-cosmos.documents.azure.com/")
+//	.AddContainer(diKey: "channels", "devops", "teams-cards-api-channels", partitionKeyPath: "/teamId")
+	//.AddContainer(diKey: "cards", "devops", "teams-cards-api-cards", partitionKeyPath: "/channelId");
 
-builder.Services.AddBotFramework();
+    // Create the Bot Framework Authentication to be used with the Bot Adapter.
+    builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
+
+    // Create the Bot Adapter with error handling enabled.
+    builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
+
+    // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
+    builder.Services.AddTransient<IBot, ContosoScubaBot>();
 
 builder.Services.AddControllers()
 	.AddJsonOptions(options =>
@@ -46,6 +57,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 	options.SerializerOptions.PropertyNameCaseInsensitive = true;
 	options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
+
+
+
 
 /*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 	.AddJwtBearer("TeamsJwt", options =>
