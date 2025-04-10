@@ -1,47 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-	<LangVersion>preview</LangVersion>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<LangVersion>preview</LangVersion>
+		<Nullable>enable</Nullable>
+		<NoWarn>$(NoWarn);SKEXP0010</NoWarn>
 
-	<!--<PublishReadyToRun>true</PublishReadyToRun>-->
-	<RuntimeIdentifer>linux-x64</RuntimeIdentifer>
-	<InvariantGlobalization>true</InvariantGlobalization>
+		<!--<PublishReadyToRun>true</PublishReadyToRun>-->
+		<RuntimeIdentifer>linux-x64</RuntimeIdentifer>
+		<InvariantGlobalization>true</InvariantGlobalization>
 
-	<ContainerRepository>teams-cards-api</ContainerRepository>
-	<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0.0-noble-chiseled-amd64</ContainerBaseImage>
-	  
-	<UserSecretsId>889c9e71-a2be-48d3-be7e-3577ee8d23d8</UserSecretsId>
-	  
-	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+		<ContainerRepository>teams-cards-api</ContainerRepository>
+		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0.0-noble-chiseled-amd64</ContainerBaseImage>
 
-  <ItemGroup>
-    <PackageReference Include="AdaptiveCards" Version="*" />
-    <PackageReference Include="Azure.Identity" Version="1.13.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Bot.Builder" Version="*" />
-    <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" Version="4.23.0" />
-    <PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="3.5.0" />
-	<PackageReference Include="Microsoft.Azure.Cosmos" Version="3.*" />
-    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
-    <PackageReference Include="Razorback" Version="1.0.1" />
-	<PackageReference Include="System.Linq.Async" Version="6.0.1" />
-  </ItemGroup>
+		<UserSecretsId>889c9e71-a2be-48d3-be7e-3577ee8d23d8</UserSecretsId>
 
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 
-<ItemGroup>
-	<Using Include="Microsoft.AspNetCore.Mvc" />
-	<Using Include="Microsoft.Graph.Beta" />
-	<Using Include="Microsoft.Azure.Cosmos" />
-	<Using Include="AdaptiveCards" />
-	<Using Include="System.Text.RegularExpressions" />
-	<Using Include="System.Collections.Immutable" />
-	<Using Include="System.Collections.Concurrent" />
-	<Using Include="System.Text.Json" />
-</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AdaptiveCards" Version="*" />
+		<PackageReference Include="Azure.Identity" Version="*" />
+		<PackageReference Include="Microsoft.Agents.Builder" Version="0.2.295-alpha" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.*" />
+		<PackageReference Include="Microsoft.Agents.Authentication.Msal" Version="*" />
+		<PackageReference Include="Microsoft.Agents.Hosting.AspNetCore" Version="0.2.295-alpha" />
+		<PackageReference Include="Microsoft.SemanticKernel.Agents.AzureAI" Version="*-*" />
+		<PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="*" />
+		<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="*" />
+		<PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="*" />
+		<PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
+	</ItemGroup>
 
 </Project>

@@ -1,95 +1,118 @@
 using System.Data;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using Azure.Core;
 using Azure.Identity;
-using ContosoScuba.Bot;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Microsoft.Bot.Connector.Authentication;
-using Teams.Notifications.Api;
+using Microsoft.Agents.Hosting.AspNetCore;
+using Microsoft.Agents.Storage;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Graph.Beta;
+using Microsoft.SemanticKernel;
+using Teams.Notifications.Api.AgentApplication;
 
-[assembly: ApiController]
+using Teams.Notifications.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
-
-builder.Services.AddSingleton<TokenCredential>(_ => builder.Environment.EnvironmentName is "dev"
-	? new EnvironmentCredential()
-	: new WorkloadIdentityCredential()
-);
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
 
 builder.Services.AddHttpClient();
 
+// Register Semantic Kernel
+builder.Services.AddKernel();
 
 builder.Services.AddSingleton(serviceProvider =>
 {
-	var credential = serviceProvider.GetRequiredService<TokenCredential>();
-	return new GraphServiceClient(credential);
+    var credential = serviceProvider.GetRequiredService<TokenCredential>();
+    return new GraphServiceClient(credential);
 });
 
-//await builder.Services.AddCosmos($"https://uni-devops-{environment}-cosmos.documents.azure.com/")
-//	.AddContainer(diKey: "channels", "devops", "teams-cards-api-channels", partitionKeyPath: "/teamId")
-	//.AddContainer(diKey: "cards", "devops", "teams-cards-api-cards", partitionKeyPath: "/channelId");
-
-    // Create the Bot Framework Authentication to be used with the Bot Adapter.
-    builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
-
-    // Create the Bot Adapter with error handling enabled.
-    builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
-
-    // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
-    builder.Services.AddTransient<IBot, ContosoScubaBot>();
-
-builder.Services.AddControllers()
-	.AddJsonOptions(options =>
-	{
-		options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
-		options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
-		options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-		options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-	});
+builder
+    .Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
-	options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
-	options.SerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
-	options.SerializerOptions.PropertyNameCaseInsensitive = true;
-	options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+    options.SerializerOptions.PropertyNameCaseInsensitive = true;
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
+// Register the AI service of your choice. AzureOpenAI and OpenAI are demonstrated...
+/*if (builder.Configuration.GetSection("AIServices").GetValue<bool>("UseAzureOpenAI"))
+{
+    builder.Services.AddAzureOpenAIChatCompletion(
+        deploymentName: builder.Configuration.GetSection("AIServices:AzureOpenAI").GetValue<string>("DeploymentName"),
+        endpoint: builder.Configuration.GetSection("AIServices:AzureOpenAI").GetValue<string>("Endpoint"),
+        apiKey: builder.Configuration.GetSection("AIServices:AzureOpenAI").GetValue<string>("ApiKey"));
+
+    //Use the Azure CLI (for local) or Managed Identity (for Azure running app) to authenticate to the Azure OpenAI service
+    //credentials: new ChainedTokenCredential(
+    //   new AzureCliCredential(),
+    //   new ManagedIdentityCredential()
+    //));
+}
+else
+{
+    builder.Services.AddOpenAIChatCompletion(
+        modelId: builder.Configuration.GetSection("AIServices:OpenAI").GetValue<string>("ModelId"),
+        apiKey: builder.Configuration.GetSection("AIServices:OpenAI").GetValue<string>("ApiKey"));
+}*/
 
 
+builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
+
+builder.AddAgentApplicationOptions();
+
+
+
+builder.AddAgent<FileErrorAgent>();
+
+builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 
 /*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-	.AddJwtBearer("TeamsJwt", options =>
-	{
-		options.MetadataAddress = builder.Environment.EnvironmentName is "dev" && builder.Configuration.GetValue<bool?>("UseBotEmulator") == true
-			? "https://login.microsoftonline.com/botframework.com/v2.0/.well-known/openid-configuration"
-			: "https://login.botframework.com/v1/.well-known/openidconfiguration";
-		
-		options.RefreshInterval = TimeSpan.FromDays(1);
-		options.RefreshOnIssuerKeyNotFound = true;
-		options.RequireHttpsMetadata = true;
+    .AddJwtBearer("TeamsJwt", options =>
+    {
+        options.MetadataAddress = builder.Environment.EnvironmentName is "dev" && builder.Configuration.GetValue<bool?>("UseBotEmulator") == true
+            ? "https://login.microsoftonline.com/botframework.com/v2.0/.well-known/openid-configuration"
+            : "https://login.botframework.com/v1/.well-known/openidconfiguration";
 
-		options.Audience = GetEnvironmentVariable("AZURE_CLIENT_ID");
-		options.TokenValidationParameters.ValidateAudience = true;
+        options.RefreshInterval = TimeSpan.FromDays(1);
+        options.RefreshOnIssuerKeyNotFound = true;
+        options.RequireHttpsMetadata = true;
 
-		options.TokenValidationParameters.ValidateIssuer = true;
-		options.TokenValidationParameters.ValidateIssuerSigningKey = true;
-		options.TokenValidationParameters.ValidateLifetime = true;
-		options.TokenValidationParameters.ClockSkew = TimeSpan.FromMinutes(5);
+        options.Audience = GetEnvironmentVariable("AZURE_CLIENT_ID");
+        options.TokenValidationParameters.ValidateAudience = true;
 
-		options.IncludeErrorDetails = environment is "dev";
-			
-		//TODO: Validate the serviceUrl against the body -_-
-	});
+        options.TokenValidationParameters.ValidateIssuer = true;
+        options.TokenValidationParameters.ValidateIssuerSigningKey = true;
+        options.TokenValidationParameters.ValidateLifetime = true;
+        options.TokenValidationParameters.ClockSkew = TimeSpan.FromMinutes(5);
+
+        options.IncludeErrorDetails = environment is "dev";
+
+        //TODO: Validate the serviceUrl against the body -_-
+    });
 */
 /*builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 {
-	{ "InternalJwt:Instance", "https://login.microsoftonline.com/" },
-	{ "InternalJwt:TenantId", GetEnvironmentVariable("AZURE_TENANT_ID") },
-	{ "InternalJwt:ClientId", GetEnvironmentVariable("AZURE_CLIENT_ID") }
+    { "InternalJwt:Instance", "https://login.microsoftonline.com/" },
+    { "InternalJwt:TenantId", GetEnvironmentVariable("AZURE_TENANT_ID") },
+    { "InternalJwt:ClientId", GetEnvironmentVariable("AZURE_CLIENT_ID") }
 });*/
 
 //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -101,28 +124,32 @@ var app = builder.Build();
 
 //app.UseAuthorization();
 
+    app.MapGet("/", () => "Example Agents");
+    app.UseDeveloperExceptionPage();
+
+
 app.MapControllers();
 
 app.Run();
 
 /*await graphUserClient.PostJsonAsync("teams/70db5c22-571f-47e8-a2d7-33d40ddc1aa8/installedApps", new Dictionary<string, object>
-	{
-		{ "teamsApp@odata.bind", "https://graph.microsoft.com/beta/appCatalogs/teamsApps/4c1c145e-eb0d-47cd-a2f1-02df93cf2c92" },
-		{ "consentedPermissionSet", new
-		{
-			resourceSpecificPermissions = new[]
-			{
-				new { permissionType = "application", permissionValue = "Channel.Create.Group" },
-				new { permissionType = "application", permissionValue = "TeamsActivity.Send.Group" },
-				new { permissionType = "application", permissionValue = "TeamMember.Read.Group" },
-				new { permissionType = "application", permissionValue = "Member.Read.Group" },
-				new { permissionType = "application", permissionValue = "Owner.Read.Group" },
-				new { permissionType = "application", permissionValue = "ChannelSettings.ReadWrite.Group" },
-				new { permissionType = "application", permissionValue = "ChannelMessage.Read.Group" },
-				new { permissionType = "application", permissionValue = "ChannelMessage.Send.Group" },
-				new { permissionType = "application", permissionValue = "ChannelSettings.Read.Group" },
-				new { permissionType = "application", permissionValue = "Channel.Delete.Group" },
-				new { permissionType = "application", permissionValue = "TeamsActivity.Send.User" }
-			}
-		} }
-	}).Dump();*/
+    {
+        { "teamsApp@odata.bind", "https://graph.microsoft.com/beta/appCatalogs/teamsApps/4c1c145e-eb0d-47cd-a2f1-02df93cf2c92" },
+        { "consentedPermissionSet", new
+        {
+            resourceSpecificPermissions = new[]
+            {
+                new { permissionType = "application", permissionValue = "Channel.Create.Group" },
+                new { permissionType = "application", permissionValue = "TeamsActivity.Send.Group" },
+                new { permissionType = "application", permissionValue = "TeamMember.Read.Group" },
+                new { permissionType = "application", permissionValue = "Member.Read.Group" },
+                new { permissionType = "application", permissionValue = "Owner.Read.Group" },
+                new { permissionType = "application", permissionValue = "ChannelSettings.ReadWrite.Group" },
+                new { permissionType = "application", permissionValue = "ChannelMessage.Read.Group" },
+                new { permissionType = "application", permissionValue = "ChannelMessage.Send.Group" },
+                new { permissionType = "application", permissionValue = "ChannelSettings.Read.Group" },
+                new { permissionType = "application", permissionValue = "Channel.Delete.Group" },
+                new { permissionType = "application", permissionValue = "TeamsActivity.Send.User" }
+            }
+        } }
+    }).Dump();*/
