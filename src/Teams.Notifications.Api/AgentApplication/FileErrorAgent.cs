@@ -25,8 +25,6 @@ public class FileErrorAgent : Microsoft.Agents.Builder.App.AgentApplication
     {
         OnConversationUpdate(ConversationUpdateEvents.MembersAdded, WelcomeMessageAsync);
         AdaptiveCards.OnActionExecute("process", ProcessCardActionAsync);
-        OnActivity(ActivityTypes.Message, MessageActivityAsync, rank: RouteRank.Last);
-        // OnActivity("adaptiveCard/action", CardActionAsync, rank: RouteRank.Last);
     }
 
     protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken cancellationToken)
