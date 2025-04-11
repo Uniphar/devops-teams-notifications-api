@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -7,12 +8,14 @@ using AdaptiveCards;
 using Azure;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Builder.App;
+using Microsoft.Agents.Builder.App.AdaptiveCards;
 using Microsoft.Agents.Builder.State;
 using Microsoft.Agents.Core.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Agents;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Teams.Notifications.Api.Models;
+using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.AgentApplication;
 
@@ -20,17 +23,15 @@ public class FileErrorAgent : Microsoft.Agents.Builder.App.AgentApplication
 {
     public FileErrorAgent(AgentApplicationOptions options) : base(options)
     {
-        AdaptiveCards.OnActionExecute("adaptiveCard/action", CardActionAsync);
-
         OnConversationUpdate(ConversationUpdateEvents.MembersAdded, WelcomeMessageAsync);
-
+        AdaptiveCards.OnActionExecute("process", ProcessCardActionAsync);
         OnActivity(ActivityTypes.Message, MessageActivityAsync, rank: RouteRank.Last);
         // OnActivity("adaptiveCard/action", CardActionAsync, rank: RouteRank.Last);
     }
 
-    protected async Task<AdaptiveCardInvokeResponse> CardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken cancellationToken)
+    protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken cancellationToken)
     {
-        var json = AdaptiveCardBuilder.CreateFileProcessingErrorCard().ToJson();
+        var json = AdaptiveCardBuilder.CreateFileProcessingRestartedCard().ToJson();
         // Create a response message based on the response content type from the WeatherForecastAgent
         var attachement = new Attachment()
         {
@@ -47,33 +48,7 @@ public class FileErrorAgent : Microsoft.Agents.Builder.App.AgentApplication
         return new AdaptiveCardInvokeResponse();
     }
 
-    protected async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
-    {
-        var json = AdaptiveCardBuilder.CreateFileProcessingErrorCard().ToJson();
-        // Create a response message based on the response content type from the WeatherForecastAgent
-        var attachement = new Attachment()
-        {
-            ContentType = AdaptiveCard.ContentType,
-            Content = json
-        };
-
-        if (string.IsNullOrEmpty(turnContext.Activity.Text))
-        {
-            var pendingActivity = new Activity
-            {
-                Type = "message",
-                Id = "43e90820-15fd-11f0-8473-9933b332e0c0",
-                Attachments = new List<Attachment> { attachement }
-            };
-            await turnContext.UpdateActivityAsync(pendingActivity, cancellationToken);
-        }
-        else await turnContext.SendActivityAsync(MessageFactory.Attachment(attachement), cancellationToken);
-
-        //response.Id = turnContext.Activity.ReplyToId;
-        // Send the response message back to the user. 
-        //await turnContext.UpdateActivityAsync(response, cancellationToken); 
-    }
-
+ 
     protected async Task WelcomeMessageAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
         foreach (var member in turnContext.Activity.MembersAdded)
@@ -81,6 +56,12 @@ public class FileErrorAgent : Microsoft.Agents.Builder.App.AgentApplication
             if (member.Id != turnContext.Activity.Recipient.Id)
             {
                 await turnContext.SendActivityAsync(MessageFactory.Text("Welcome, in this channel you can find all the files that have failed"), cancellationToken);
+                var attachement = new Attachment()
+                {
+                    ContentType = AdaptiveCard.ContentType,
+                    Content = AdaptiveCardBuilder.CreateFileProcessingErrorCard().ToJson()
+                };
+                await turnContext.SendActivityAsync(MessageFactory.Attachment(attachement), cancellationToken);
             }
         }
     }
