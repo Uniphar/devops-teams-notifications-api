@@ -31,7 +31,7 @@ public class AdaptiveCardBuilder
                         new AdaptiveFact("File:", "Report_Q1_2025.xlsx"),
                         new AdaptiveFact("System:", "FrontGate"),
                         new AdaptiveFact("Job ID:", "FG-20250410-0915"),
-                        new AdaptiveFact("Timestamp:", "2025-04-10 14:22 UTC"),
+                        new AdaptiveFact("Timestamp:", DateTime.UtcNow.ToLongTimeString()),
                         new AdaptiveFact("Status:", "❌ Failed")
                     }
                 }
@@ -66,7 +66,7 @@ public class AdaptiveCardBuilder
                     Title = "📂 Open in Teams",
                     Url = new Uri("https://teams.microsoft.com/file/Report_Q1_2025.xlsx")
                 },
-                new AdaptiveSubmitAction
+                new AdaptiveExecuteAction
                 {
                     Title = "🔁 Reprocess File",
                     Data = new
@@ -74,7 +74,9 @@ public class AdaptiveCardBuilder
                         action = "reprocessFile",
                         fileId = "file123",
                         jobId = "FG-20250410-0915"
-                    }
+                    },
+                    Verb = "process",
+                    Id = "process"
                 }
             }
         };

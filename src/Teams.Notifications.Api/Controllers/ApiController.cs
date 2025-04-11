@@ -1,8 +1,6 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Hosting.AspNetCore;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Teams.Notifications.Api.Controllers;
@@ -13,5 +11,15 @@ namespace Teams.Notifications.Api.Controllers;
 [Route("api/messages")]
 public class ApiController(IAgentHttpAdapter adapter, IAgent bot) : ControllerBase
 {
-    [HttpPost] public Task PostAsync(CancellationToken cancellationToken) => adapter.ProcessAsync(Request, Response, bot, cancellationToken);
+    /// <summary>
+    /// Handles HTTP POST and GET requests to process bot messages.
+    /// </summary>
+    /// <returns>A task that represents the work queued to execute.</returns>
+    [HttpPost, HttpGet]
+    public Task PostAsync()
+    {
+        // Delegate the processing of the HTTP POST to the adapter.
+        // The adapter will invoke the bot.
+        return adapter.ProcessAsync(Request, Response, bot);
+    }
 }

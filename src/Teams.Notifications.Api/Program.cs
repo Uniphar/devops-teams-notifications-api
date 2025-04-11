@@ -1,8 +1,8 @@
-using System.Data;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using Azure.Core;
-using Azure.Identity;
+using Microsoft.Agents.Builder.App;
+using Microsoft.Agents.Builder.State;
 using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -10,9 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
-using Microsoft.SemanticKernel;
 using Teams.Notifications.Api.AgentApplication;
-
 using Teams.Notifications.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -73,16 +71,20 @@ else
 }*/
 
 
-builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
-
-builder.AddAgentApplicationOptions();
-
-
+builder.Services.AddBotAspNetAuthentication(builder.Configuration);
 
 builder.AddAgent<FileErrorAgent>();
 
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
-
+// Add ApplicationOptions
+builder.Services.AddTransient(sp =>
+{
+    return new AgentApplicationOptions()
+    {
+        StartTypingTimer = false,
+        TurnStateFactory = () => new TurnState(sp.GetRequiredService<IStorage>())
+    };
+});
 
 /*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer("TeamsJwt", options =>
@@ -124,8 +126,8 @@ var app = builder.Build();
 
 //app.UseAuthorization();
 
-    app.MapGet("/", () => "Example Agents");
-    app.UseDeveloperExceptionPage();
+app.MapGet("/", () => "Example Agents");
+app.UseDeveloperExceptionPage();
 
 
 app.MapControllers();
