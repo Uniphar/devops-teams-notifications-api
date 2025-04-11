@@ -1,25 +1,12 @@
 {
   "profiles": {
-    "Container (.NET SDK)": {
-      "commandName": "SdkContainer",
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
-      "environmentVariables": {
-        "ASPNETCORE_HTTP_PORTS": "8080",
-        "ASPNETCORE_ENVIRONMENT": "dev",
-        "AZURE_TENANT_ID": "",
-        "AZURE_CLIENT_ID": "",
-        "AZURE_CLIENT_SECRET": ""
-      },
-      "publishAllPorts": true,
-      "useSSL": false
-    },
     "kestrel": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "dev"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5050"
+      "applicationUrl": "http://localhost:3978"
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json"
