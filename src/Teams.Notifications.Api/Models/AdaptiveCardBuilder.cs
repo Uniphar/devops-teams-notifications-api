@@ -81,7 +81,15 @@ public class AdaptiveCardBuilder
                     ]
                 }
             });
-
+        var adaptiveFacts = new List<AdaptiveFact>
+        {
+            new("File:", model.FileName),
+            new("System:", model.System),
+            new("Job ID:", model.JobId),
+            new("Status:", statusString)
+        };
+        if (model.OriginalErrorTimestamp != null)
+            adaptiveFacts.Add(new AdaptiveFact("Timestamp:", model.OriginalErrorTimestamp?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture)));
         return new AdaptiveCard(new AdaptiveSchemaVersion(1, 5))
         {
             Body =
@@ -102,14 +110,7 @@ public class AdaptiveCardBuilder
 
                 new AdaptiveFactSet
                 {
-                    Facts =
-                    [
-                        new AdaptiveFact("File:", model.FileName),
-                        new AdaptiveFact("System:", model.System),
-                        new AdaptiveFact("Job ID:", model.JobId),
-                        model.OriginalErrorTimestamp != null ? new AdaptiveFact("Timestamp:", model.OriginalErrorTimestamp?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture)) : new AdaptiveFact(),
-                        new AdaptiveFact("Status:", statusString)
-                    ]
+                    Facts = adaptiveFacts
                 }
             ],
             Actions = actions
