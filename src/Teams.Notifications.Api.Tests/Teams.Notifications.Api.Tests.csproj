@@ -15,4 +15,10 @@
 		<PackageReference Include="coverlet.collector" Version="*" />
 		<PackageReference Include="Microsoft.Azure.Kusto.Data" Version="*" />
 	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Teams.Notifications.Api\Teams.Notifications.Api.csproj" />
+	</ItemGroup>
+	<PropertyGroup>
+		<RunSettingsFilePath>$(MSBuildProjectDirectory)\runsettings\local.runsettings</RunSettingsFilePath>
+	</PropertyGroup>
 </Project>
