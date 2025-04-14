@@ -10,7 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
+using Teams.Notifications.Api;
 using Teams.Notifications.Api.AgentApplication;
+using Teams.Notifications.Api.Dialogs;
 using Teams.Notifications.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -77,13 +79,9 @@ builder.AddAgent<FileErrorAgent>();
 
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 // Add ApplicationOptions
-builder.Services.AddTransient(sp =>
+builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
 {
-    return new AgentApplicationOptions()
-    {
-        StartTypingTimer = false,
-        TurnStateFactory = () => new TurnState(sp.GetRequiredService<IStorage>())
-    };
+    StartTypingTimer = false,
 });
 
 /*builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

@@ -24,7 +24,27 @@ public class FileErrorAgent : Microsoft.Agents.Builder.App.AgentApplication
     public FileErrorAgent(AgentApplicationOptions options) : base(options)
     {
         OnConversationUpdate(ConversationUpdateEvents.MembersAdded, WelcomeMessageAsync);
+        OnActivity(ActivityTypes.Message, MessageActivityAsync, rank: RouteRank.Last);
         AdaptiveCards.OnActionExecute("process", ProcessCardActionAsync);
+    }
+
+    private async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
+    {
+        var attachement = new Attachment()
+        {
+            ContentType = AdaptiveCard.ContentType,
+            Content = AdaptiveCardBuilder.CreateFileProcessingErrorCard().ToJson()
+        };
+        var pendingActivity = new Activity
+        {
+            Type = ActivityTypes.Message,
+            ServiceUrl = turnContext.Activity.ServiceUrl,
+            ChannelId = turnContext.Activity.ChannelId,
+            ChannelData = turnContext.Activity.ChannelData,
+            Attachments = new List<Attachment> { attachement }
+        };
+
+        await turnContext.SendActivityAsync(pendingActivity, cancellationToken);
     }
 
     protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken cancellationToken)
