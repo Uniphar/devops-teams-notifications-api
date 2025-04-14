@@ -2,7 +2,6 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Azure.Core;
 using Microsoft.Agents.Builder.App;
-using Microsoft.Agents.Builder.State;
 using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -10,9 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
-using Teams.Notifications.Api;
 using Teams.Notifications.Api.AgentApplication;
-using Teams.Notifications.Api.Dialogs;
 using Teams.Notifications.Api.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,32 +48,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.PropertyNameCaseInsensitive = true;
     options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 });
-// Register the AI service of your choice. AzureOpenAI and OpenAI are demonstrated...
-/*if (builder.Configuration.GetSection("AIServices").GetValue<bool>("UseAzureOpenAI"))
-{
-    builder.Services.AddAzureOpenAIChatCompletion(
-        deploymentName: builder.Configuration.GetSection("AIServices:AzureOpenAI").GetValue<string>("DeploymentName"),
-        endpoint: builder.Configuration.GetSection("AIServices:AzureOpenAI").GetValue<string>("Endpoint"),
-        apiKey: builder.Configuration.GetSection("AIServices:AzureOpenAI").GetValue<string>("ApiKey"));
-
-    //Use the Azure CLI (for local) or Managed Identity (for Azure running app) to authenticate to the Azure OpenAI service
-    //credentials: new ChainedTokenCredential(
-    //   new AzureCliCredential(),
-    //   new ManagedIdentityCredential()
-    //));
-}
-else
-{
-    builder.Services.AddOpenAIChatCompletion(
-        modelId: builder.Configuration.GetSection("AIServices:OpenAI").GetValue<string>("ModelId"),
-        apiKey: builder.Configuration.GetSection("AIServices:OpenAI").GetValue<string>("ApiKey"));
-}*/
-
-
 builder.Services.AddBotAspNetAuthentication(builder.Configuration);
 
 builder.AddAgent<FileErrorAgent>();
-
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 // Add ApplicationOptions
 builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
@@ -132,24 +106,3 @@ app.MapControllers();
 
 app.Run();
 
-/*await graphUserClient.PostJsonAsync("teams/70db5c22-571f-47e8-a2d7-33d40ddc1aa8/installedApps", new Dictionary<string, object>
-    {
-        { "teamsApp@odata.bind", "https://graph.microsoft.com/beta/appCatalogs/teamsApps/4c1c145e-eb0d-47cd-a2f1-02df93cf2c92" },
-        { "consentedPermissionSet", new
-        {
-            resourceSpecificPermissions = new[]
-            {
-                new { permissionType = "application", permissionValue = "Channel.Create.Group" },
-                new { permissionType = "application", permissionValue = "TeamsActivity.Send.Group" },
-                new { permissionType = "application", permissionValue = "TeamMember.Read.Group" },
-                new { permissionType = "application", permissionValue = "Member.Read.Group" },
-                new { permissionType = "application", permissionValue = "Owner.Read.Group" },
-                new { permissionType = "application", permissionValue = "ChannelSettings.ReadWrite.Group" },
-                new { permissionType = "application", permissionValue = "ChannelMessage.Read.Group" },
-                new { permissionType = "application", permissionValue = "ChannelMessage.Send.Group" },
-                new { permissionType = "application", permissionValue = "ChannelSettings.Read.Group" },
-                new { permissionType = "application", permissionValue = "Channel.Delete.Group" },
-                new { permissionType = "application", permissionValue = "TeamsActivity.Send.User" }
-            }
-        } }
-    }).Dump();*/
