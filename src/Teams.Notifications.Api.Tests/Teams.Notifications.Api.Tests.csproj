@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <IsTestProject>true</IsTestProject>
+    <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
+  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Azure.Identity" Version="*" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+		<PackageReference Include="MSTest.TestAdapter" Version="*" />
+		<PackageReference Include="MSTest.TestFramework" Version="*" />
+		<PackageReference Include="coverlet.collector" Version="*" />
+		<PackageReference Include="Microsoft.Azure.Kusto.Data" Version="*" />
+	</ItemGroup>
+</Project>
