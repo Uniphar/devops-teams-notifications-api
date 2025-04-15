@@ -26,7 +26,7 @@ builder.Services.AddSingleton(serviceProvider =>
 
 builder.Services.AddTransient<ICardStatesService, CardStatesService>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
-builder.Services.AddTransient<ITeamsChannelManagingService, TeamsChannelManagingService>();
+builder.Services.AddTransient<ITeamsChannelMessagingService, TeamsChannelMessagingService>();
 
 builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 

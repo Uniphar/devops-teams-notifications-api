@@ -6,7 +6,14 @@ namespace Teams.Notifications.Api.Services
 {
     public class FileErrorManagerService : IFileErrorManagerService
     {
-        public FileErrorManagerService(ICardStatesService  cardStatesService) { }
+        private readonly ICardStatesService _cardStatesService;
+        private readonly ITeamsChannelMessagingService _channelMessagingService;
+
+        public FileErrorManagerService(ICardStatesService cardStatesService, ITeamsChannelMessagingService channelMessagingService)
+        {
+            _cardStatesService = cardStatesService;
+            _channelMessagingService = channelMessagingService;
+        }
         public async Task CreateFileErrorCard(FileErrorModel fileError) => throw new System.NotImplementedException();
 
         public async Task UpdateFileErrorCard(int id, FileErrorModel fileError) => throw new System.NotImplementedException();

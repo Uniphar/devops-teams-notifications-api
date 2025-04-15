@@ -9,36 +9,13 @@ using Teams.Notifications.Api.Services.Interfaces;
 
 namespace Teams.Notifications.Api.Services;
 
-public class TeamsChannelManagingService : ITeamsChannelManagingService
+public class TeamsChannelMessagingService : ITeamsChannelMessagingService
 {
     private readonly GraphServiceClient _graphClient;
 
-    public TeamsChannelManagingService(GraphServiceClient graphClient) => _graphClient = graphClient;
+    public TeamsChannelMessagingService(GraphServiceClient graphClient) => _graphClient = graphClient;
 
-    public async Task<KeyValuePair<string, string>> GetTeamAndChannelId(string teamName, string channelName)
-    {
-        var groups = await _graphClient.Teams.GetAsync(request =>
-        {
-            request.QueryParameters.Filter = $"displayName eq '{teamName}'";
-            request.QueryParameters.Select = ["id"];
-        });
-
-        if (groups is not { Value: [Team { Id: var teamId }] })
-            throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
-        var channels = await _graphClient
-            .Teams[teamId]
-            .Channels
-            .GetAsync(request =>
-            {
-                request.QueryParameters.Filter = $"displayName eq '{channelName}'";
-                request.QueryParameters.Select = ["id"];
-            });
-
-        if (channels is not { Value: [Channel { Id: var channelId }] })
-            throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
-
-        return new KeyValuePair<string, string>(teamId, channelId);
-    }
+   
     public async Task UpdateFileErrorCard(FileErrorModel model,string teamId, string channelId, string messageId)
     {
         var guid = Guid.NewGuid().ToString().Replace("-", string.Empty);

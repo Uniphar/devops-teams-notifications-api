@@ -9,9 +9,10 @@ namespace Teams.Notifications.Api.Tests.Services
 {
     [TestClass]
     [TestCategory("Integration")]
-    public sealed class TeamsChannelManagingServiceTests
+    public sealed class TeamsChannelMessagingServiceTests
     {
-        private static TeamsChannelManagingService _teamChannelService;
+        private static TeamsManagerService _teamManager;
+        private static TeamsChannelMessagingService _teamChannelService;
         private static TokenCredential _defaultCredential;
 
         [ClassInitialize]
@@ -31,7 +32,8 @@ namespace Teams.Notifications.Api.Tests.Services
 
 
             var graph = new GraphServiceClient(_defaultCredential);
-            _teamChannelService = new TeamsChannelManagingService(graph);
+            _teamChannelService = new TeamsChannelMessagingService(graph);
+            _teamManager = new TeamsManagerService(graph);
         }
 
         [TestMethod]
@@ -40,9 +42,10 @@ namespace Teams.Notifications.Api.Tests.Services
             var teamName = "Frontgate Files Moving Integration Test In";
             var channelName = "General";
 
-            var team = await _teamChannelService.GetTeamAndChannelId(teamName, channelName);
-            Assert.IsNotEmpty(team.Key);
-            Assert.IsNotEmpty(team.Value);
+            var teamId = await _teamManager.GetTeamId(teamName);
+            var channelId = await _teamManager.GetChannelId(teamId, channelName);
+            Assert.IsNotEmpty(teamId);
+            Assert.IsNotEmpty(channelId);
         }
 
         [TestMethod]
@@ -51,9 +54,8 @@ namespace Teams.Notifications.Api.Tests.Services
             var teamName = "Frontgate Files Moving Integration Test In";
             var channelName = "General";
 
-            var team = await _teamChannelService.GetTeamAndChannelId(teamName, channelName);
-            var teamId = team.Key;
-            var channelId = team.Value;
+            var teamId = await _teamManager.GetTeamId(teamName);
+            var channelId = await _teamManager.GetChannelId(teamId, channelName);
             Assert.IsNotEmpty(teamId);
             Assert.IsNotEmpty(channelId);
             var fileError = new FileErrorModel
