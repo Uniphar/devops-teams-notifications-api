@@ -1,5 +1,7 @@
+using System.Collections.Concurrent;
 using Azure.Core;
 using Microsoft.Agents.Builder.App;
+using Microsoft.Agents.Core.Models;
 using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -23,7 +25,7 @@ builder.Services.AddSingleton(serviceProvider =>
     var credential = serviceProvider.GetRequiredService<TokenCredential>();
     return new GraphServiceClient(credential);
 });
-
+builder.Services.AddSingleton<ConcurrentDictionary<string, ConversationReference>>();
 builder.Services.AddTransient<ICardStatesService, CardStatesService>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ITeamsChannelMessagingService, TeamsChannelMessagingService>();
@@ -32,6 +34,7 @@ builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 
 builder.AddAgent<FileErrorAgent>();
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
+builder.Services.AddControllers();
 // Add ApplicationOptions
 builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
 {

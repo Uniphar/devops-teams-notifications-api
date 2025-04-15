@@ -52,6 +52,15 @@ public class TeamsChannelMessagingService : ITeamsChannelMessagingService
                 ContentType = BodyType.Html,
                 Content = $"<attachment id=\"{guid}\"></attachment>"
             },
+            From = new ChatMessageFromIdentitySet
+            {
+                Application = new TeamworkApplicationIdentity
+                {
+                    OdataType = "#microsoft.graph.teamworkApplicationIdentity",
+                    Id = "4c1c145e-eb0d-47cd-a2f1-02df93cf2c92",
+                    ApplicationIdentityType = TeamworkApplicationIdentityType.Bot
+                }
+            },
             Attachments =
             [
                 new ChatMessageAttachment
@@ -62,6 +71,7 @@ public class TeamsChannelMessagingService : ITeamsChannelMessagingService
                     Content = AdaptiveCardBuilder.CreateFileProcessingCard(model).ToJson(),
                     Name = null,
                     ThumbnailUrl = null,
+                    TeamsAppId = "4c1c145e-eb0d-47cd-a2f1-02df93cf2c92"
                 }
             ]
         };

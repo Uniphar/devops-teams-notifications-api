@@ -1,5 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Agents.Builder;
+using Microsoft.Agents.Core.Models;
+using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Teams.Notifications.Api.Models;
@@ -13,11 +19,34 @@ public class FileErrorController : ControllerBase
 {
     private readonly IFileErrorManagerService _fileErrorService;
     private readonly ILogger<FileErrorController> _logger;
+    private readonly IChannelAdapter _adapter;
+    private readonly ConcurrentDictionary<string, ConversationReference> _conversationReferences;
 
-    public FileErrorController(IFileErrorManagerService fileErrorService, ILogger<FileErrorController> logger )
+    public FileErrorController(IFileErrorManagerService fileErrorService, ILogger<FileErrorController> logger, IChannelAdapter adapter, ConcurrentDictionary<string, ConversationReference> conversationReferences )
     {
+        _adapter = adapter;
+        _conversationReferences = conversationReferences;
         _fileErrorService = fileErrorService;
         _logger = logger;
+    }
+
+    public async Task<IActionResult> Get()
+    {
+        foreach (var conversationReference in _conversationReferences.Values) 
+            await ((ChannelAdapter)_adapter).ContinueConversationAsync("e50979f1-e66c-48fe-bdd9-ff0f634acc13", conversationReference, BotCallback, CancellationToken.None);
+
+        // Let the caller know proactive messages have been sent
+        return new ContentResult
+        {
+            Content = "<html><body><h1>Proactive messages have been sent.</h1></body></html>",
+            ContentType = "text/html",
+            StatusCode = (int)HttpStatusCode.OK
+        };
+    }
+
+    private async Task BotCallback(ITurnContext turnContext, CancellationToken cancellationToken)
+    {
+        await turnContext.SendActivityAsync("proactive hello");
     }
 
     /// <summary>

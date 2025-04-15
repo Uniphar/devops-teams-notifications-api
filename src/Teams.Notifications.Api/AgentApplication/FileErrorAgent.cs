@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Agents.Builder;
@@ -12,13 +13,24 @@ namespace Teams.Notifications.Api.AgentApplication;
 
 public class FileErrorAgent : Microsoft.Agents.Builder.App.AgentApplication
 {
-    public FileErrorAgent(AgentApplicationOptions options) : base(options)
+    private readonly ConcurrentDictionary<string, ConversationReference> _conversationReferences;
+
+    public FileErrorAgent(AgentApplicationOptions options, ConcurrentDictionary<string, ConversationReference> conversationReferences) : base(options)
     {
-        OnActivity(ActivityTypes.Message, MessageActivityAsync, rank: RouteRank.Last);
+        _conversationReferences = conversationReferences;
         AdaptiveCards.OnActionExecute("process", ProcessCardActionAsync);
     }
 
-    private async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
+    [Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)]
+    protected async Task MemberAddedAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken) => AddConversationReference(turnContext.Activity as Activity);
+
+    private void AddConversationReference(Activity activity)
+    {
+        var conversationReference = activity.GetConversationReference();
+        _conversationReferences.AddOrUpdate(conversationReference.User.Id, conversationReference, (key, newValue) => conversationReference);
+    }
+    [Route(RouteType = RouteType.Activity, Type = ActivityTypes.Message, Rank = RouteRank.Last)]
+    protected async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrEmpty(turnContext.Activity.Text)) 
             await turnContext.SendActivityAsync(MessageFactory.Text("You are not meant to chat in this channel"), cancellationToken);
