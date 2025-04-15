@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Microsoft.Graph.Beta;
@@ -48,7 +47,6 @@ public class TeamsChannelMessagingService : ITeamsChannelMessagingService
         var guid = Guid.NewGuid().ToString().Replace("-", string.Empty);
         var requestBody = new ChatMessage
         {
-            Subject = null,
             Body = new ItemBody
             {
                 ContentType = BodyType.Html,
@@ -63,7 +61,7 @@ public class TeamsChannelMessagingService : ITeamsChannelMessagingService
                     ContentUrl = null,
                     Content = AdaptiveCardBuilder.CreateFileProcessingCard(model).ToJson(),
                     Name = null,
-                    ThumbnailUrl = null
+                    ThumbnailUrl = null,
                 }
             ]
         };
