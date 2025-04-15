@@ -5,6 +5,7 @@ using AdaptiveCards;
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
 using Teams.Notifications.Api.Models;
+using Teams.Notifications.Api.Services.Interfaces;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -98,12 +99,4 @@ public class TeamsChannelManagingService : ITeamsChannelManagingService
     {
         await _graphClient.Teams[teamId].Channels[channelId].Messages[messageId].SoftDelete.PostAsync();
     }
-}
-
-public interface ITeamsChannelManagingService
-{
-    Task<KeyValuePair<string, string>> GetTeamAndChannelId(string teamName, string channelName);
-    Task UpdateFileErrorCard(FileErrorModel model,string teamId, string channelId, string messageId);
-    Task<string> CreateFileErrorCard(FileErrorModel model, string teamId, string channelId);
-    Task DeleteFileErrorCard(string teamId, string channelId, string messageId);
 }

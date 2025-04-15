@@ -1,6 +1,4 @@
-﻿using Teams.Notifications.Api.Models;
-
-namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Models;
 
 public class CardState
 {

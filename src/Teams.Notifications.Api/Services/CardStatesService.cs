@@ -2,10 +2,11 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Teams.Notifications.Api.Models;
+using Teams.Notifications.Api.Services.Interfaces;
 
 namespace Teams.Notifications.Api.Services;
 
-public class CardStatesService
+public class CardStatesService : ICardStatesService
 {
     private readonly IMemoryCache _memoryCache;
     private readonly ITeamsChannelManagingService _managingService;
@@ -18,7 +19,7 @@ public class CardStatesService
 
     public async Task<CardState> GetOrUpdate(CardState currentState)
     {
-        var key = GetKeyFromFileError(currentState.FileError);
+        var key = currentState.FileError.GetHashCode();
         if (!_memoryCache.TryGetValue(key, out CardState? cacheValue)) cacheValue = currentState;
 
         if (cacheValue == null) throw new NullReferenceException(nameof(cacheValue));
@@ -36,5 +37,5 @@ public class CardStatesService
         return cacheValue;
     }
 
-    private static string GetKeyFromFileError(FileErrorModel currentStateFileError) => currentStateFileError.System + currentStateFileError.JobId + currentStateFileError.FileName;
+   
 }

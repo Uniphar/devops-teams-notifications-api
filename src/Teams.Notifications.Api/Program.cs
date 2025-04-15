@@ -8,6 +8,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
 using Teams.Notifications.Api.AgentApplication;
 using Teams.Notifications.Api.Extensions;
+using Teams.Notifications.Api.Services;
+using Teams.Notifications.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,10 @@ builder.Services.AddSingleton(serviceProvider =>
     var credential = serviceProvider.GetRequiredService<TokenCredential>();
     return new GraphServiceClient(credential);
 });
+
+builder.Services.AddTransient<ICardStatesService, CardStatesService>();
+builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
+builder.Services.AddTransient<ITeamsChannelManagingService, TeamsChannelManagingService>();
 
 builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 

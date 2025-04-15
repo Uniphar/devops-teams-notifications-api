@@ -9,7 +9,7 @@ namespace Teams.Notifications.Api.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/messages")]
-public class ApiController(IAgentHttpAdapter adapter, IAgent bot) : ControllerBase
+public class AgentController(IAgentHttpAdapter adapter, IAgent bot) : ControllerBase
 {
     /// <summary>
     /// Handles HTTP POST and GET requests to process bot messages.
