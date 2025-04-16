@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Azure.Core;
+using Azure.Identity;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Builder.App;
 using Microsoft.Agents.Core.Models;
@@ -22,6 +23,8 @@ builder.Services.AddHttpClient();
 // Register Semantic Kernel
 builder.Services.AddKernel();
 
+var credentials = new DefaultAzureCredential();
+builder.Services.AddSingleton<TokenCredential>(credentials);
 builder.Services.AddSingleton(serviceProvider =>
 {
     var credential = serviceProvider.GetRequiredService<TokenCredential>();
@@ -31,9 +34,10 @@ builder.Services.AddSingleton<ConcurrentDictionary<string, ConversationReference
 builder.Services.AddTransient<ICardStatesService, CardStatesService>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ITeamsChannelMessagingService, TeamsChannelMessagingService>();
+builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
 
 builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
-
+builder.Services.AddMemoryCache();
 builder.AddAgent<FileErrorAgent>();
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 builder.Services.AddControllers();
