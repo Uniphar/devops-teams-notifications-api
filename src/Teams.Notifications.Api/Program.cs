@@ -25,13 +25,12 @@ builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!
 // Register Semantic Kernel
 builder.Services.AddKernel();
 
-var credentials = new DefaultAzureCredential();
-builder.Services.AddSingleton<TokenCredential>(credentials);
-builder.Services.AddSingleton(serviceProvider =>
-{
-    var credential = serviceProvider.GetRequiredService<TokenCredential>();
-    return new GraphServiceClient(credential);
-});
+// Values from app registration
+var clientId = builder.Configuration["ClientId"]!;
+var tenantId = builder.Configuration["TenantId"]!;
+var clientSecret = builder.Configuration["ClientSecret"]!;
+var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+builder.Services.AddSingleton(new GraphServiceClient(clientSecretCredential));
 builder.Services.AddTransient<ICardStatesService, CardStatesService>();
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
