@@ -9,9 +9,9 @@ using Microsoft.Agents.Core.Models;
 using Teams.Notifications.Api.Models;
 using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
-namespace Teams.Notifications.Api.AgentApplication;
+namespace Teams.Notifications.Api.Agents;
 
-public class FileErrorAgent : Microsoft.Agents.Builder.App.AgentApplication
+public class FileErrorAgent : AgentApplication
 {
     private readonly ConcurrentDictionary<string, ConversationReference> _conversationReferences;
 

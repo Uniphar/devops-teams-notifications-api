@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,41 +19,12 @@ public class FileErrorController : ControllerBase
 {
     private readonly IFileErrorManagerService _fileErrorService;
     private readonly ILogger<FileErrorController> _logger;
-    private readonly IChannelAdapter _adapter;
 
-    public FileErrorController(IFileErrorManagerService fileErrorService, ILogger<FileErrorController> logger, IChannelAdapter adapter, ConcurrentDictionary<string, ConversationReference> conversationReferences )
+
+    public FileErrorController(IFileErrorManagerService fileErrorService, ILogger<FileErrorController> logger, )
     {
-        _adapter = adapter;
         _fileErrorService = fileErrorService;
         _logger = logger;
-    }
-
-    public async Task<IActionResult> Get()
-    {
-        var tenantId = "8421dd92-337e-4405-8cfc-16118ffc5715";
-        var clientId = "e50979f1-e66c-48fe-bdd9-ff0f634acc1";
-        var teamChannelId = "19:19a98T0aX1b-w0aZgSDNOG6pkNkT0nkDmgHeKfvhBCk1@thread.tacv2";
-        var refe = new ConversationReference
-        {
-            ChannelId = Channels.Msteams,
-            ServiceUrl = $"https://smba.trafficmanager.net/emea/{tenantId}",
-            
-            Conversation = new ConversationAccount(id: teamChannelId),
-            ActivityId = teamChannelId
-        };
-        await _adapter.ContinueConversationAsync(clientId, refe, BotCallback, CancellationToken.None);
-
-        return new ContentResult
-        {
-            Content = "<html><body><h1>Proactive messages have been sent.</h1></body></html>",
-            ContentType = "text/html",
-            StatusCode = (int)HttpStatusCode.OK
-        };
-    }
-
-    private async Task BotCallback(ITurnContext turnContext, CancellationToken cancellationToken)
-    {
-        await turnContext.SendActivityAsync("proactive hello");
     }
 
     /// <summary>
@@ -74,7 +44,7 @@ public class FileErrorController : ControllerBase
             _logger.LogError(e, "Something went wrong creating the message");
             throw;
         }
-        
+
         return fileError.GetHashCode();
     }
 

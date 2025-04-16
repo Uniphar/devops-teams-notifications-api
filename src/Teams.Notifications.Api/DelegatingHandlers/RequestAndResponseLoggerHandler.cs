@@ -8,12 +8,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Teams.Notifications.Api;
 
-public class RequestAndResponseLoggerHandler : DelegatingHandler
+/// <summary>
+/// HTTP client helper that can be used for logging all api traffic flowing out of the system
+/// As long as something is either using a http client factory or named httpclient we can capture all data 
+/// </summary>
+/// <param name="logger"></param>
+public class RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHandler> logger) : DelegatingHandler
 {
     private const int MaxBodyLength = 10000; // we don't want to log  big request or responses
-    private readonly ILogger<RequestAndResponseLoggerHandler> _logger;
-
-    public RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHandler> logger) => _logger = logger;
+    private static readonly bool ShouldLog = false;
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
         CancellationToken cancellationToken
@@ -21,19 +24,18 @@ public class RequestAndResponseLoggerHandler : DelegatingHandler
     {
         var timer = Stopwatch.StartNew();
         var requestBody = string.Empty;
-        if (request?.Content != null) requestBody = await request.Content?.ReadAsStringAsync(cancellationToken)!;
+        if (request.Content != null) requestBody = await request.Content?.ReadAsStringAsync(cancellationToken)!;
         if (requestBody.Length > MaxBodyLength)
             requestBody = $"body to big:{requestBody.Length} chars";
 
         var requestLogEvent = new
         {
-            url = request?.RequestUri?.OriginalString,
-            method = request?.Method.Method,
+            url = request.RequestUri?.OriginalString,
+            method = request.Method.Method,
             body = requestBody,
-            headers = FilterHeader(request?.Headers)
+            headers = FilterHeader(request.Headers)
         };
 
-        if (request == null) return null;
         var response = await base.SendAsync(request, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
         if (responseBody.Length > MaxBodyLength)
@@ -47,10 +49,11 @@ public class RequestAndResponseLoggerHandler : DelegatingHandler
             took = new { total = timer.Elapsed }
         };
 
-        _logger.LogDebug("Request finished and got a {status}: {requestLogEvent} {responseLogEvent}",
-            responseLogEvent.status,
-            requestLogEvent,
-            responseLogEvent);
+        if (ShouldLog)
+            logger.LogDebug("Request finished and got a {status}: {requestLogEvent} {responseLogEvent}",
+                responseLogEvent.status,
+                requestLogEvent,
+                responseLogEvent);
         return response;
     }
 

@@ -19,8 +19,8 @@ using Teams.Notifications.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
+// this is what the bot is communicating on
+builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
 // Register Semantic Kernel
 builder.Services.AddKernel();
 
@@ -31,7 +31,6 @@ builder.Services.AddSingleton(serviceProvider =>
     var credential = serviceProvider.GetRequiredService<TokenCredential>();
     return new GraphServiceClient(credential);
 });
-builder.Services.AddSingleton<ConcurrentDictionary<string, ConversationReference>>();
 builder.Services.AddTransient<ICardStatesService, CardStatesService>();
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
@@ -43,7 +42,7 @@ builder.Services.AddMemoryCache();
 builder.AddAgent<FileErrorAgent>();
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 builder.Services.AddControllers();
-builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware(sp.GetRequiredService<ConcurrentDictionary<string, ConversationReference>>())]
+builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
 );
 // Add ApplicationOptions
 builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
