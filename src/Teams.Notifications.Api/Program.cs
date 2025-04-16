@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Azure.Core;
+using Microsoft.Agents.Builder;
 using Microsoft.Agents.Builder.App;
 using Microsoft.Agents.Core.Models;
 using Microsoft.Agents.Hosting.AspNetCore;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
+using Teams.Notifications.Api;
 using Teams.Notifications.Api.AgentApplication;
 using Teams.Notifications.Api.Extensions;
 using Teams.Notifications.Api.Services;
@@ -35,6 +37,8 @@ builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 builder.AddAgent<FileErrorAgent>();
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 builder.Services.AddControllers();
+builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware(sp.GetRequiredService<ConcurrentDictionary<string, ConversationReference>>())]
+);
 // Add ApplicationOptions
 builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
 {
