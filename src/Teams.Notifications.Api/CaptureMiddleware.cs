@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
+using Microsoft.Agents.Extensions.Teams.Models;
 
 namespace Teams.Notifications.Api;
 
@@ -15,12 +16,13 @@ public class CaptureMiddleware : IMiddleware
     public async Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken = new())
     {
         AddConversationReference(turnContext.Activity as Activity);
+        var data =turnContext.Activity.ChannelData as TeamsChannelData;
         await next(cancellationToken).ConfigureAwait(false);
     }
 
     private void AddConversationReference(Activity activity)
     {
-        var conversationReference = activity.GetConversationReference();
-        _conversationReferences.AddOrUpdate(conversationReference.User.Id, conversationReference, (key, newValue) => conversationReference);
+        //var conversationReference = activity.GetConversationReference();
+        //_conversationReferences.AddOrUpdate(conversationReference.User.Id, conversationReference, (key, newValue) => conversationReference);
     }
 }

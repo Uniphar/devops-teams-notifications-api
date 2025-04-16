@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
+using Microsoft.Agents.Extensions.Teams.Models;
 using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -20,12 +21,10 @@ public class FileErrorController : ControllerBase
     private readonly IFileErrorManagerService _fileErrorService;
     private readonly ILogger<FileErrorController> _logger;
     private readonly IChannelAdapter _adapter;
-    private readonly ConcurrentDictionary<string, ConversationReference> _conversationReferences;
 
     public FileErrorController(IFileErrorManagerService fileErrorService, ILogger<FileErrorController> logger, IChannelAdapter adapter, ConcurrentDictionary<string, ConversationReference> conversationReferences )
     {
         _adapter = adapter;
-        _conversationReferences = conversationReferences;
         _fileErrorService = fileErrorService;
         _logger = logger;
     }
@@ -34,14 +33,17 @@ public class FileErrorController : ControllerBase
     {
         var tenantId = "8421dd92-337e-4405-8cfc-16118ffc5715";
         var clientId = "e50979f1-e66c-48fe-bdd9-ff0f634acc1";
-        foreach (var conversationReference in _conversationReferences.Values)
-            await _adapter.ContinueConversationAsync(clientId, conversationReference, BotCallback, CancellationToken.None);
-        var conversationParam = new ConversationParameters()
+        var teamChannelId = "19:19a98T0aX1b-w0aZgSDNOG6pkNkT0nkDmgHeKfvhBCk1@thread.tacv2";
+        var refe = new ConversationReference
         {
-            IsGroup = true,
+            ChannelId = Channels.Msteams,
+            ServiceUrl = $"https://smba.trafficmanager.net/emea/{tenantId}",
+            
+            Conversation = new ConversationAccount(id: teamChannelId),
+            ActivityId = teamChannelId
         };
-        await _adapter.CreateConversationAsync(clientId, Channels.Msteams, $"https://smba.trafficmanager.net/emea/{tenantId}", "https://api.botframework.com", conversationParam, BotCallback, CancellationToken.None);
-        // Let the caller know proactive messages have been sent
+        await _adapter.ContinueConversationAsync(clientId, refe, BotCallback, CancellationToken.None);
+
         return new ContentResult
         {
             Content = "<html><body><h1>Proactive messages have been sent.</h1></body></html>",

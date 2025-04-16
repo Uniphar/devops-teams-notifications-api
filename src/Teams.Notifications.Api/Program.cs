@@ -3,6 +3,7 @@ using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Builder.App;
+using Microsoft.Agents.Connector;
 using Microsoft.Agents.Core.Models;
 using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.Agents.Storage;
@@ -18,8 +19,8 @@ using Teams.Notifications.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddHttpClient();
 
+builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
 // Register Semantic Kernel
 builder.Services.AddKernel();
 
@@ -32,6 +33,7 @@ builder.Services.AddSingleton(serviceProvider =>
 });
 builder.Services.AddSingleton<ConcurrentDictionary<string, ConversationReference>>();
 builder.Services.AddTransient<ICardStatesService, CardStatesService>();
+builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ITeamsChannelMessagingService, TeamsChannelMessagingService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
