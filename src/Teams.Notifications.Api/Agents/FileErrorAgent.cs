@@ -13,22 +13,17 @@ namespace Teams.Notifications.Api.Agents;
 
 public class FileErrorAgent : AgentApplication
 {
-    private readonly ConcurrentDictionary<string, ConversationReference> _conversationReferences;
 
-    public FileErrorAgent(AgentApplicationOptions options, ConcurrentDictionary<string, ConversationReference> conversationReferences) : base(options)
+
+    public FileErrorAgent(AgentApplicationOptions options) : base(options)
     {
-        _conversationReferences = conversationReferences;
+        
         AdaptiveCards.OnActionExecute("process", ProcessCardActionAsync);
     }
 
     [Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)]
-    protected async Task MemberAddedAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken) => AddConversationReference(turnContext.Activity as Activity);
+    protected async Task MemberAddedAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken) => await turnContext.SendActivityAsync(MessageFactory.Text("Welcome new user"), cancellationToken);
 
-    private void AddConversationReference(Activity activity)
-    {
-        var conversationReference = activity.GetConversationReference();
-        _conversationReferences.AddOrUpdate(conversationReference.User.Id, conversationReference, (key, newValue) => conversationReference);
-    }
     [Route(RouteType = RouteType.Activity, Type = ActivityTypes.Message, Rank = RouteRank.Last)]
     protected async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
