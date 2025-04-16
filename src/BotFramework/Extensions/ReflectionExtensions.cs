@@ -20,6 +20,8 @@ internal static class ReflectionExtensions
 	public static bool IsValueTuple(this Type? type)
 		=> type is { IsValueType: true, IsGenericType: true } && ValueTupleTypes.Contains(type.GetGenericTypeDefinition());
 
+	public static bool IsNullableValueType(this Type? type) => type is not null && Nullable.GetUnderlyingType(type) is not null;
+
 	public static bool IsGenericOfType(this Type type, Type openGenericType)
 	{
 		if (!openGenericType.IsGenericTypeDefinition)

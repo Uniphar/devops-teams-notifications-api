@@ -5,7 +5,7 @@ internal sealed class IdConverter : JsonConverterFactory
 	public override bool CanConvert(Type typeToConvert) => typeToConvert.IsGenericOfType(typeof(Id<>));
 
 	public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
-		=> typeof(IdConverter<>).InstantiateGeneric<JsonConverter>(typeToConvert);
+		=> typeof(IdConverter<>).InstantiateGeneric<JsonConverter>(typeToConvert.GetGenericArguments()[0]);
 }
 
 file sealed class IdConverter<TKey> : JsonConverter<Id<TKey>> where TKey : notnull

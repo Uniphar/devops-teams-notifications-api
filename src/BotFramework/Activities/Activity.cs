@@ -7,7 +7,7 @@ namespace Teams.Cards.BotFramework;
 public abstract record Activity
 {
 	[JsonInclude, DebuggerBrowsable(DebuggerBrowsableState.Never)]
-	internal abstract string Type { get; }
+	public abstract string Type { get; }
 
 	[CacheDeserializedInstances]
 	public Uri? ServiceUrl { get; init; }

@@ -17,6 +17,9 @@ internal static class HttpPipeline
 	public static HttpMessageHandler AddResiliency(this HttpMessageHandler handler, Func<ResiliencePipelineBuilder<HttpResponseMessage>, ResiliencePipelineBuilder<HttpResponseMessage>> pipelineBuilder)
 	{
 		var pipeline = pipelineBuilder(new ResiliencePipelineBuilder<HttpResponseMessage>());
-		return new ResilienceHandler(pipeline.Build());
+		return new ResilienceHandler(pipeline.Build())
+		{
+			InnerHandler = handler
+		};
 	}
 }

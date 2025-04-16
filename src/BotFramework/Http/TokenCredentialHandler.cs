@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using System.Net.Http.Headers;
 
 namespace Teams.Cards.BotFramework;
 
@@ -9,7 +10,7 @@ internal sealed class TokenCredentialHandler(TokenCredential Credential, params 
 	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
 		var token = await Credential.GetTokenAsync(TokenRequestContext, cancellationToken);
-		request.Headers.Add("Authorization", $"Bearer {token.Token}");
+		request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 		return await base.SendAsync(request, cancellationToken);
 	}
 }

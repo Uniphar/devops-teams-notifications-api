@@ -83,8 +83,10 @@ internal class ObjectTupleAttribute : JsonConverterAttribute
 
 	public override JsonConverter? CreateConverter(Type typeToConvert)
 	{
-		var isTupleType = typeToConvert.IsValueTuple();
-		var tupleTypes = typeToConvert.GetGenericArguments();
+		var isNullable = typeToConvert.IsNullableValueType();
+		var nonNullableType = Nullable.GetUnderlyingType(typeToConvert) ?? typeToConvert;
+		var isTupleType = nonNullableType.IsValueTuple();
+		var tupleTypes = nonNullableType.GetGenericArguments();
 		var converterType = PropertyNames switch
 		{
 			{ Length: 1 } when !isTupleType => typeof(ObjectTupleConverter<>).MakeGenericType(typeToConvert),

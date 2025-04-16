@@ -27,7 +27,7 @@ public sealed class BotClientFactory
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
 			PropertyNameCaseInsensitive = true,
-			IgnoreReadOnlyProperties = true
+			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
 		});
 
 		Clients = new CachingFactory<Uri, IBotClient>(baseUri =>

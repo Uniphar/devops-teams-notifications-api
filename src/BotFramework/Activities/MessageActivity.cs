@@ -2,7 +2,7 @@
 
 public sealed record MessageActivity : Activity
 {
-	internal override string Type => "message";
+	public override string Type => "message";
 
 	public required string Text { get; init; }
 	public TextFormat Format { get; init; }

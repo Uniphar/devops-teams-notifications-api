@@ -5,7 +5,6 @@ namespace Teams.Cards.BotFramework;
 
 internal static class SpanExtensions
 {
-	public static Span<T> AsSpan<T>(this byte[] bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
 	public static ReadOnlySpan<T> AsReadOnlySpan<T>(this byte[] bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
 	public static Span<T> Cast<T>(this Span<byte> bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
 	public static ReadOnlySpan<T> Cast<T>(this ReadOnlySpan<byte> bytes) where T : unmanaged => MemoryMarshal.Cast<byte, T>(bytes);
