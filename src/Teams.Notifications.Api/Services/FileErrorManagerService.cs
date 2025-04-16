@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Agents.Builder;
 using System.Threading.Tasks;
 using AdaptiveCards;
 using Microsoft.Agents.Core.Models;
+using Microsoft.Extensions.Configuration;
 using Teams.Notifications.Api.Models;
 using Teams.Notifications.Api.Services.Interfaces;
 
@@ -11,25 +13,20 @@ namespace Teams.Notifications.Api.Services
 {
     public class FileErrorManagerService : IFileErrorManagerService
     {
-        private readonly ICardStatesService _cardStatesService;
         private readonly ITeamsChannelMessagingService _channelMessagingService;
         private readonly IChannelAdapter _adapter;
-        private readonly ITeamsManagerService _teamsManagerService;
+        private readonly string _clientId;
+        private readonly string _tenantId;
 
-        public FileErrorManagerService(ICardStatesService cardStatesService, ITeamsManagerService teamsManagerService, IChannelAdapter adapter)
+        public FileErrorManagerService(IChannelAdapter adapter, IConfiguration config)
         {
-            _cardStatesService = cardStatesService;
-            _teamsManagerService = teamsManagerService;
             _adapter = adapter;
+            _clientId = config["ClientId"] ?? throw new ArgumentNullException(config["ClientId"]);
+            _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
         }
 
-        public async Task CreateFileErrorCard(FileErrorModel fileError)
+        public async Task CreateFileErrorCardAsync(FileErrorModel fileError, string teamChannelId)
         {
-            var tenantId = "8421dd92-337e-4405-8cfc-16118ffc5715";
-            var clientId = "e50979f1-e66c-48fe-bdd9-ff0f634acc1";
-            var teamChannelId = "19:19a98T0aX1b-w0aZgSDNOG6pkNkT0nkDmgHeKfvhBCk1@thread.tacv2";
-
-
             var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError).ToJson();
             // Create a response message based on the response content type from the WeatherForecastAgent
             var activity = new Activity
@@ -44,16 +41,16 @@ namespace Teams.Notifications.Api.Services
                     }
                 }
             };
-            var refe = new ConversationReference
+            var conversationReference = new ConversationReference
             {
                 ChannelId = Channels.Msteams,
-                ServiceUrl = $"https://smba.trafficmanager.net/emea/{tenantId}",
+                ServiceUrl = $"https://smba.trafficmanager.net/emea/{_tenantId}",
                 Conversation = new ConversationAccount(id: teamChannelId),
                 ActivityId = teamChannelId
             };
-            await _adapter.ContinueConversationAsync(clientId,
-                refe,
-                async (turnContext, cancellationToken) => { await turnContext.SendActivityAsync(activity, cancellationToken: cancellationToken); },
+            await _adapter.ContinueConversationAsync(_clientId,
+                conversationReference,
+                async (turnContext, cancellationToken) => { await turnContext.SendActivityAsync(activity, cancellationToken); },
                 CancellationToken.None);
         }
       

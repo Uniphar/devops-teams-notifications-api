@@ -15,7 +15,7 @@ public class TeamsManagerService : ITeamsManagerService
 
     public TeamsManagerService(GraphServiceClient graphClient) => _graphClient = graphClient;
 
-    public async Task<string> GetTeamId(string teamName)
+    public async Task<string> GetTeamIdAsync(string teamName)
     {
         var groups = await _graphClient.Teams.GetAsync(request =>
         {
@@ -27,7 +27,8 @@ public class TeamsManagerService : ITeamsManagerService
             throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
         return teamId;
     }
-    public async Task<MinimalChannelInfo> GetChannelInfo(string teamId, string channelName)
+
+    public async Task<string> GetChannelIdAsync(string teamId, string channelName)
     {
         var channels = await _graphClient
             .Teams[teamId]
@@ -35,25 +36,13 @@ public class TeamsManagerService : ITeamsManagerService
             .GetAsync(request =>
             {
                 request.QueryParameters.Filter = $"displayName eq '{channelName}'";
-                request.QueryParameters.Select = ["id", "webUrl", "filesFolderWebUrl"];
+                request.QueryParameters.Select = ["id"];
             });
 
-        if (channels is not { Value: [{ WebUrl: var webUrl, Id: var channelId }] })
+        if (channels is not { Value: [{ Id: var channelId }] })
             throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
-        return new MinimalChannelInfo
-        {
-            Id = channelId,
-       
-            WebUrl = webUrl
-        };
+        return channelId;
     }
    
  
-}
-
-public record MinimalChannelInfo
-{
-    public required string Id { get; init; }
-    public required string WebUrl { get; init; }
-
 }

@@ -27,10 +27,10 @@ public class CardStatesService : ICardStatesService
         if (cacheValue == null) throw new NullReferenceException(nameof(cacheValue));
         if (string.IsNullOrEmpty(cacheValue.TeamId) || string.IsNullOrEmpty(cacheValue.ChannelId))
         {
-            var teamId = await _teamsManager.GetTeamId(cacheValue.TeamName);
-            var channel = await _teamsManager.GetChannelInfo(teamId, cacheValue.ChannelName);
+            var teamId = await _teamsManager.GetTeamIdAsync(cacheValue.TeamName);
+            var channelId = await _teamsManager.GetChannelIdAsync(teamId, cacheValue.ChannelName);
             cacheValue.TeamId = teamId;
-            cacheValue.ChannelId = channel.Id;
+            cacheValue.ChannelId = channelId;
         }
 
         var cacheEntryOptions = new MemoryCacheEntryOptions();

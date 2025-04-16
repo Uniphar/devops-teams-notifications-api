@@ -12,8 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
 using Teams.Notifications.Api;
-using Teams.Notifications.Api.AgentApplication;
+using Teams.Notifications.Api.Agents;
 using Teams.Notifications.Api.Extensions;
+using Teams.Notifications.Api.Middleware;
 using Teams.Notifications.Api.Services;
 using Teams.Notifications.Api.Services.Interfaces;
 

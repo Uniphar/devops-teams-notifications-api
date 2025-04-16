@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<PackageReference Include="Azure.Identity" Version="*" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+		<PackageReference Include="Moq" Version="4.20.72" />
 		<PackageReference Include="MSTest.TestAdapter" Version="*" />
 		<PackageReference Include="MSTest.TestFramework" Version="*" />
 		<PackageReference Include="coverlet.collector" Version="*" />
