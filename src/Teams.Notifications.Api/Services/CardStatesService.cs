@@ -28,9 +28,9 @@ public class CardStatesService : ICardStatesService
         if (string.IsNullOrEmpty(cacheValue.TeamId) || string.IsNullOrEmpty(cacheValue.ChannelId))
         {
             var teamId = await _teamsManager.GetTeamId(cacheValue.TeamName);
-            var channelId = await _teamsManager.GetChannelId(teamId, cacheValue.ChannelName);
+            var channel = await _teamsManager.GetChannelInfo(teamId, cacheValue.ChannelName);
             cacheValue.TeamId = teamId;
-            cacheValue.ChannelId = channelId;
+            cacheValue.ChannelId = channel.Id;
         }
 
         var cacheEntryOptions = new MemoryCacheEntryOptions();

@@ -32,9 +32,15 @@ public class FileErrorController : ControllerBase
 
     public async Task<IActionResult> Get()
     {
-        foreach (var conversationReference in _conversationReferences.Values) 
-            await ((ChannelAdapter)_adapter).ContinueConversationAsync("e50979f1-e66c-48fe-bdd9-ff0f634acc13", conversationReference, BotCallback, CancellationToken.None);
-
+        var tenantId = "8421dd92-337e-4405-8cfc-16118ffc5715";
+        var clientId = "e50979f1-e66c-48fe-bdd9-ff0f634acc1";
+        foreach (var conversationReference in _conversationReferences.Values)
+            await _adapter.ContinueConversationAsync(clientId, conversationReference, BotCallback, CancellationToken.None);
+        var conversationParam = new ConversationParameters()
+        {
+            IsGroup = true,
+        };
+        await _adapter.CreateConversationAsync(clientId, Channels.Msteams, $"https://smba.trafficmanager.net/emea/{tenantId}", "https://api.botframework.com", conversationParam, BotCallback, CancellationToken.None);
         // Let the caller know proactive messages have been sent
         return new ContentResult
         {

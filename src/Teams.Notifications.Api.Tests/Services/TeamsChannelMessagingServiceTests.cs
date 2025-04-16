@@ -43,9 +43,9 @@ namespace Teams.Notifications.Api.Tests.Services
             var channelName = "General";
 
             var teamId = await _teamManager.GetTeamId(teamName);
-            var channelId = await _teamManager.GetChannelId(teamId, channelName);
+            var channel = await _teamManager.GetChannelInfo(teamId, channelName);
             Assert.IsNotEmpty(teamId);
-            Assert.IsNotEmpty(channelId);
+            Assert.IsNotEmpty(channel.Id);
         }
 
         [TestMethod]
@@ -55,9 +55,9 @@ namespace Teams.Notifications.Api.Tests.Services
             var channelName = "General";
 
             var teamId = await _teamManager.GetTeamId(teamName);
-            var channelId = await _teamManager.GetChannelId(teamId, channelName);
+            var channel = await _teamManager.GetChannelInfo(teamId, channelName);
             Assert.IsNotEmpty(teamId);
-            Assert.IsNotEmpty(channelId);
+            Assert.IsNotEmpty(channel.Id);
             var fileError = new FileErrorModel
             {
                 FileName = "Test",
@@ -65,12 +65,12 @@ namespace Teams.Notifications.Api.Tests.Services
                 JobId = "test",
                 Status = FileErrorStatusEnum.Failed
             };
-            var messageId = await _teamChannelService.CreateFileErrorCard(fileError, teamId, channelId);
+            var messageId = await _teamChannelService.CreateFileErrorCard(fileError, teamId, channel.Id);
             Assert.IsNotEmpty(messageId);
             fileError.Status = FileErrorStatusEnum.Succes;
-            await _teamChannelService.UpdateFileErrorCard(fileError, teamId, channelId, messageId);
+            await _teamChannelService.UpdateFileErrorCard(fileError, teamId, channel.Id, messageId);
             //
-            await _teamChannelService.DeleteFileErrorCard(teamId, channelId, messageId);
+            await _teamChannelService.DeleteFileErrorCard(teamId, channel.Id, messageId);
         }
     }
 }
