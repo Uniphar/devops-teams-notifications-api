@@ -27,7 +27,7 @@ jobs:
       - name: run unit tests
         working-directory: ./src/${{ env.APPLICATION_NAME }}.Tests
         run: |
-          dotnet test -v:q --nologo --filter TestCategory=Unit --logger GitHubActions
+          dotnet test -v:q --nologo --filter TestCategory=Unit /p:CollectCoverage=true --logger GitHubActions
 
       - name: docker build test
         working-directory: ./src/
