@@ -28,16 +28,26 @@ jobs:
         working-directory: ./src/${{ env.APPLICATION_NAME }}.Tests
         run: |
           dotnet test -v:q --nologo --filter TestCategory=Unit /p:CollectCoverage=true --logger GitHubActions
-      - name: run integration tests
-        run: dotnet tool install --global dotnet-reportgenerator-globaltool
-      - name: generate coverage report
-        working-directory: ./
-        run: reportgenerator -reports:"./tests/*/coverage.cobertura.xml" -targetdir:"coverage-results" -reporttypes:Html
-      - name: upload test results
+      - name: ReportGenerator
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.5
+        with:
+          reports: "./tests/*/coverage.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
+          targetdir: "coverage-results" # REQUIRED # The directory where the generated report should be saved.
+          reporttypes: "HtmlInline;MarkdownSummaryGithub"
+      - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: coverage-results
           path: coverage-results
+      - name: Add comment to PR # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
+        if: github.event_name == 'pull_request'
+        run: gh pr comment $PR_NUMBER --body-file coverage-results/SummaryGithub.md # Adjust path and filename if necessary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+      - name: Publish coverage in build summary # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
+        run: cat coverage-results/SummaryGithub.md >> $GITHUB_STEP_SUMMARY # Adjust path and filename if necessary
+        shell: bash
       - name: docker build test
         working-directory: ./src/
         run: |
