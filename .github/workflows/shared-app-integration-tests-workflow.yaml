@@ -106,16 +106,16 @@ jobs:
               exit 1
             }
 
-      - name: run integration tests
+      - name: Run integration tests
         working-directory: ./src/${{ inputs.applicationFolder }}.Tests
         run: dotnet test -v:q --nologo -s ./runsettings/${{ inputs.environment }}.runsettings --filter TestCategory=${{ inputs.testCategory }} --logger GitHubActions
-      - name: ReportGenerator
+      - name: Generate coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.4.5
         with:
           reports: "./tests/*/coverage.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
           targetdir: "coverage-results" # REQUIRED # The directory where the generated report should be saved.
           reporttypes: "HtmlInline;MarkdownSummaryGithub"
-      - name: Upload test results
+      - name: Upload test results in case manual view
         uses: actions/upload-artifact@v4
         with:
           name: coverage-results
