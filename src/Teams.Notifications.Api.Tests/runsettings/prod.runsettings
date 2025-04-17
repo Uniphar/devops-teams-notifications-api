@@ -13,6 +13,7 @@
 		</DataCollectors>
 	</DataCollectionRunSettings>
 	<RunConfiguration>
+		<CollectSourceInformation>true</CollectSourceInformation>
 		<MaxCpuCount>0</MaxCpuCount>
 		<ResultsDirectory>../../../tests</ResultsDirectory>
 	</RunConfiguration>

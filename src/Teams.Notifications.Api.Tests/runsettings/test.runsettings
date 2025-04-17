@@ -13,6 +13,7 @@
 		</DataCollectors>
 	</DataCollectionRunSettings>
 	<TestRunParameters>
+		<CollectSourceInformation>true</CollectSourceInformation>
 		<Parameter name="Environment" value="test" />
 	</TestRunParameters>
 	<RunConfiguration>
