@@ -1,14 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
+	<DataCollectionRunSettings>
+		<DataCollectors>
+			<DataCollector friendlyName="XPlat code coverage">
+				<Configuration>
+					<Format>json,cobertura</Format>
+					<ExcludeByFile>**/Migrations/*.cs,**/Connected Services/**/*.cs,</ExcludeByFile>
+					<Exclude>[coverlet.*.tests?]*,[*]Coverlet.Core*</Exclude>
+					<ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+				</Configuration>
+			</DataCollector>
+		</DataCollectors>
+	</DataCollectionRunSettings>
 	<TestRunParameters>
 		<Parameter name="Environment" value="local" />
-		<Parameter name="ClientId" value="replaceme" />
-		<Parameter name="TenantId" value="replaceme" />
-		<Parameter name="ClientSecret" value="replaceme" />
+		<Parameter name="ClientId" value="{{ClientId}}" />
+		<Parameter name="TenantId" value="{{TenantId}}" />
+		<Parameter name="ClientSecret" value="{{ClientSecret}}" />
 	</TestRunParameters>
 	<RunConfiguration>
 		<MaxCpuCount>0</MaxCpuCount>
-		<ResultsDirectory>tests</ResultsDirectory>
+		<ResultsDirectory>../../../tests</ResultsDirectory>
 	</RunConfiguration>
 	<MSTest>
 		<Parallelize>
