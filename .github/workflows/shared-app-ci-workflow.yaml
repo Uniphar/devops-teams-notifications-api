@@ -34,7 +34,7 @@ jobs:
         working-directory: ./
         run: reportgenerator -reports:"tests\*\coverage.cobertura.xml" -targetdir:"test-results" -reporttypes:Html
       - name: upload test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
       - name: docker build test
