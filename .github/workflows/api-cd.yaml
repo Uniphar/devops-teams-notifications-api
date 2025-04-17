@@ -32,6 +32,6 @@ jobs:
       ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
       ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
-      applicationFolder: Teams.Notifications
+      applicationFolder: Teams.Notifications.Api
       applicationName: teams-notification-api
       singleCluster: false
