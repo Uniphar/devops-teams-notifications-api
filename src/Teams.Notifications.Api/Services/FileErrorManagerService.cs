@@ -25,10 +25,10 @@ namespace Teams.Notifications.Api.Services
             _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
         }
 
-        public async Task CreateFileErrorCardAsync(FileErrorModel fileError, string teamChannelId)
+        public async Task<string> CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamChannelId)
         {
+            if (fileError.Status == FileErrorStatusEnum.Succes) await DeleteFileErrorCard(fileError.GetId(), teamChannelId);
             var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError).ToJson();
-            // Create a response message based on the response content type from the WeatherForecastAgent
             var activity = new Activity
             {
                 Type = "message",
@@ -52,11 +52,9 @@ namespace Teams.Notifications.Api.Services
                 conversationReference,
                 async (turnContext, cancellationToken) => { await turnContext.SendActivityAsync(activity, cancellationToken); },
                 CancellationToken.None);
+            return fileError.GetId();
         }
-      
-
-        public async Task UpdateFileErrorCard(int id, FileErrorModel fileError) => throw new System.NotImplementedException();
-
-        public async Task DeleteFileErrorCard(string id) => throw new System.NotImplementedException();
+        
+        public async Task DeleteFileErrorCard(string id, string teamChannelId) => throw new System.NotImplementedException();
     }
 }

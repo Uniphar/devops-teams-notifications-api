@@ -14,11 +14,6 @@ public class AdaptiveCardBuilder
         string info;
         switch (model.Status)
         {
-            case FileErrorStatusEnum.Succes:
-                statusString = "Success";
-                title = "File is now cleared";
-                info = string.Empty;
-                break;
             case FileErrorStatusEnum.Failed:
                 statusString = "❌ Failed";
                 title = "🚨 File Processing Error";
@@ -29,6 +24,8 @@ public class AdaptiveCardBuilder
                 title = "File is reprocessing";
                 info = "You requested to reprocess the file";
                 break;
+            // can never happen only failed and in progress are options
+            case FileErrorStatusEnum.Succes:
             default:
                 statusString = "❌ Failed";
                 title = "🚨 File Processing Error";

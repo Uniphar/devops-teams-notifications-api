@@ -5,7 +5,6 @@ namespace Teams.Notifications.Api.Services.Interfaces;
 
 public interface IFileErrorManagerService
 {
-    Task CreateFileErrorCardAsync(FileErrorModel fileError, string teamChannelId);
-    Task UpdateFileErrorCard(int id, FileErrorModel fileError);
-    Task DeleteFileErrorCard(string id);
+    Task<string> CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamChannelId);
+    Task DeleteFileErrorCard(string id, string teamChannelId);
 }

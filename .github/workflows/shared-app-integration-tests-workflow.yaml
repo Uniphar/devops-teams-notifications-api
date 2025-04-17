@@ -108,7 +108,7 @@ jobs:
 
       - name: run integration tests
         working-directory: ./src/${{ inputs.applicationFolder }}.Tests
-        run: dotnet test -v:q --nologo -s ./runsettings/${{ inputs.environment }}.runsettings --filter TestCategory=${{ inputs.testCategory }}
+        run: dotnet test -v:q --nologo -s ./runsettings/${{ inputs.environment }}.runsettings --filter TestCategory=${{ inputs.testCategory }} --logger GitHubActions
       - name: run integration tests
         run: dotnet tool install dotnet-reportgenerator-globaltool
       - name: generate coverage report

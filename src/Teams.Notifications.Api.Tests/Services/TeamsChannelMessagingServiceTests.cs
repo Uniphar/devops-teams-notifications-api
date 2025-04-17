@@ -72,7 +72,7 @@ namespace Teams.Notifications.Api.Tests.Services
                 JobId = "test",
                 Status = FileErrorStatusEnum.Failed
             };
-            await _fileErrorManager.CreateFileErrorCardAsync(fileError,  channelId);
+            await _fileErrorManager.CreateUpdateOrDeleteFileErrorCardAsync(fileError,  channelId);
 
             fileError.Status = FileErrorStatusEnum.Succes;
         }
