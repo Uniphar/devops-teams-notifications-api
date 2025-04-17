@@ -29,7 +29,7 @@ jobs:
         run: |
           dotnet test -v:q --nologo --filter TestCategory=Unit /p:CollectCoverage=true --logger GitHubActions
       - name: run integration tests
-        run: dotnet tool install dotnet-reportgenerator-globaltool
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
       - name: generate coverage report
         working-directory: ./
         run: reportgenerator -reports:"tests\*\coverage.cobertura.xml" -targetdir:"test-results" -reporttypes:Html
@@ -37,6 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
+          path: test-results
       - name: docker build test
         working-directory: ./src/
         run: |
