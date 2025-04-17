@@ -17,20 +17,20 @@ public class TeamsChannelMessagingService : ITeamsChannelMessagingService
    
     public async Task UpdateFileErrorCard(FileErrorModel model,string teamId, string channelId, string messageId)
     {
-        var guid = Guid.NewGuid().ToString().Replace("-", string.Empty);
+     
         var requestBody = new ChatMessage
         {
             Subject = null,
             Body = new ItemBody
             {
                 ContentType = BodyType.Html,
-                Content = $"<attachment id=\"{guid}\"></attachment>"
+                Content = $"<attachment id=\"{model.GetHashCode()}\"></attachment>"
             },
             Attachments =
             [
                 new ChatMessageAttachment
                 {
-                    Id = guid,
+                    Id = model.GetHashCode().ToString(),
                     ContentType = AdaptiveCard.ContentType,
                     ContentUrl = null,
                     Content = AdaptiveCardBuilder.CreateFileProcessingCard(model).ToJson(),

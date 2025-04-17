@@ -108,4 +108,13 @@ jobs:
 
       - name: run integration tests
         working-directory: ./src/${{ inputs.applicationFolder }}.Tests
-        run: dotnet test -s ./runsettings/${{ inputs.environment }}.runsettings --filter TestCategory=${{ inputs.testCategory }}
+        run: dotnet test  -v:q --nologo -s ./runsettings/${{ inputs.environment }}.runsettings --filter TestCategory=${{ inputs.testCategory }} /p:CollectCoverage=true  "/p:CoverletOutputFormat=\"cobertura,json\"" /p:CoverletOutput=../../tests/TestResults/Coverage/ /p:MergeWith=../../tests/TestResults/Coverage/coverage.json -m:1
+      - name: run integration tests
+        run: dotnet tool install dotnet-reportgenerator-globaltool
+      - name: generate coverage report
+        working-directory: ./
+        run: reportgenerator -reports:"tests\*\coverage.cobertura.xml" -targetdir:"test-results" -reporttypes:Html
+      - name: upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results

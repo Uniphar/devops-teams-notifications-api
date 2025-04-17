@@ -44,9 +44,7 @@ public class AdaptiveCardBuilder
                     Title = "🔁 Reprocess File",
                     Data = new
                     {
-                        action = "reprocessFile",
-                        fileId = "file123",
-                        jobId = "FG-20250410-0915"
+                        action = "reprocessFile"
                     },
                     Verb = "process",
                     Id = "process"

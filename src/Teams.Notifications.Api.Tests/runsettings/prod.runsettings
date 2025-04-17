@@ -1,5 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RunSettings>
+	<DataCollectionRunSettings>
+		<DataCollectors>
+			<DataCollector friendlyName="XPlat code coverage">
+				<Configuration>
+					<Format>json,cobertura</Format>
+					<ExcludeByFile>**/Migrations/*.cs,**/Connected Services/**/*.cs,</ExcludeByFile>
+					<Exclude>[coverlet.*.tests?]*,[*]Coverlet.Core*</Exclude>
+					<ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+				</Configuration>
+			</DataCollector>
+		</DataCollectors>
+	</DataCollectionRunSettings>
+	<RunConfiguration>
+		<MaxCpuCount>0</MaxCpuCount>
+		<ResultsDirectory>../../../tests</ResultsDirectory>
+	</RunConfiguration>
 	<TestRunParameters>
 		<Parameter name="Environment" value="prod" />
 	</TestRunParameters>
