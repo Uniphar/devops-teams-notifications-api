@@ -1,5 +1,6 @@
 ﻿using Microsoft.Graph.Beta.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Teams.Notifications.Api.Extensions;
 using Teams.Notifications.Api.Models;
 using Teams.Notifications.Api.Services;
 

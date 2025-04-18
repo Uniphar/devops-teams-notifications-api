@@ -5,6 +5,7 @@ using Azure;
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
 using Microsoft.Kiota.Abstractions;
+using Teams.Notifications.Api.Extensions;
 using Teams.Notifications.Api.Models;
 using Teams.Notifications.Api.Services.Interfaces;
 

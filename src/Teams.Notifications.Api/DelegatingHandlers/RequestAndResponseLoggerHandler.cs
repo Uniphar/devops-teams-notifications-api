@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Teams.Notifications.Api;
+namespace Teams.Notifications.Api.DelegatingHandlers;
 
 /// <summary>
 ///     HTTP client helper that can be used for logging all api traffic flowing out of the system

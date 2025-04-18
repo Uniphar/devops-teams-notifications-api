@@ -11,8 +11,9 @@ using Microsoft.Graph.Beta;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
 using Teams.Notifications.Api.Agents;
+using Teams.Notifications.Api.DelegatingHandlers;
 using Teams.Notifications.Api.Extensions;
-using Teams.Notifications.Api.Middleware;
+using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
 using Teams.Notifications.Api.Services.Interfaces;
 

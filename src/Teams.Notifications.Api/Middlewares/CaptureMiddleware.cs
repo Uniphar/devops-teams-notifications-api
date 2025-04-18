@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Agents.Builder;
 
-namespace Teams.Notifications.Api.Middleware;
+namespace Teams.Notifications.Api.Middlewares;
 
 // can be used to capture ALL data from the bot
 public class CaptureMiddleware : IMiddleware
