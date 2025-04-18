@@ -19,23 +19,23 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Validators;
 
- namespace Teams.Notifications.Api.Extensions;
+namespace Teams.Notifications.Api.Extensions;
 
 public static class AspNetExtensions
 {
     private static readonly ConcurrentDictionary<string, ConfigurationManager<OpenIdConnectConfiguration>> _openIdMetadataCache = new();
 
     /// <summary>
-    /// Adds token validation typical for ABS/SMBA and agent-to-agent.
-    /// default to Azure Public Cloud.
+    ///     Adds token validation typical for ABS/SMBA and agent-to-agent.
+    ///     default to Azure Public Cloud.
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <param name="tokenValidationSectionName">Name of the config section to read.</param>
     /// <param name="logger">Optional logger to use for authentication event logging.</param>
     /// <remarks>
-    /// Configuration:
-    /// <code>
+    ///     Configuration:
+    ///     <code>
     ///   "TokenValidation": {
     ///     "Audiences": [
     ///       "{required:agent-appid}"
@@ -54,25 +54,28 @@ public static class AspNetExtensions
     ///     "OpenIdMetadataRefresh": "optional-12:00:00"
     ///   }
     /// </code>
-    /// 
-    /// `IsGov` can be omitted, in which case public Azure Bot Service and Azure Cloud metadata urls are used.
-    /// `ValidIssuers` can be omitted, in which case the Public Azure Bot Service issuers are used.
-    /// `TenantId` can be omitted if the Agent is not being called by another Agent.  Otherwise it is used to add other known issuers.  Only when `ValidIssuers` is omitted.
-    /// `AzureBotServiceOpenIdMetadataUrl` can be omitted.  In which case default values in combination with `IsGov` is used.
-    /// `OpenIdMetadataUrl` can be omitted.  In which case default values in combination with `IsGov` is used.
-    /// `AzureBotServiceTokenHandling` defaults to true and should always be true until Azure Bot Service sends Entra ID token.
-    /// `AllowedCallers` is optional and defaults to "*".  Otherwise, a list of AppId's the Agent will accept requests from.
+    ///     `IsGov` can be omitted, in which case public Azure Bot Service and Azure Cloud metadata urls are used.
+    ///     `ValidIssuers` can be omitted, in which case the Public Azure Bot Service issuers are used.
+    ///     `TenantId` can be omitted if the Agent is not being called by another Agent.  Otherwise it is used to add other
+    ///     known issuers.  Only when `ValidIssuers` is omitted.
+    ///     `AzureBotServiceOpenIdMetadataUrl` can be omitted.  In which case default values in combination with `IsGov` is
+    ///     used.
+    ///     `OpenIdMetadataUrl` can be omitted.  In which case default values in combination with `IsGov` is used.
+    ///     `AzureBotServiceTokenHandling` defaults to true and should always be true until Azure Bot Service sends Entra ID
+    ///     token.
+    ///     `AllowedCallers` is optional and defaults to "*".  Otherwise, a list of AppId's the Agent will accept requests
+    ///     from.
     /// </remarks>
     public static void AddAgentAspNetAuthentication(this IServiceCollection services, IConfiguration configuration, string tokenValidationSectionName = "TokenValidation", ILogger logger = null)
     {
-        IConfigurationSection tokenValidationSection = configuration.GetSection(tokenValidationSectionName);
-        List<string> validTokenIssuers = tokenValidationSection.GetSection("ValidIssuers").Get<List<string>>();
-        List<string> allowedCallers = tokenValidationSection.GetSection("AllowedCallers").Get<List<string>>();
-        List<string> audiences = tokenValidationSection.GetSection("Audiences").Get<List<string>>();
+        var tokenValidationSection = configuration.GetSection(tokenValidationSectionName);
+        var validTokenIssuers = tokenValidationSection.GetSection("ValidIssuers").Get<List<string>>();
+        var allowedCallers = tokenValidationSection.GetSection("AllowedCallers").Get<List<string>>();
+        var audiences = tokenValidationSection.GetSection("Audiences").Get<List<string>>();
 
         if (!tokenValidationSection.Exists())
         {
-            logger?.LogError("Missing configuration section '{tokenValidationSectionName}'. This section is required to be present in appsettings.json",tokenValidationSectionName);
+            logger?.LogError("Missing configuration section '{tokenValidationSectionName}'. This section is required to be present in appsettings.json", tokenValidationSectionName);
             throw new InvalidOperationException($"Missing configuration section '{tokenValidationSectionName}'. This section is required to be present in appsettings.json");
         }
 
@@ -87,10 +90,10 @@ public static class AspNetExtensions
                 "https://sts.windows.net/f8cdef31-a31e-4b4a-93e4-5f571e91255a/",
                 "https://login.microsoftonline.com/f8cdef31-a31e-4b4a-93e4-5f571e91255a/v2.0",
                 "https://sts.windows.net/69e9b82d-4842-4902-8d1e-abc5b98a55e8/",
-                "https://login.microsoftonline.com/69e9b82d-4842-4902-8d1e-abc5b98a55e8/v2.0",
+                "https://login.microsoftonline.com/69e9b82d-4842-4902-8d1e-abc5b98a55e8/v2.0"
             ];
 
-            string tenantId = tokenValidationSection["TenantId"];
+            var tenantId = tokenValidationSection["TenantId"];
             if (!string.IsNullOrEmpty(tenantId))
             {
                 validTokenIssuers.Add(string.Format(CultureInfo.InvariantCulture, AuthenticationConstants.ValidTokenIssuerUrlTemplateV1, tenantId));
@@ -98,137 +101,121 @@ public static class AspNetExtensions
             }
         }
 
-        if (audiences == null || audiences.Count == 0)
-        {
-            throw new ArgumentException($"{tokenValidationSectionName}:Audiences requires at least one value");
-        }
+        if (audiences == null || audiences.Count == 0) throw new ArgumentException($"{tokenValidationSectionName}:Audiences requires at least one value");
 
-        bool isGov = tokenValidationSection.GetValue("IsGov", false);
-        bool azureBotServiceTokenHandling = tokenValidationSection.GetValue("AzureBotServiceTokenHandling", true);
+        var isGov = tokenValidationSection.GetValue("IsGov", false);
+        var azureBotServiceTokenHandling = tokenValidationSection.GetValue("AzureBotServiceTokenHandling", true);
 
         // If the `AzureBotServiceOpenIdMetadataUrl` setting is not specified, use the default based on `IsGov`.  This is what is used to authenticate ABS tokens.
-        string azureBotServiceOpenIdMetadataUrl = tokenValidationSection["AzureBotServiceOpenIdMetadataUrl"];
-        if (string.IsNullOrEmpty(azureBotServiceOpenIdMetadataUrl))
-        {
-            azureBotServiceOpenIdMetadataUrl = isGov ? AuthenticationConstants.GovAzureBotServiceOpenIdMetadataUrl : AuthenticationConstants.PublicAzureBotServiceOpenIdMetadataUrl;
-        }
+        var azureBotServiceOpenIdMetadataUrl = tokenValidationSection["AzureBotServiceOpenIdMetadataUrl"];
+        if (string.IsNullOrEmpty(azureBotServiceOpenIdMetadataUrl)) azureBotServiceOpenIdMetadataUrl = isGov ? AuthenticationConstants.GovAzureBotServiceOpenIdMetadataUrl : AuthenticationConstants.PublicAzureBotServiceOpenIdMetadataUrl;
 
         // If the `OpenIdMetadataUrl` setting is not specified, use the default based on `IsGov`.  This is what is used to authenticate Entra ID tokens.
-        string openIdMetadataUrl = tokenValidationSection["OpenIdMetadataUrl"];
-        if (string.IsNullOrEmpty(openIdMetadataUrl))
-        {
-            openIdMetadataUrl = isGov ? AuthenticationConstants.GovOpenIdMetadataUrl : AuthenticationConstants.PublicOpenIdMetadataUrl;
-        }
+        var openIdMetadataUrl = tokenValidationSection["OpenIdMetadataUrl"];
+        if (string.IsNullOrEmpty(openIdMetadataUrl)) openIdMetadataUrl = isGov ? AuthenticationConstants.GovOpenIdMetadataUrl : AuthenticationConstants.PublicOpenIdMetadataUrl;
 
-        TimeSpan openIdRefreshInterval = tokenValidationSection.GetValue("OpenIdMetadataRefresh", BaseConfigurationManager.DefaultAutomaticRefreshInterval);
+        var openIdRefreshInterval = tokenValidationSection.GetValue("OpenIdMetadataRefresh", BaseConfigurationManager.DefaultAutomaticRefreshInterval);
 
-        _ = services.AddAuthorization(options =>
-        {
-            options.AddPolicy("AllowedCallers", policy => policy.Requirements.Add(new AllowedCallersPolicy(allowedCallers)));
-        });
+        _ = services.AddAuthorization(options => { options.AddPolicy("AllowedCallers", policy => policy.Requirements.Add(new AllowedCallersPolicy(allowedCallers))); });
 
-        _ = services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-        .AddJwtBearer(options =>
-        {
-            options.SaveToken = true;
-            options.TokenValidationParameters = new TokenValidationParameters
+        _ = services
+            .AddAuthentication(options =>
             {
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.FromMinutes(5),
-                ValidIssuers = validTokenIssuers,
-                ValidAudiences = audiences,
-                ValidateIssuerSigningKey = true,
-                RequireSignedTokens = true,
-            };
-
-            // Using Microsoft.IdentityModel.Validators
-            options.TokenValidationParameters.EnableAadSigningKeyIssuerValidation();
-
-            options.Events = new JwtBearerEvents
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
             {
-                // Create a ConfigurationManager based on the requestor.  This is to handle ABS non-Entra tokens.
-                OnMessageReceived = async context =>
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    string authorizationHeader = context.Request.Headers.Authorization.ToString();
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromMinutes(5),
+                    ValidIssuers = validTokenIssuers,
+                    ValidAudiences = audiences,
+                    ValidateIssuerSigningKey = true,
+                    RequireSignedTokens = true
+                };
 
-                    if (string.IsNullOrEmpty(authorizationHeader))
+                // Using Microsoft.IdentityModel.Validators
+                options.TokenValidationParameters.EnableAadSigningKeyIssuerValidation();
+
+                options.Events = new JwtBearerEvents
+                {
+                    // Create a ConfigurationManager based on the requestor.  This is to handle ABS non-Entra tokens.
+                    OnMessageReceived = async context =>
                     {
-                        // Default to AadTokenValidation handling
-                        context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
-                        await Task.CompletedTask.ConfigureAwait(false);
-                        return;
-                    }
+                        var authorizationHeader = context.Request.Headers.Authorization.ToString();
 
-                    string[] parts = authorizationHeader?.Split(' ');
-                    if (parts.Length != 2 || parts[0] != "Bearer")
-                    {
-                        // Default to AadTokenValidation handling
-                        context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
-                        await Task.CompletedTask.ConfigureAwait(false);
-                        return;
-                    }
-
-                    JwtSecurityToken token = new(parts[1]);
-                    string issuer = token.Claims.FirstOrDefault(claim => claim.Type == AuthenticationConstants.IssuerClaim)?.Value;
-
-                    if (azureBotServiceTokenHandling && AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
-                    {
-                        // Use the Azure Bot authority for this configuration manager
-                        context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(azureBotServiceOpenIdMetadataUrl, key =>
+                        if (string.IsNullOrEmpty(authorizationHeader))
                         {
-                            return new ConfigurationManager<OpenIdConnectConfiguration>(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
-                            {
-                                AutomaticRefreshInterval = openIdRefreshInterval
-                            };
-                        });
-                    }
-                    else
-                    {
-                        context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(openIdMetadataUrl, key =>
+                            // Default to AadTokenValidation handling
+                            context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
+                            await Task.CompletedTask.ConfigureAwait(false);
+                            return;
+                        }
+
+                        var parts = authorizationHeader?.Split(' ');
+                        if (parts.Length != 2 || parts[0] != "Bearer")
                         {
-                            return new ConfigurationManager<OpenIdConnectConfiguration>(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
-                            {
-                                AutomaticRefreshInterval = openIdRefreshInterval
-                            };
-                        });
+                            // Default to AadTokenValidation handling
+                            context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
+                            await Task.CompletedTask.ConfigureAwait(false);
+                            return;
+                        }
+
+                        JwtSecurityToken token = new(parts[1]);
+                        var issuer = token.Claims.FirstOrDefault(claim => claim.Type == AuthenticationConstants.IssuerClaim)?.Value;
+
+                        if (azureBotServiceTokenHandling && AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
+                            // Use the Azure Bot authority for this configuration manager
+                            context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(azureBotServiceOpenIdMetadataUrl,
+                                key =>
+                                {
+                                    return new ConfigurationManager<OpenIdConnectConfiguration>(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
+                                    {
+                                        AutomaticRefreshInterval = openIdRefreshInterval
+                                    };
+                                });
+                        else
+                            context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(openIdMetadataUrl,
+                                key =>
+                                {
+                                    return new ConfigurationManager<OpenIdConnectConfiguration>(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
+                                    {
+                                        AutomaticRefreshInterval = openIdRefreshInterval
+                                    };
+                                });
+
+                        await Task.CompletedTask.ConfigureAwait(false);
+                    },
+
+                    OnTokenValidated = context =>
+                    {
+                        logger?.LogDebug("TOKEN Validated");
+                        return Task.CompletedTask;
+                    },
+                    OnForbidden = context =>
+                    {
+                        logger?.LogWarning("Forbidden: {m}", context.Result.ToString());
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        logger?.LogWarning("Auth Failed {m}", context.Exception.ToString());
+                        return Task.CompletedTask;
                     }
-
-                    await Task.CompletedTask.ConfigureAwait(false);
-                },
-
-                OnTokenValidated = context =>
-                {
-                    logger?.LogDebug("TOKEN Validated");
-                    return Task.CompletedTask;
-                },
-                OnForbidden = context =>
-                {
-                    logger?.LogWarning("Forbidden: {m}", context.Result.ToString());
-                    return Task.CompletedTask;
-                },
-                OnAuthenticationFailed = context =>
-                {
-                    logger?.LogWarning("Auth Failed {m}", context.Exception.ToString());
-                    return Task.CompletedTask;
-                }
-            };
-        });
+                };
+            });
     }
 
-    class AllowedCallersPolicy : IAuthorizationHandler, IAuthorizationRequirement
+    private class AllowedCallersPolicy : IAuthorizationHandler, IAuthorizationRequirement
     {
         private readonly IList<string> _allowedCallers;
 
-        public AllowedCallersPolicy(IList<string> allowedCallers)
-        {
-            _allowedCallers = allowedCallers  ?? [];
-        }
+        public AllowedCallersPolicy(IList<string> allowedCallers) => _allowedCallers = allowedCallers ?? [];
 
         public Task HandleAsync(AuthorizationHandlerContext context)
         {
@@ -243,9 +230,7 @@ public static class AspNetExtensions
             // allow ABS
             var issuer = claims.SingleOrDefault(claim => claim.Type == AuthenticationConstants.IssuerClaim);
             if (AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
-            {
                 context.Succeed(this);
-            }
             else
             {
                 // Get azp or appid claim 
@@ -255,13 +240,9 @@ public static class AspNetExtensions
                 // party must be in allowed list
                 var isAllowed = party != null && _allowedCallers.Where(allowed => allowed == party.Value).Any();
                 if (isAllowed)
-                {
                     context.Succeed(this);
-                }
                 else
-                {
                     context.Fail();
-                }
             }
 
             return Task.CompletedTask;

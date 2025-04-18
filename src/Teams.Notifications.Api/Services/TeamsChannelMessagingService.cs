@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AdaptiveCards;
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
@@ -14,10 +13,9 @@ public class TeamsChannelMessagingService : ITeamsChannelMessagingService
 
     public TeamsChannelMessagingService(GraphServiceClient graphClient) => _graphClient = graphClient;
 
-   
-    public async Task UpdateFileErrorCard(FileErrorModel model,string teamId, string channelId, string messageId)
+
+    public async Task UpdateFileErrorCard(FileErrorModel model, string teamId, string channelId, string messageId)
     {
-     
         var requestBody = new ChatMessage
         {
             Subject = null,
@@ -42,7 +40,7 @@ public class TeamsChannelMessagingService : ITeamsChannelMessagingService
 
         await _graphClient.Teams[teamId].Channels[channelId].Messages[messageId].PatchAsync(requestBody);
     }
-    
+
     public async Task DeleteFileErrorCard(string teamId, string channelId, string messageId)
     {
         await _graphClient.Teams[teamId].Channels[channelId].Messages[messageId].SoftDelete.PostAsync();

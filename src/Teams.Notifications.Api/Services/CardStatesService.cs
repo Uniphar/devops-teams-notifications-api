@@ -39,6 +39,4 @@ public class CardStatesService : ICardStatesService
         _memoryCache.Set(key, cacheValue, cacheEntryOptions);
         return cacheValue;
     }
-
-   
 }

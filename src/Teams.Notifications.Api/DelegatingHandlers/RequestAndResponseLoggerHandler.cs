@@ -9,8 +9,8 @@ using Microsoft.Extensions.Logging;
 namespace Teams.Notifications.Api;
 
 /// <summary>
-/// HTTP client helper that can be used for logging all api traffic flowing out of the system
-/// As long as something is either using a http client factory or named httpclient we can capture all data 
+///     HTTP client helper that can be used for logging all api traffic flowing out of the system
+///     As long as something is either using a http client factory or named httpclient we can capture all data
 /// </summary>
 /// <param name="logger"></param>
 public class RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHandler> logger) : DelegatingHandler

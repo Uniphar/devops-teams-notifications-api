@@ -1,16 +1,13 @@
-using System.Collections.Concurrent;
-using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Builder.App;
-using Microsoft.Agents.Connector;
-using Microsoft.Agents.Core.Models;
 using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
+using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
 using Teams.Notifications.Api.Agents;
 using Teams.Notifications.Api.Extensions;
@@ -41,27 +38,41 @@ builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 builder.Services.AddMemoryCache();
 builder.AddAgent<FileErrorAgent>();
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
-builder.Services.AddControllers();
+builder.Services.AddControllers(o =>
+{
+    o.Conventions.Add(new HideChannelApi());
+});
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
 );
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1",
+        new OpenApiInfo
+        {
+            Version = "v1",
+            Title = "Teams notifications platform",
+            Description = "Teams notifications platform"
+        });
+    c.EnableAnnotations();
+});
+
 // Add ApplicationOptions
 builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
 {
-    StartTypingTimer = false,
+    StartTypingTimer = false
 });
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapGet("/", () => "Microsoft Agents SDK Sample - StreamingMessageAgent");
     app.UseDeveloperExceptionPage();
     app.MapControllers().AllowAnonymous();
 }
-else
-{
-    app.MapControllers();
-}
 
+
+app.MapControllers();
+app.UseSwagger();
+app.UseSwaggerUI();
 app.Run();
-

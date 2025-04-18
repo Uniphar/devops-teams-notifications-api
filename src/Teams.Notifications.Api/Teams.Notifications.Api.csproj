@@ -23,7 +23,7 @@
 		<PackageReference Include="Azure.Identity" Version="*" />
 		<PackageReference Include="Microsoft.Agents.Authentication.Msal" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Builder" Version="*-*" />
-		<PackageReference Include="Microsoft.Agents.Extensions.Teams" Version="*-*" />	
+		<PackageReference Include="Microsoft.Agents.Extensions.Teams" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Builder.Dialogs" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Hosting.AspNetCore" Version="*-*" />
 		<PackageReference Include="Microsoft.SemanticKernel.Agents.AzureAI" Version="*-*" />
@@ -31,7 +31,9 @@
 		<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="*" />
 		<PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="*" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.*" />
-		
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="*" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="*" />
+
 		<PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
 	</ItemGroup>
 

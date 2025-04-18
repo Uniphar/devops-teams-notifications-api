@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AdaptiveCards;
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
-using Teams.Notifications.Api.Models;
 using Teams.Notifications.Api.Services.Interfaces;
 
 namespace Teams.Notifications.Api.Services;
@@ -43,6 +40,4 @@ public class TeamsManagerService : ITeamsManagerService
             throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
         return channelId;
     }
-   
- 
 }
