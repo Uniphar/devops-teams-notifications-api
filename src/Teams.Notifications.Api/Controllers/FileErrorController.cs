@@ -33,7 +33,7 @@ public class FileErrorController : ControllerBase
 
 
     /// <summary>
-    /// This controller will create the initial file error, but might update it if it was already there
+    /// Creates or updates the file error in teams
     /// </summary>
     /// <param name="fileError">Information that needs to be sent to teams</param>
     [HttpPost]
@@ -47,7 +47,7 @@ public class FileErrorController : ControllerBase
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
             var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, channelId);
+            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
         }
         catch (Exception e)
         {
@@ -59,10 +59,9 @@ public class FileErrorController : ControllerBase
     }
 
     /// <summary>
-    ///     This controller will update the FileErrorModel
+    /// Creates or updates the file error in teams
     /// </summary>
-    /// <param name="fileError">The file that you want to update</param>
-    /// <returns></returns>
+    /// <param name="fileError">The information about the file</param>
     [HttpPut]
     [Produces("application/json")]
     // with swagger response you can give it a description
@@ -74,7 +73,7 @@ public class FileErrorController : ControllerBase
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
             var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, channelId);
+            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
         }
         catch (Exception e)
         {
@@ -84,20 +83,21 @@ public class FileErrorController : ControllerBase
     }
 
     /// <summary>
-    ///     Deletes a given file error, you can also call the put with a "success"
+    /// Deletes the file error in teams as long as you supply a success in the status
     /// </summary>
-    /// <param name="id">The hashcode from the creation step</param>
-    [HttpDelete("{id}")]
+    /// <param name="fileError">The information about the file</param>
+    [HttpDelete]
+    [Produces("application/json")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task Delete(string id)
+    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it", typeof(FileErrorModel))]
+    public async Task Delete([FromBody] FileErrorModel fileError)
     {
         try
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
             var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.DeleteFileErrorCard(id, channelId);
+            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
         }
         catch (Exception e)
         {

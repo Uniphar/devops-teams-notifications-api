@@ -69,10 +69,7 @@ internal static class AspNetExtensions
         var allowedCallers = tokenValidationSection.GetSection("AllowedCallers").Get<List<string>>();
         var audiences = tokenValidationSection.GetSection("Audiences").Get<List<string>>();
 
-        if (!tokenValidationSection.Exists())
-        {
-            throw new InvalidOperationException($"Missing configuration section '{tokenValidationSectionName}'. This section is required to be present in appsettings.json");
-        }
+        if (!tokenValidationSection.Exists()) throw new InvalidOperationException($"Missing configuration section '{tokenValidationSectionName}'. This section is required to be present in appsettings.json");
 
         // If ValidIssuers is empty, default for ABS Public Cloud
         if (validTokenIssuers == null || validTokenIssuers.Count == 0)

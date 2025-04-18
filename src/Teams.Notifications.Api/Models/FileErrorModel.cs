@@ -6,7 +6,7 @@ using System.Text;
 namespace Teams.Notifications.Api.Models;
 
 /// <summary>
-/// File Error Message
+///     File Error Message
 /// </summary>
 public sealed record FileErrorModel
 {
@@ -68,7 +68,7 @@ public static class FileErrorModelExtensions
 }
 
 /// <summary>
-/// Status of the error
+///     Status of the error
 /// </summary>
 public enum FileErrorStatusEnum
 {

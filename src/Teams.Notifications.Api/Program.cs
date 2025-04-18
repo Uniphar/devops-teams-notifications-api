@@ -40,10 +40,7 @@ builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 builder.Services.AddMemoryCache();
 builder.AddAgent<FileErrorAgent>();
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
-builder.Services.AddControllers(o =>
-{
-    o.Conventions.Add(new HideChannelApi());
-});
+builder.Services.AddControllers(o => { o.Conventions.Add(new HideChannelApi()); });
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
 );
 builder.Services.AddEndpointsApiExplorer();
