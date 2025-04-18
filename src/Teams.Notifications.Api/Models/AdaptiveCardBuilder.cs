@@ -62,14 +62,7 @@ public class AdaptiveCardBuilder
                     [
                         new AdaptiveTextBlock
                         {
-                            Text = "Stack Trace",
-                            Weight = AdaptiveTextWeight.Bolder,
-                            Spacing = AdaptiveSpacing.Small
-                        },
-
-                        new AdaptiveTextBlock
-                        {
-                            Text = "System.NullReferenceException: Object reference not set to an instance of an object.\n   at FrontGate.Processing.FileHandler.Process(String filePath)\n   at FrontGate.JobRunner.Run(Job job)\n   at FrontGate.MainController.Execute()",
+                            Text = model.ErrorMessage,
                             Wrap = true,
                             FontType = AdaptiveFontType.Monospace,
                             Color = AdaptiveTextColor.Attention

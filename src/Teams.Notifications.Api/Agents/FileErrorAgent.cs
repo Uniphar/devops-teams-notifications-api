@@ -36,7 +36,7 @@ public class FileErrorAgent : AgentApplication
             JobId = "Unknown",
             Status = FileErrorStatusEnum.InProgress
         };
-        var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError).ToJson();
+        var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError, null).ToJson();
         // Create a response message based on the response content type from the WeatherForecastAgent
         var attachement = new Attachment
         {

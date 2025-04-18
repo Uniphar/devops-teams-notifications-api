@@ -32,7 +32,6 @@ var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clie
 builder.Services.AddSingleton(new GraphServiceClient(clientSecretCredential));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
-builder.Services.AddTransient<ITeamsChannelMessagingService, TeamsChannelMessagingService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
 
 builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
