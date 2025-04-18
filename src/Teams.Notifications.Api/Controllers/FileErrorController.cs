@@ -40,7 +40,7 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it", typeof(FileErrorModel))]
-    public async Task<string> Post([FromBody] FileErrorModel fileError)
+    public async Task<string> Post(FileErrorModel fileError)
     {
         try
         {

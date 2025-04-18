@@ -17,8 +17,13 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
     private readonly string _clientId = config["ClientId"] ?? throw new ArgumentNullException(config["ClientId"]);
     private readonly string _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
 
-    public async Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamId, string channelId, Stream? file = null)
+    public async Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamId, string channelId)
     {
+        var url = fileError.File != null
+            ? await teamsManagerService.UploadFile(teamId, channelId, "error/" + fileError.FileName, fileError.File.OpenReadStream())
+            : await teamsManagerService.GetFileUrl(teamId, channelId, "error/" + fileError.FileName);
+ 
+
         var activity = new Activity
         {
             Type = "message",
@@ -27,7 +32,7 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
                 new()
                 {
                     ContentType = AdaptiveCard.ContentType,
-                    Content = AdaptiveCardBuilder.CreateFileProcessingCard(fileError).ToJson()
+                    Content = AdaptiveCardBuilder.CreateFileProcessingCard(fileError, url).ToJson()
                 }
             }
         };
@@ -46,17 +51,7 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
             conversationReference.ActivityId = id;
         }
 
-        var url = file != null
-            ? await teamsManagerService.UploadFile(teamId, channelId, "error/" + fileError.FileName, file)
-            : await teamsManagerService.GetFileUrl(teamId, channelId, "error/" + fileError.FileName);
-        if (!string.IsNullOrWhiteSpace(url))
-            activity.Attachments.Add(new Attachment
-            {
-                Name = fileError.FileName,
-                ContentType = "reference",
-                ContentUrl = url
-            });
-        
+
 
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,

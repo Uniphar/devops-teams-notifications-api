@@ -7,7 +7,7 @@ namespace Teams.Notifications.Api.Models;
 
 public class AdaptiveCardBuilder
 {
-    public static AdaptiveCard CreateFileProcessingCard(FileErrorModel model)
+    public static AdaptiveCard CreateFileProcessingCard(FileErrorModel model, string? url)
     {
         string statusString;
         string title;
@@ -46,11 +46,12 @@ public class AdaptiveCardBuilder
                     Verb = "process",
                     Id = "process"
                 });
-        actions.Add(new AdaptiveOpenUrlAction
-        {
-            Title = "📂 Open file in Teams",
-            Url = new Uri("https://teams.microsoft.com/file/Report_Q1_2025.xlsx")
-        });
+        if (!string.IsNullOrWhiteSpace(url))
+            actions.Add(new AdaptiveOpenUrlAction
+            {
+                Title = "📂 Open file in Teams",
+                Url = new Uri(url)
+            });
         if (!string.IsNullOrEmpty(model.ErrorMessage))
             actions.Add(new AdaptiveShowCardAction
             {
