@@ -67,13 +67,12 @@ public sealed class TeamsChannelMessagingServiceTests
         Assert.IsNotEmpty(channelId);
         var fileError = new FileErrorModel
         {
-            FileName = "Test",
-            System = "test",
-            JobId = "test",
+            FileName = "Test.txt",
+            System = "FrontGateExample",
+            JobId = "file-moving-example",
             Status = FileErrorStatusEnum.Failed
         };
-        await _fileErrorManager.CreateUpdateOrDeleteFileErrorCardAsync(fileError, channelId);
 
-        fileError.Status = FileErrorStatusEnum.Succes;
+        var messageId = await _teamManager.GetMessageId(teamId, channelId, fileError);
     }
 }
