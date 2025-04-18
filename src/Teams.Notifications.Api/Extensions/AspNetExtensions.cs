@@ -113,11 +113,9 @@ internal static class AspNetExtensions
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("AllowedCallers",
-                policy =>
-                {
-                    if (allowedCallers != null) policy.Requirements.Add(new AllowedCallersPolicy(allowedCallers));
-                });
+            if (allowedCallers != null)
+                options.AddPolicy("AllowedCallers",
+                    policy => { policy.Requirements.Add(new AllowedCallersPolicy(allowedCallers)); });
         });
 
         services

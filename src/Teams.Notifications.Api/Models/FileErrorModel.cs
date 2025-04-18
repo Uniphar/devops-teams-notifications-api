@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -41,7 +42,7 @@ public sealed record FileErrorModel
     /// <summary>
     ///     The status
     /// </summary>
-    /// <example>FileErrorStatusEnum.Failed</example>
+    [DefaultValue(FileErrorStatusEnum.Failed)]
     public required FileErrorStatusEnum Status { get; set; }
 }
 
