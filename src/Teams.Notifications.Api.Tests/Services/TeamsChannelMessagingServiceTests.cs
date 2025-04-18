@@ -1,9 +1,7 @@
 ﻿using Azure.Core;
 using Azure.Identity;
-using Microsoft.Agents.Builder;
 using Microsoft.Graph.Beta;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Teams.Notifications.Api.Models;
 using Teams.Notifications.Api.Services;
 
@@ -15,9 +13,7 @@ public sealed class TeamsChannelMessagingServiceTests
 {
     private static string _tenantId = null!;
     private static string _clientId = null!;
-    private static readonly FileErrorManagerService _fileErrorManager = null!;
     private static TeamsManagerService _teamManager = null!;
-    private static TeamsChannelMessagingService _teamChannelService = null!;
     private static TokenCredential _defaultCredential = null!;
 
     [ClassInitialize]
@@ -37,9 +33,6 @@ public sealed class TeamsChannelMessagingServiceTests
 
 
         var graph = new GraphServiceClient(_defaultCredential);
-        _teamChannelService = new TeamsChannelMessagingService(graph);
-        var adapter = new Mock<IChannelAdapter>();
-        // _fileErrorManager = new FileErrorManagerService(adapter.Object);
         _teamManager = new TeamsManagerService(graph);
     }
 
@@ -74,5 +67,6 @@ public sealed class TeamsChannelMessagingServiceTests
         };
 
         var messageId = await _teamManager.GetMessageId(teamId, channelId, fileError);
+        Assert.IsNotNull(messageId);
     }
 }

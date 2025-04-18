@@ -14,9 +14,9 @@ public static class ChatMessageFinder
         if (attachments == null) return false;
         if (attachments.Count == 0) return false;
         if (attachments.Any(a => a.Content == null)) return false;
-        if (!attachments.Any(a => a.Content.Contains(modelToFind.System))) return false;
-        if (!attachments.Any(a => a.Content.Contains(modelToFind.JobId))) return false;
-        if (!attachments.Any(a => a.Content.Contains(modelToFind.FileName))) return false;
+        if (!attachments.Any(a => a.Content?.Contains(modelToFind.System) ?? false)) return false;
+        if (!attachments.Any(a => a.Content?.Contains(modelToFind.JobId) ?? false)) return false;
+        if (!attachments.Any(a => a.Content?.Contains(modelToFind.FileName) ?? false)) return false;
 
         return true;
     }

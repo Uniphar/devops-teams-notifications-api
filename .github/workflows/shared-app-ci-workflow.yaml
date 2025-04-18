@@ -32,16 +32,17 @@ jobs:
       - name: Generate coverage report
         uses: danielpalme/ReportGenerator-GitHub-Action@5.4.5
         with:
-          reports: "./tests/*/coverage.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
-          targetdir: "coverage-results" # REQUIRED # The directory where the generated report should be saved.
+          reports: "./tests/*/coverage.cobertura.xml"
+          targetdir: "coverage-results"
+          title: "Unit Tests Coverage ONLY, does not include integration tests"
           reporttypes: "HtmlInline;MarkdownSummaryGithub"
       - name: Upload test results in case manual view
         uses: actions/upload-artifact@v4
         with:
           name: coverage-results
           path: coverage-results
-      - name: Publish coverage in build summary # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
-        run: cat coverage-results/SummaryGithub.md >> $GITHUB_STEP_SUMMARY # Adjust path and filename if necessary
+      - name: Publish coverage in build summary
+        run: cat coverage-results/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
         shell: bash
       - name: docker build test
         working-directory: ./src/
