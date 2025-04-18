@@ -13,8 +13,6 @@ namespace Teams.Notifications.Api.Services;
 
 public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config) : IFileErrorManagerService
 {
-    private readonly IChannelAdapter _adapter = adapter;
-    private readonly ITeamsManagerService _teamsManagerService = teamsManagerService;
     private readonly string _clientId = config["ClientId"] ?? throw new ArgumentNullException(config["ClientId"]);
     private readonly string _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
 
@@ -39,26 +37,36 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
             Conversation = new ConversationAccount(id: channelId),
             ActivityId = channelId
         };
-        var id = await _teamsManagerService.GetMessageId(teamId, channelId, fileError);
+        var id = await teamsManagerService.GetMessageId(teamId, channelId, fileError);
+        // found an existing card so update id
         if (!string.IsNullOrWhiteSpace(id))
         {
             activity.Id = id;
             conversationReference.ActivityId = id;
         }
 
-        await _adapter.ContinueConversationAsync(_clientId,
+        await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
             async (turnContext, cancellationToken) =>
             {
-                // success means we can remove the activity
-                if (fileError.Status == FileErrorStatusEnum.Succes && !string.IsNullOrWhiteSpace(activity.Id))
-                    await turnContext.DeleteActivityAsync(activity.Id, cancellationToken);
-                // if we found and existing, update that item, only works if the item is not already removed
-                if (!string.IsNullOrWhiteSpace(activity.Id))
-                    await turnContext.UpdateActivityAsync(activity, cancellationToken);
-                // create a new one
-                else
+                // delete action
+                if (fileError.Status == FileErrorStatusEnum.Succes)
+                {
+                    // only delete if we actually found a message to delete
+                    if (!string.IsNullOrWhiteSpace(activity.Id))
+                        await turnContext.DeleteActivityAsync(activity.Id, cancellationToken);
+                    return;
+                }
+
+                // no activity id so new one
+                if (string.IsNullOrWhiteSpace(activity.Id))
+                {
                     await turnContext.SendActivityAsync(activity, cancellationToken);
+                    return;
+                }
+
+                // activity has an id so we need to update
+                await turnContext.UpdateActivityAsync(activity, cancellationToken);
             },
             CancellationToken.None);
     }

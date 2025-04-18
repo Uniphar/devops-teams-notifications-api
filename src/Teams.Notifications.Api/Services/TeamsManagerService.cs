@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Azure;
 using Microsoft.Graph.Beta;
 using Microsoft.Graph.Beta.Models;
 using Microsoft.Kiota.Abstractions;
@@ -76,6 +75,4 @@ public class TeamsManagerService : ITeamsManagerService
 
         return id;
     }
-
-   
 }

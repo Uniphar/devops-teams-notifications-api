@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +32,7 @@ public class FileErrorController : ControllerBase
 
 
     /// <summary>
-    /// Creates or updates the file error in teams
+    ///     Creates or updates the file error in teams
     /// </summary>
     /// <param name="fileError">Information that needs to be sent to teams</param>
     [HttpPost]
@@ -59,7 +58,7 @@ public class FileErrorController : ControllerBase
     }
 
     /// <summary>
-    /// Creates or updates the file error in teams
+    ///     Creates or updates the file error in teams
     /// </summary>
     /// <param name="fileError">The information about the file</param>
     [HttpPut]
@@ -83,7 +82,7 @@ public class FileErrorController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes the file error in teams as long as you supply a success in the status
+    ///     Deletes the file error in teams as long as you supply a success in the status
     /// </summary>
     /// <param name="fileError">The information about the file</param>
     [HttpDelete]
