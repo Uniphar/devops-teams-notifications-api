@@ -36,11 +36,10 @@ public class FileErrorController : ControllerBase
     /// </summary>
     /// <param name="fileError">Information that needs to be sent to teams</param>
     [HttpPost]
-    [Produces("application/json")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it", typeof(FileErrorModel))]
-    public async Task<string> Post(FileErrorModel fileError)
+    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    public async Task Post(FileErrorModel fileError)
     {
         try
         {
@@ -53,8 +52,6 @@ public class FileErrorController : ControllerBase
             _logger.LogError(e, "Something went wrong creating the message");
             throw;
         }
-
-        return fileError.GetId();
     }
 
     /// <summary>
@@ -62,11 +59,11 @@ public class FileErrorController : ControllerBase
     /// </summary>
     /// <param name="fileError">The information about the file</param>
     [HttpPut]
-    [Produces("application/json")]
+  
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it", typeof(FileErrorModel))]
-    public async Task Put([FromBody] FileErrorModel fileError)
+    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    public async Task Put(FileErrorModel fileError)
     {
         try
         {
@@ -89,8 +86,8 @@ public class FileErrorController : ControllerBase
     [Produces("application/json")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it", typeof(FileErrorModel))]
-    public async Task Delete([FromBody] FileErrorModel fileError)
+    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    public async Task Delete(FileErrorModel fileError)
     {
         try
         {
