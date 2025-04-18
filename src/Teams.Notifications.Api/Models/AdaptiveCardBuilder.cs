@@ -49,7 +49,7 @@ public class AdaptiveCardBuilder
         if (!string.IsNullOrWhiteSpace(url))
             actions.Add(new AdaptiveOpenUrlAction
             {
-                Title = "📂 Open file in Teams",
+                Title = "📂 Download file",
                 Url = new Uri(url)
             });
         if (!string.IsNullOrEmpty(model.ErrorMessage))
