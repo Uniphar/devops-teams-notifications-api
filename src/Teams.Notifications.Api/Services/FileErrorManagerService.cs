@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AdaptiveCards;
@@ -16,7 +17,7 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
     private readonly string _clientId = config["ClientId"] ?? throw new ArgumentNullException(config["ClientId"]);
     private readonly string _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
 
-    public async Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamId, string channelId)
+    public async Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamId, string channelId, Stream? file = null)
     {
         var activity = new Activity
         {
@@ -44,6 +45,18 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
             activity.Id = id;
             conversationReference.ActivityId = id;
         }
+
+        var url = file != null
+            ? await teamsManagerService.UploadFile(teamId, channelId, "error/" + fileError.FileName, file)
+            : await teamsManagerService.GetFileUrl(teamId, channelId, "error/" + fileError.FileName);
+        if (!string.IsNullOrWhiteSpace(url))
+            activity.Attachments.Add(new Attachment
+            {
+                Name = fileError.FileName,
+                ContentType = "reference",
+                ContentUrl = url
+            });
+        
 
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,

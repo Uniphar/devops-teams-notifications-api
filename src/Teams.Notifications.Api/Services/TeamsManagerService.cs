@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Graph.Beta;
@@ -74,5 +75,25 @@ public class TeamsManagerService : ITeamsManagerService
         }
 
         return id;
+    }
+
+    public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream)
+    {
+        var file = await GetFile(teamId, channelId, fileUrl);
+        var content = file.Content;
+        await content.PutAsync(fileStream);
+        return (await file.GetAsync())?.WebUrl ?? string.Empty;
+    }
+
+    public async Task<string> GetFileUrl(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.WebUrl ?? string.Empty;
+
+    private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileUrl)
+    {
+        var filesFolder = await _graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync();
+        var driveId = filesFolder?.ParentReference?.DriveId;
+
+        var item = _graphClient.Drives[driveId].Items["root"];
+        var file = item.ItemWithPath(fileUrl);
+        return file;
     }
 }
