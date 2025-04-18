@@ -4,17 +4,13 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
-		<NoWarn>$(NoWarn);SKEXP0010</NoWarn>
-
+		<NoWarn>$(NoWarn);SKEXP0010;1591</NoWarn>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<!--<PublishReadyToRun>true</PublishReadyToRun>-->
 		<RuntimeIdentifer>linux-x64</RuntimeIdentifer>
 		<InvariantGlobalization>true</InvariantGlobalization>
-
 		<ContainerRepository>teams-cards-api</ContainerRepository>
 		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0.0-noble-chiseled-amd64</ContainerBaseImage>
-
-		<UserSecretsId>889c9e71-a2be-48d3-be7e-3577ee8d23d8</UserSecretsId>
-
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 

@@ -13,22 +13,22 @@ namespace Teams.Notifications.Api.Tests.Services;
 [TestCategory("Integration")]
 public sealed class TeamsChannelMessagingServiceTests
 {
-    private static string _tenantId;
-    private static string _clientId;
-    private static FileErrorManagerService _fileErrorManager;
-    private static TeamsManagerService _teamManager;
-    private static TeamsChannelMessagingService _teamChannelService;
-    private static TokenCredential _defaultCredential;
+    private static string _tenantId = null!;
+    private static string _clientId = null!;
+    private static readonly FileErrorManagerService _fileErrorManager = null!;
+    private static TeamsManagerService _teamManager = null!;
+    private static TeamsChannelMessagingService _teamChannelService = null!;
+    private static TokenCredential _defaultCredential = null!;
 
     [ClassInitialize]
-    public static async Task ClassInitialize(TestContext context)
+    public static void ClassInitialize(TestContext context)
     {
         var environment = context.Properties["Environment"]!.ToString();
         if (environment == "local")
         {
             // Values from app registration
-            _clientId = context.Properties["ClientId"]!.ToString();
-            _tenantId = context.Properties["TenantId"]!.ToString();
+            _clientId = context.Properties["ClientId"]?.ToString() ?? throw new ArgumentNullException(nameof(context));
+            _tenantId = context.Properties["TenantId"]?.ToString() ?? throw new ArgumentNullException(nameof(context));
             var clientSecret = context.Properties["ClientSecret"]!.ToString();
             _defaultCredential = new ClientSecretCredential(_tenantId, _clientId, clientSecret);
         }
@@ -46,8 +46,8 @@ public sealed class TeamsChannelMessagingServiceTests
     [TestMethod]
     public async Task BasicTeamChannelTest()
     {
-        var teamName = "Frontgate Files Moving Integration Test In";
-        var channelName = "General";
+        const string teamName = "Frontgate Files Moving Integration Test In";
+        const string channelName = "General";
 
         var teamId = await _teamManager.GetTeamIdAsync(teamName);
         var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName);
@@ -58,8 +58,8 @@ public sealed class TeamsChannelMessagingServiceTests
     [TestMethod]
     public async Task BasicTeamChannelAddCard()
     {
-        var teamName = "Frontgate Files Moving Integration Test In";
-        var channelName = "General";
+        const string teamName = "Frontgate Files Moving Integration Test In";
+        const string channelName = "General";
 
         var teamId = await _teamManager.GetTeamIdAsync(teamName);
         var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName);

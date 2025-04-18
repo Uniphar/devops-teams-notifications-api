@@ -33,10 +33,9 @@ public class FileErrorController : ControllerBase
 
 
     /// <summary>
-    ///     This controller will CREATE the initial
+    /// This controller will create the initial file error, but might update it if it was already there
     /// </summary>
     /// <param name="fileError">Information that needs to be sent to teams</param>
-    /// <returns>Hash code that can be used to update the error or delete it</returns>
     [HttpPost]
     [Produces("application/json")]
     // with swagger response you can give it a description

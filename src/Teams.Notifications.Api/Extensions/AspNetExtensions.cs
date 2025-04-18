@@ -1,6 +1,4 @@
-﻿// Licensed under the MIT License.
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,7 +11,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -21,7 +18,7 @@ using Microsoft.IdentityModel.Validators;
 
 namespace Teams.Notifications.Api.Extensions;
 
-public static class AspNetExtensions
+internal static class AspNetExtensions
 {
     private static readonly ConcurrentDictionary<string, ConfigurationManager<OpenIdConnectConfiguration>> _openIdMetadataCache = new();
 
@@ -32,7 +29,6 @@ public static class AspNetExtensions
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <param name="tokenValidationSectionName">Name of the config section to read.</param>
-    /// <param name="logger">Optional logger to use for authentication event logging.</param>
     /// <remarks>
     ///     Configuration:
     ///     <code>
@@ -66,7 +62,7 @@ public static class AspNetExtensions
     ///     `AllowedCallers` is optional and defaults to "*".  Otherwise, a list of AppId's the Agent will accept requests
     ///     from.
     /// </remarks>
-    public static void AddAgentAspNetAuthentication(this IServiceCollection services, IConfiguration configuration, string tokenValidationSectionName = "TokenValidation", ILogger logger = null)
+    public static void AddAgentAspNetAuthentication(this IServiceCollection services, IConfiguration configuration, string tokenValidationSectionName = "TokenValidation")
     {
         var tokenValidationSection = configuration.GetSection(tokenValidationSectionName);
         var validTokenIssuers = tokenValidationSection.GetSection("ValidIssuers").Get<List<string>>();
@@ -75,7 +71,6 @@ public static class AspNetExtensions
 
         if (!tokenValidationSection.Exists())
         {
-            logger?.LogError("Missing configuration section '{tokenValidationSectionName}'. This section is required to be present in appsettings.json", tokenValidationSectionName);
             throw new InvalidOperationException($"Missing configuration section '{tokenValidationSectionName}'. This section is required to be present in appsettings.json");
         }
 
@@ -116,9 +111,16 @@ public static class AspNetExtensions
 
         var openIdRefreshInterval = tokenValidationSection.GetValue("OpenIdMetadataRefresh", BaseConfigurationManager.DefaultAutomaticRefreshInterval);
 
-        _ = services.AddAuthorization(options => { options.AddPolicy("AllowedCallers", policy => policy.Requirements.Add(new AllowedCallersPolicy(allowedCallers))); });
+        services.AddAuthorization(options =>
+        {
+            options.AddPolicy("AllowedCallers",
+                policy =>
+                {
+                    if (allowedCallers != null) policy.Requirements.Add(new AllowedCallersPolicy(allowedCallers));
+                });
+        });
 
-        _ = services
+        services
             .AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -157,8 +159,8 @@ public static class AspNetExtensions
                             return;
                         }
 
-                        var parts = authorizationHeader?.Split(' ');
-                        if (parts.Length != 2 || parts[0] != "Bearer")
+                        var parts = authorizationHeader.Split(' ');
+                        if (parts is not ["Bearer", _])
                         {
                             // Default to AadTokenValidation handling
                             context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
@@ -172,50 +174,32 @@ public static class AspNetExtensions
                         if (azureBotServiceTokenHandling && AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
                             // Use the Azure Bot authority for this configuration manager
                             context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(azureBotServiceOpenIdMetadataUrl,
-                                key =>
+                                _ => new ConfigurationManager<OpenIdConnectConfiguration>(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
                                 {
-                                    return new ConfigurationManager<OpenIdConnectConfiguration>(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
-                                    {
-                                        AutomaticRefreshInterval = openIdRefreshInterval
-                                    };
+                                    AutomaticRefreshInterval = openIdRefreshInterval
                                 });
                         else
                             context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(openIdMetadataUrl,
-                                key =>
+                                _ => new ConfigurationManager<OpenIdConnectConfiguration>(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
                                 {
-                                    return new ConfigurationManager<OpenIdConnectConfiguration>(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
-                                    {
-                                        AutomaticRefreshInterval = openIdRefreshInterval
-                                    };
+                                    AutomaticRefreshInterval = openIdRefreshInterval
                                 });
 
                         await Task.CompletedTask.ConfigureAwait(false);
                     },
 
-                    OnTokenValidated = context =>
-                    {
-                        logger?.LogDebug("TOKEN Validated");
-                        return Task.CompletedTask;
-                    },
-                    OnForbidden = context =>
-                    {
-                        logger?.LogWarning("Forbidden: {m}", context.Result.ToString());
-                        return Task.CompletedTask;
-                    },
-                    OnAuthenticationFailed = context =>
-                    {
-                        logger?.LogWarning("Auth Failed {m}", context.Exception.ToString());
-                        return Task.CompletedTask;
-                    }
+                    OnTokenValidated = _ => Task.CompletedTask,
+                    OnForbidden = _ => Task.CompletedTask,
+                    OnAuthenticationFailed = _ => Task.CompletedTask
                 };
             });
     }
 
-    private class AllowedCallersPolicy : IAuthorizationHandler, IAuthorizationRequirement
+    private sealed class AllowedCallersPolicy : IAuthorizationHandler, IAuthorizationRequirement
     {
         private readonly IList<string> _allowedCallers;
 
-        public AllowedCallersPolicy(IList<string> allowedCallers) => _allowedCallers = allowedCallers ?? [];
+        public AllowedCallersPolicy(IList<string> allowedCallers) => _allowedCallers = allowedCallers;
 
         public Task HandleAsync(AuthorizationHandlerContext context)
         {
@@ -228,17 +212,13 @@ public static class AspNetExtensions
             var claims = context.User.Claims.ToList();
 
             // allow ABS
-            var issuer = claims.SingleOrDefault(claim => claim.Type == AuthenticationConstants.IssuerClaim);
-            if (AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
-                context.Succeed(this);
-            else
             {
                 // Get azp or appid claim 
                 var party = claims.SingleOrDefault(claim => claim.Type == AuthenticationConstants.AuthorizedParty);
                 party ??= claims.SingleOrDefault(claim => claim.Type == AuthenticationConstants.AppIdClaim);
 
                 // party must be in allowed list
-                var isAllowed = party != null && _allowedCallers.Where(allowed => allowed == party.Value).Any();
+                var isAllowed = party != null && _allowedCallers.Any(allowed => allowed == party.Value);
                 if (isAllowed)
                     context.Succeed(this);
                 else

@@ -22,7 +22,7 @@ public class TeamsManagerService : ITeamsManagerService
 
         if (groups is not { Value: [Team { Id: var teamId }] })
             throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
-        return teamId;
+        return teamId ?? throw new InvalidOperationException();
     }
 
     public async Task<string> GetChannelIdAsync(string teamId, string channelName)
@@ -38,6 +38,6 @@ public class TeamsManagerService : ITeamsManagerService
 
         if (channels is not { Value: [{ Id: var channelId }] })
             throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
-        return channelId;
+        return channelId ?? throw new InvalidOperationException();
     }
 }

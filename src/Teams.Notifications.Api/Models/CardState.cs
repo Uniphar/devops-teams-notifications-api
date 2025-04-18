@@ -2,10 +2,10 @@
 
 public class CardState
 {
-    public FileErrorModel FileError { get; set; }
-    public string TeamName { get; set; }
-    public string ChannelName { get; set; }
-    public string TeamId { get; set; }
-    public string ChannelId { get; set; }
-    public string MessageId { get; set; }
+    public required FileErrorModel FileError { get; set; }
+    public required string TeamName { get; set; }
+    public required string ChannelName { get; set; }
+    public required string TeamId { get; set; }
+    public required string ChannelId { get; set; }
+    public required string MessageId { get; set; }
 }

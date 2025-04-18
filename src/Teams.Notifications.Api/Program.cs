@@ -1,3 +1,4 @@
+using System.Reflection;
 using Azure.Identity;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Builder.App;
@@ -54,6 +55,7 @@ builder.Services.AddSwaggerGen(c =>
             Title = "Teams notifications platform",
             Description = "Teams notifications platform"
         });
+    c.IncludeXmlComments(Assembly.GetExecutingAssembly());
     c.EnableAnnotations();
 });
 

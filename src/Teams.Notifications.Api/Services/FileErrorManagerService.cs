@@ -11,19 +11,12 @@ using Teams.Notifications.Api.Services.Interfaces;
 
 namespace Teams.Notifications.Api.Services;
 
-public class FileErrorManagerService : IFileErrorManagerService
+public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsChannelMessagingService channelMessagingService, IConfiguration config) : IFileErrorManagerService
 {
-    private readonly IChannelAdapter _adapter;
-    private readonly ITeamsChannelMessagingService _channelMessagingService;
-    private readonly string _clientId;
-    private readonly string _tenantId;
-
-    public FileErrorManagerService(IChannelAdapter adapter, IConfiguration config)
-    {
-        _adapter = adapter;
-        _clientId = config["ClientId"] ?? throw new ArgumentNullException(config["ClientId"]);
-        _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
-    }
+    private readonly IChannelAdapter _adapter = adapter;
+    private readonly ITeamsChannelMessagingService _channelMessagingService = channelMessagingService;
+    private readonly string _clientId = config["ClientId"] ?? throw new ArgumentNullException(config["ClientId"]);
+    private readonly string _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
 
     public async Task<string> CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamChannelId)
     {
