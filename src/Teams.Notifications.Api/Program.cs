@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using Azure.Identity;
 using Microsoft.Agents.Builder;
@@ -5,6 +6,7 @@ using Microsoft.Agents.Builder.App;
 using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Graph.Beta;
@@ -28,6 +30,21 @@ builder.Services.AddKernel();
 var clientId = builder.Configuration["ClientId"]!;
 var tenantId = builder.Configuration["TenantId"]!;
 var clientSecret = builder.Configuration["ClientSecret"]!;
+const string svName = "ServiceConnection";
+builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+{
+    { "TokenValidation:Audiences:0", clientId },
+    { "TokenValidation:TenantId", tenantId },
+    // ConnectionsMap with the ServiceConnection
+    { "ConnectionsMap:0:ServiceUrlSettings", "*" },
+    { "ConnectionsMap:0:Connection", svName },
+    // ServiceConnection
+    { $"Connections:{svName}:Settings:AuthType", "ClientSecret" },
+    { $"Connections:{svName}:Settings:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
+    { $"Connections:{svName}:ClientId", clientId },
+    { $"Connections:{svName}:ClientSecret", clientSecret },
+    { $"Connections:{svName}:Settings:Scopes:0", "https://api.botframework.com/.default" }
+});
 var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 builder.Services.AddSingleton(new GraphServiceClient(clientSecretCredential));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
