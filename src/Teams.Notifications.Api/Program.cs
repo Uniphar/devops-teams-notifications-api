@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 using Azure.Identity;
 using Microsoft.Agents.Builder;
@@ -25,11 +27,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
 // Register Semantic Kernel
 builder.Services.AddKernel();
-
+var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
+builder.Configuration.AddAzureKeyVault(
+    new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"),
+    new DefaultAzureCredential());
 // Values from app registration
-var clientId = builder.Configuration["ClientId"]!;
-var tenantId = builder.Configuration["TenantId"]!;
-var clientSecret = builder.Configuration["ClientSecret"]!;
+var clientId = builder.Configuration["ClientId"] ?? throw new NoNullAllowedException("ClientId is required");
+var tenantId = builder.Configuration["TenantId"] ?? throw new NoNullAllowedException("TenantId is required");
+var clientSecret = builder.Configuration["ClientSecret"]?? throw new NoNullAllowedException("ClientSecret is required");
 const string svName = "ServiceConnection";
 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 {

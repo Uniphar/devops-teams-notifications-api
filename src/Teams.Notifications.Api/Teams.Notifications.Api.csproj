@@ -5,17 +5,12 @@
 		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
 		<NoWarn>$(NoWarn);SKEXP0010;1591</NoWarn>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<!--<PublishReadyToRun>true</PublishReadyToRun>-->
-		<RuntimeIdentifer>linux-x64</RuntimeIdentifer>
-		<InvariantGlobalization>true</InvariantGlobalization>
-		<ContainerRepository>teams-cards-api</ContainerRepository>
-		<ContainerBaseImage>mcr.microsoft.com/dotnet/aspnet:9.0.0-noble-chiseled-amd64</ContainerBaseImage>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>			
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards" Version="*" />
+		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
 		<PackageReference Include="Azure.Identity" Version="*" />
 		<PackageReference Include="Microsoft.Agents.Authentication.Msal" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Builder" Version="*-*" />
