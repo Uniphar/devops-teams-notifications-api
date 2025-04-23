@@ -1,0 +1,50 @@
+name: Shared Application CI Workflow
+
+on:
+  workflow_call:
+    inputs:
+      applicationName:
+        type: string
+        required: true
+        description: "Application Name"
+
+jobs:
+  app_ci:
+    name: Build and unit test ${{ inputs.applicationName }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
+
+      - name: Expose app name into env
+        run: |
+          echo "APPLICATION_NAME=${{ inputs.applicationName }}" >> $GITHUB_ENV
+
+      - name: Run unit tests
+        working-directory: ./src/${{ env.APPLICATION_NAME }}.Tests
+        run: |
+          dotnet test -v:q --nologo --filter TestCategory=Unit /p:CollectCoverage=true --logger GitHubActions
+      - name: Generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.5
+        with:
+          reports: "./tests/*/coverage.cobertura.xml"
+          targetdir: "coverage-results"
+          title: "Unit Tests Coverage ONLY, does not include integration tests"
+          reporttypes: "HtmlInline;MarkdownSummaryGithub"
+      - name: Upload test results in case manual view
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-results
+          path: coverage-results
+      - name: Publish coverage in build summary
+        run: cat coverage-results/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+        shell: bash
+      - name: docker build test
+        working-directory: ./src/
+        run: |
+          docker build . -f ./$APPLICATION_NAME/Dockerfile

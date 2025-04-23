@@ -1,0 +1,34 @@
+# Please see the documentation for all configuration options:
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories:
+      - "*"
+    schedule:
+      interval: daily
+    target-branch: "main"
+    labels:
+      - "dependencies"
+    reviewers:
+      - "Uniphar/DevOps"
+  - package-ecosystem: dotnet-sdk
+    directory: "/"
+    schedule:
+      interval: daily
+    target-branch: "main"
+    labels:
+      - "dependencies"
+    reviewers:
+      - "Uniphar/DevOps"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Check for updates to GitHub Actions every week
+      interval: "weekly"
+    target-branch: "main"
+    labels:
+      - "dependencies"
+    reviewers:
+      - "Uniphar/DevOps"
