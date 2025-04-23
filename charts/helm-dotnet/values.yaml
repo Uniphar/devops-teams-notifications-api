@@ -1,0 +1,7 @@
+# contains nothing specific to the application, so it this whole folder can be copied and pasted!
+replicaCount: 1
+nameOverride: ""
+port: 8080
+environment: dev
+env:
+  ASPNETCORE_ENVIRONMENT: "dev"
