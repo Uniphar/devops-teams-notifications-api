@@ -25,7 +25,7 @@ public class AdaptiveCardBuilder
                 info = "You requested to reprocess the file";
                 break;
             // can never happen only failed and in progress are options
-            case FileErrorStatusEnum.Succes:
+            case FileErrorStatusEnum.Success:
             default:
                 statusString = "❌ Failed";
                 title = "🚨 File Processing Error";
