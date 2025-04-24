@@ -1,4 +1,4 @@
-# contains nothing specific to the application, so it this whole folder can be copied and pasted!
+# This folder contains no application-specific settings and can be reused as is.
 replicaCount: 1
 nameOverride: ""
 port: 8080
