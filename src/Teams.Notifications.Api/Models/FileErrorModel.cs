@@ -97,7 +97,7 @@ public enum FileErrorStatusEnum
     /// <summary>
     ///     Success
     /// </summary>
-    Succes = 0,
+    Success = 0,
 
     /// <summary>
     ///     Failed
