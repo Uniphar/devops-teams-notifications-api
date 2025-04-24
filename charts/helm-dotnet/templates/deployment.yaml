@@ -18,7 +18,7 @@ spec:
     spec:
       serviceAccountName: "compute-aks-devops-{{ .Values.environment }}-k8s-sa" 
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ $name }}
           image: computeaksacr.azurecr.io/{{ $name }}:{{ .Chart.AppVersion }}
           imagePullPolicy: IfNotPresent
           ports:
