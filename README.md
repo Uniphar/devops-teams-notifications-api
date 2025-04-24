@@ -25,4 +25,4 @@ This is the first iteration of the Notifications API. In this iteration, the API
 3. Change the appsettings.json : "{{ClientId}}" "{{TenantId}}" and "{{ClientSecret}}" to the creds of the bot
 4. Run the application
 5. Add the bot to teams, select **Settings**, then **Channels**, and click on the link **Open in Teams**
-6. Select the an channel, you might need to sent a message in the channel to be able to initiate the bot for the first time, this is since we do not get the notification that it has been installed if the bot was already installed on that team.
+6. Select a channel, you might need to send a message in the channel to be able to initiate the bot for the first time, this is since we do not get the notification that it has been installed if the bot was already installed on that team.
