@@ -42,8 +42,7 @@ public class TeamsManagerService : ITeamsManagerService
             });
 
         if (channels is not { Value: [{ Id: var channelId }] })
-            throw new InvalidOperationException("Channel with displayName `{channelName}` does not exist");
-        return channelId ?? throw new InvalidOperationException();
+            throw new InvalidOperationException($"Channel with displayName {channelName} does not exist");
     }
 
     public async Task<string?> GetMessageId(string teamId, string channelId, FileErrorModel modelToFind)
