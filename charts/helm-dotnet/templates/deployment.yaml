@@ -20,7 +20,7 @@ spec:
       containers:
         - name: {{ $name }}
           image: computeaksacr.azurecr.io/{{ $name }}:{{ .Chart.AppVersion }}
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 8080
