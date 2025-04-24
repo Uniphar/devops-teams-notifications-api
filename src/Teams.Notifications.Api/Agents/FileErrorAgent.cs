@@ -38,7 +38,7 @@ public class FileErrorAgent : AgentApplication
         };
         var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError, null).ToJson();
         // Create a response message based on the response content type from the WeatherForecastAgent
-        var attachement = new Attachment
+        var attachment = new Attachment
         {
             ContentType = AdaptiveCard.ContentType,
             Content = json
@@ -47,7 +47,7 @@ public class FileErrorAgent : AgentApplication
         {
             Type = "message",
             Id = turnContext.Activity.ReplyToId,
-            Attachments = new List<Attachment> { attachement }
+            Attachments = new List<Attachment> { attachment }
         };
         await turnContext.UpdateActivityAsync(pendingActivity, cancellationToken);
         return new AdaptiveCardInvokeResponse();
