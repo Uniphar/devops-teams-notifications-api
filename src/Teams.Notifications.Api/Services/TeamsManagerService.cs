@@ -26,7 +26,7 @@ public class TeamsManagerService : ITeamsManagerService
         });
 
         if (groups is not { Value: [Team { Id: var teamId }] })
-            throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
+            throw new InvalidOperationException($"Teams with displayName {teamName} does not exist");
         return teamId ?? throw new InvalidOperationException();
     }
 
