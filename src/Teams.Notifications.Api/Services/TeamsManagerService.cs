@@ -42,7 +42,7 @@ public class TeamsManagerService : ITeamsManagerService
             });
 
         if (channels is not { Value: [{ Id: var channelId }] })
-            throw new InvalidOperationException("Teams with displayName `{teamName}` does not exist");
+            throw new InvalidOperationException("Channel with displayName `{channelName}` does not exist");
         return channelId ?? throw new InvalidOperationException();
     }
 
