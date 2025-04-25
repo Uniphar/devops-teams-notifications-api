@@ -119,7 +119,7 @@ jobs:
       - name: Upload test results in case manual view
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-results
+          name: "coverage-results-${{ inputs.environment }}"
           path: coverage-results
       - name: Publish coverage in build summary # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
         run: cat coverage-results/SummaryGithub.md >> $GITHUB_STEP_SUMMARY # Adjust path and filename if necessary
