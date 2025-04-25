@@ -1,0 +1,7 @@
+# This folder contains no application-specific settings and can be reused as is.
+replicaCount: 1
+nameOverride: ""
+port: 8080
+environment: dev
+env:
+  ASPNETCORE_ENVIRONMENT: "dev"

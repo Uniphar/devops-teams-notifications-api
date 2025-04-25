@@ -1,0 +1,5 @@
+environment: dev
+nameOverride: devops-teams-notification-api
+appPath: /devops-teams-notification-api
+env:
+  ASPNETCORE_ENVIRONMENT: "dev"

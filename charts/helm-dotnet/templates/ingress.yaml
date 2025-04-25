@@ -1,0 +1,17 @@
+{{- $name := include "helm-dotnet.name" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $name }}
+spec:
+  ingressClassName: nginx-private
+  rules:
+  - http:
+      paths:
+      - path: {{ .Values.appPath }}
+        backend:
+          service:
+            name: {{ $name }}-srv
+            port:
+              number: 80
+        pathType: Prefix
