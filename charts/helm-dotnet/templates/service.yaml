@@ -1,0 +1,15 @@
+{{- $name := include "helm-dotnet.name" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-srv
+  labels:
+    app: {{ $name }}
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  selector:
+    app: {{ $name }}
+    app.kubernetes.io/name: {{ $name }}
