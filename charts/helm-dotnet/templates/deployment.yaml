@@ -1,0 +1,36 @@
+{{- $name := include "helm-dotnet.name" . -}}
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+        app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+        azure.workload.identity/use: "true"
+    spec:
+      serviceAccountName: "compute-aks-devops-{{ .Values.environment }}-k8s-sa" 
+      containers:
+        - name: {{ $name }}
+          image: computeaksacr.azurecr.io/{{ $name }}:{{ .Chart.AppVersion }}
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+          - name: ASPNETCORE_URLS
+            value: "http://+:8080"
+        {{- range $key, $value := .Values.env }}
+          - name: {{ $key | upper | replace "." "_" }}
+            value: {{ $value | quote }}
+        {{- end }} 
+      nodeSelector:
+        agentpool: platform
