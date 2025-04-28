@@ -32,9 +32,9 @@ builder.Configuration.AddAzureKeyVault(
     new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"),
     new DefaultAzureCredential());
 // Values from app registration
-var clientId = builder.Configuration["ClientId"] ?? throw new NoNullAllowedException("ClientId is required");
-var tenantId = builder.Configuration["TenantId"] ?? throw new NoNullAllowedException("TenantId is required");
-var clientSecret = builder.Configuration["ClientSecret"]?? throw new NoNullAllowedException("ClientSecret is required");
+var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
+var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
+var tokenFile = builder.Configuration["AZURE_FEDERATED_TOKEN_FILE"]?? throw new NoNullAllowedException("FederatedToken is required");
 const string svName = "ServiceConnection";
 builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
 {
@@ -44,14 +44,19 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     { "ConnectionsMap:0:ServiceUrlSettings", "*" },
     { "ConnectionsMap:0:Connection", svName },
     // ServiceConnection
-    { $"Connections:{svName}:Settings:AuthType", "ClientSecret" },
+    { $"Connections:{svName}:Settings:AuthType", "WorkloadIdentity" },
     { $"Connections:{svName}:Settings:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
     { $"Connections:{svName}:ClientId", clientId },
-    { $"Connections:{svName}:ClientSecret", clientSecret },
+    { $"Connections:{svName}:FederatedTokenFile", tokenFile },
     { $"Connections:{svName}:Settings:Scopes:0", "https://api.botframework.com/.default" }
 });
-var clientSecretCredential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-builder.Services.AddSingleton(new GraphServiceClient(clientSecretCredential));
+var tokenCredential = new WorkloadIdentityCredential(new WorkloadIdentityCredentialOptions
+{
+    ClientId = clientId,
+    TenantId = tenantId,
+    TokenFilePath = tokenFile
+});
+builder.Services.AddSingleton(new GraphServiceClient(tokenCredential));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
