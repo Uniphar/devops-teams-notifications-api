@@ -1,0 +1,95 @@
+using System.Data;
+using System.Reflection;
+using Azure.Identity;
+using Microsoft.Agents.Storage;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using Teams.Notifications.Api;
+using Teams.Notifications.Api.Agents;
+using Teams.Notifications.Api.DelegatingHandlers;
+using Teams.Notifications.Api.Middlewares;
+using Teams.Notifications.Api.Services;
+using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
+using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// this is what the bot is communicating on
+builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
+// Register Semantic Kernel
+builder.Services.AddKernel();
+var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
+builder.Configuration.AddAzureKeyVault(
+    new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"),
+    new DefaultAzureCredential());
+// Values from app registration
+var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
+var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
+var tokenFile = builder.Configuration["AZURE_FEDERATED_TOKEN_FILE"]?? throw new NoNullAllowedException("FederatedToken is required");
+const string svName = "ServiceConnection";
+builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+{
+    { "TokenValidation:Audiences:0", clientId },
+    { "TokenValidation:TenantId", tenantId },
+    // ConnectionsMap with the ServiceConnection
+    { "ConnectionsMap:0:ServiceUrlSettings", "*" },
+    { "ConnectionsMap:0:Connection", svName },
+    // ServiceConnection
+    { $"Connections:{svName}:Settings:AuthType", "WorkloadIdentity" },
+    { $"Connections:{svName}:Settings:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
+    { $"Connections:{svName}:ClientId", clientId },
+    { $"Connections:{svName}:FederatedTokenFile", tokenFile },
+    { $"Connections:{svName}:Settings:Scopes:0", "https://api.botframework.com/.default" }
+});
+var tokenCredential = new WorkloadIdentityCredential(new WorkloadIdentityCredentialOptions
+{
+    ClientId = clientId,
+    TenantId = tenantId,
+    TokenFilePath = tokenFile
+});
+builder.Services.AddSingleton(new GraphServiceClient(tokenCredential));
+builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
+builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
+builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
+
+builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
+builder.Services.AddMemoryCache();
+builder.AddAgent<FileErrorAgent>();
+builder.Services.AddSingleton<IStorage, MemoryStorage>();
+builder.Services.AddControllers(o => { o.Conventions.Add(new HideChannelApi()); });
+builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
+);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1",
+        new OpenApiInfo
+        {
+            Version = "v1",
+            Title = "Teams notifications platform",
+            Description = "Teams notifications platform"
+        });
+    c.IncludeXmlComments(Assembly.GetExecutingAssembly());
+    c.EnableAnnotations();
+});
+
+// Add ApplicationOptions
+builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
+{
+    StartTypingTimer = false
+});
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.MapControllers().AllowAnonymous();
+}
+
+
+app.MapControllers();
+app.UseSwagger();
+app.UseSwaggerUI();
+app.Run();

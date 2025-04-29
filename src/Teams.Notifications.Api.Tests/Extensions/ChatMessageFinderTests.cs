@@ -1,9 +1,4 @@
-﻿using Microsoft.Graph.Beta.Models;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Teams.Notifications.Api.Extensions;
-using Teams.Notifications.Api.Models;
-
-namespace Teams.Notifications.Api.Tests.Extensions;
+﻿namespace Teams.Notifications.Api.Tests.Extensions;
 
 [TestClass]
 [TestCategory("Unit")]

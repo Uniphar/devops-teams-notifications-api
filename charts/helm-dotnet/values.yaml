@@ -3,5 +3,7 @@ replicaCount: 1
 nameOverride: ""
 port: 8080
 environment: dev
+serviceAccountName: helm-dotnet-sa-change-me
+clientId: change-me
 env:
   ASPNETCORE_ENVIRONMENT: "dev"
