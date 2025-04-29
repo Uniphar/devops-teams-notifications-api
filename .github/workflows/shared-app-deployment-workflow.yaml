@@ -114,7 +114,7 @@ jobs:
           az acr login --name $ACR_NAME
 
       - name: set AKS cluster
-        uses: azure/powershell@v1
+        uses: azure/powershell@v2
         with:
           inlineScript: |
             try{
