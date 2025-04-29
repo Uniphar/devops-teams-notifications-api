@@ -1,11 +1,4 @@
-﻿using Azure.Core;
-using Azure.Identity;
-using Microsoft.Graph.Beta;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Teams.Notifications.Api.Models;
-using Teams.Notifications.Api.Services;
-
-namespace Teams.Notifications.Api.Tests.Services;
+﻿namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]
 [TestCategory("Integration")]

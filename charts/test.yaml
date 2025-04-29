@@ -1,5 +1,7 @@
 environment: test
 nameOverride: devops-teams-notification-api
 appPath: /devops-teams-notification-api
+serviceAccountName: devops-teams-notification-sa
+clientId: 5fbbf3bd-57d0-47fa-a162-179337199fa4
 env:
   ASPNETCORE_ENVIRONMENT: "test"
