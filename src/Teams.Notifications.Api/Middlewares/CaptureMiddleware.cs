@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Agents.Builder;
+﻿using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 
 namespace Teams.Notifications.Api.Middlewares;
 

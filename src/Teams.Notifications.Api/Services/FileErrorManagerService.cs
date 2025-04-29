@@ -1,21 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using AdaptiveCards;
-using Microsoft.Agents.Builder;
-using Microsoft.Agents.Core.Models;
-using Microsoft.Extensions.Configuration;
-using Teams.Notifications.Api.Models;
-using Teams.Notifications.Api.Services.Interfaces;
+﻿using Activity = Microsoft.Agents.Core.Models.Activity;
+using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
 
 public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config) : IFileErrorManagerService
 {
-    private readonly string _clientId = config["ClientId"] ?? throw new ArgumentNullException(config["ClientId"]);
-    private readonly string _tenantId = config["TenantId"] ?? throw new ArgumentNullException(config["TenantId"]);
+    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(config["AZURE_CLIENT_ID"]);
+    private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(config["AZURE_TENANT_ID"]);
 
     public async Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamId, string channelId)
     {
@@ -52,13 +43,12 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
         }
 
 
-
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
             async (turnContext, cancellationToken) =>
             {
                 // delete action
-                if (fileError.Status == FileErrorStatusEnum.Succes)
+                if (fileError.Status == FileErrorStatusEnum.Success)
                 {
                     // only delete if we actually found a message to delete
                     if (!string.IsNullOrWhiteSpace(activity.Id))

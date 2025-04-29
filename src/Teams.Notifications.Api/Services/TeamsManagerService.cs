@@ -1,13 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Graph.Beta;
-using Microsoft.Graph.Beta.Models;
-using Microsoft.Kiota.Abstractions;
-using Teams.Notifications.Api.Extensions;
-using Teams.Notifications.Api.Models;
-using Teams.Notifications.Api.Services.Interfaces;
+﻿using Microsoft.Kiota.Abstractions;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -43,6 +34,7 @@ public class TeamsManagerService : ITeamsManagerService
 
         if (channels is not { Value: [{ Id: var channelId }] })
             throw new InvalidOperationException($"Channel with displayName {channelName} does not exist");
+        return channelId ?? throw new InvalidOperationException();
     }
 
     public async Task<string?> GetMessageId(string teamId, string channelId, FileErrorModel modelToFind)

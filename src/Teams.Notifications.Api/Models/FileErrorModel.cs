@@ -1,7 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -87,25 +84,4 @@ public static class FileErrorModelExtensions
         // we don't need a string too long
         return sb.ToString();
     }
-}
-
-/// <summary>
-///     Status of the error
-/// </summary>
-public enum FileErrorStatusEnum
-{
-    /// <summary>
-    ///     Success
-    /// </summary>
-    Success = 0,
-
-    /// <summary>
-    ///     Failed
-    /// </summary>
-    Failed = -1,
-
-    /// <summary>
-    ///     In progress
-    /// </summary>
-    InProgress = 1
 }

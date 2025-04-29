@@ -1,12 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Agents.Builder;
-using Microsoft.Agents.Builder.App;
-using Microsoft.Agents.Builder.State;
-using Microsoft.Agents.Core.Models;
-using Teams.Notifications.Api.Models;
-using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using Activity = Microsoft.Agents.Core.Models.Activity;
+using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Agents;
 
@@ -17,9 +10,9 @@ public class FileErrorAgent : AgentApplication
         AdaptiveCards.OnActionExecute("process", ProcessCardActionAsync);
     }
 
-    [Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)] protected async Task MemberAddedAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken) => await turnContext.SendActivityAsync(MessageFactory.Text("Welcome new user"), cancellationToken);
+    [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)] protected async Task MemberAddedAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken) => await turnContext.SendActivityAsync(MessageFactory.Text("Welcome new user"), cancellationToken);
 
-    [Route(RouteType = RouteType.Activity, Type = ActivityTypes.Message, Rank = RouteRank.Last)]
+    [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Activity, Type = ActivityTypes.Message, Rank = RouteRank.Last)]
     protected async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrEmpty(turnContext.Activity.Text))

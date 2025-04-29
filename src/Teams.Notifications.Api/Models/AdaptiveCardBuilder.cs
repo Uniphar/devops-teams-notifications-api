@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using AdaptiveCards;
-
-namespace Teams.Notifications.Api.Models;
+﻿namespace Teams.Notifications.Api.Models;
 
 public class AdaptiveCardBuilder
 {

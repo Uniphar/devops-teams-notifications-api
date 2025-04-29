@@ -1,23 +1,17 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Agents.Builder;
-using Microsoft.Agents.Hosting.AspNetCore;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿namespace Teams.Notifications.Api.Controllers;
 
-namespace Teams.Notifications.Api.Controllers;
-
-[ApiExplorerSettings(IgnoreApi = true)]
-[ApiController]
+[Microsoft.AspNetCore.Mvc.ApiExplorerSettings(IgnoreApi = true)]
+[Microsoft.AspNetCore.Mvc.ApiController]
 [Authorize]
-[Route("api/messages")]
-public class AgentController(IAgentHttpAdapter adapter, IAgent bot) : ControllerBase
+[Microsoft.AspNetCore.Mvc.Route("api/messages")]
+public class AgentController(IAgentHttpAdapter adapter, IAgent bot) : Microsoft.AspNetCore.Mvc.ControllerBase
 {
     /// <summary>
     ///     Handles HTTP POST and GET requests to process bot messages.
     /// </summary>
     /// <returns>A task that represents the work queued to execute.</returns>
-    [HttpPost]
-    [HttpGet]
+    [Microsoft.AspNetCore.Mvc.HttpPost]
+    [Microsoft.AspNetCore.Mvc.HttpGet]
     public Task PostAsync() =>
         // Delegate the processing of the HTTP POST to the adapter.
         // The adapter will invoke the bot.

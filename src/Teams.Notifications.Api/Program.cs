@@ -1,25 +1,17 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using Azure.Identity;
-using Microsoft.Agents.Builder;
-using Microsoft.Agents.Builder.App;
-using Microsoft.Agents.Hosting.AspNetCore;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Graph.Beta;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
 using Teams.Notifications.Api.Agents;
 using Teams.Notifications.Api.DelegatingHandlers;
-using Teams.Notifications.Api.Extensions;
 using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
-using Teams.Notifications.Api.Services.Interfaces;
+using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
+using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
 var builder = WebApplication.CreateBuilder(args);
 

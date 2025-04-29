@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace Teams.Notifications.Api.Tests.Services;
+﻿namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]
 [TestCategory("Unit")]

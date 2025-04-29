@@ -1,15 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Swashbuckle.AspNetCore.Annotations;
-using Teams.Notifications.Api.Models;
-using Teams.Notifications.Api.Services.Interfaces;
+﻿namespace Teams.Notifications.Api.Controllers;
 
-namespace Teams.Notifications.Api.Controllers;
-
-[Route("api/[controller]")]
+[Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
 [ApiController]
 public class FileErrorController : ControllerBase
 {

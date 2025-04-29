@@ -1,8 +1,4 @@
-﻿using System.Linq;
-using Microsoft.Graph.Beta.Models;
-using Teams.Notifications.Api.Models;
-
-namespace Teams.Notifications.Api.Extensions;
+﻿namespace Teams.Notifications.Api.Extensions;
 
 public static class ChatMessageFinder
 {

@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
-
 namespace Teams.Notifications.Api;
 
 internal sealed class HideChannelApi : IControllerModelConvention
