@@ -16,7 +16,7 @@ spec:
         app: {{ $name }}
         azure.workload.identity/use: "true"
     spec:
-      serviceAccountName: "{{ .Values.serviceAccountName }}"
+      serviceAccountName: "compute-aks-devops-{{ .Values.environment }}-k8s-sa"
       containers:
         - name: {{ $name }}
           image: computeaksacr.azurecr.io/{{ $name }}:{{ .Chart.AppVersion }}
