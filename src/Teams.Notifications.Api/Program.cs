@@ -1,5 +1,6 @@
 using System.Data;
 using System.Reflection;
+using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
@@ -26,9 +27,9 @@ builder.Configuration.AddAzureKeyVault(
 // Values from app registration
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
-var tokenFile = builder.Configuration["AZURE_FEDERATED_TOKEN_FILE"]?? throw new NoNullAllowedException("FederatedToken is required");
+var clientSecret = builder.Configuration["ClientSecret"];
 const string svName = "ServiceConnection";
-builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+var inMemoryItems = new Dictionary<string, string?>
 {
     { "TokenValidation:Audiences:0", clientId },
     { "TokenValidation:TenantId", tenantId },
@@ -36,19 +37,29 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     { "ConnectionsMap:0:ServiceUrlSettings", "*" },
     { "ConnectionsMap:0:Connection", svName },
     // ServiceConnection
-    { $"Connections:{svName}:Settings:AuthType", "WorkloadIdentity" },
     { $"Connections:{svName}:Settings:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
     { $"Connections:{svName}:ClientId", clientId },
-    { $"Connections:{svName}:FederatedTokenFile", tokenFile },
     { $"Connections:{svName}:Settings:Scopes:0", "https://api.botframework.com/.default" }
-});
-var tokenCredential = new WorkloadIdentityCredential(new WorkloadIdentityCredentialOptions
+   
+};
+// will use workload if available
+TokenCredential credentials = new DefaultAzureCredential();
+if (!string.IsNullOrWhiteSpace(clientSecret))
 {
-    ClientId = clientId,
-    TenantId = tenantId,
-    TokenFilePath = tokenFile
-});
-builder.Services.AddSingleton(new GraphServiceClient(tokenCredential));
+    // ServiceConnection, for workload id
+    inMemoryItems.Add($"Connections:{svName}:Settings:AuthType", "FederatedCredentials");
+    inMemoryItems.Add($"Connections:{svName}:FederatedClientId", clientId);
+}
+else
+{
+    // ServiceConnection, for env with secret
+    inMemoryItems.Add($"Connections:{svName}:Settings:AuthType", "ClientSecret");
+    inMemoryItems.Add($"Connections:{svName}:ClientSecret", clientSecret);
+    credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+}
+builder.Configuration.AddInMemoryCollection(inMemoryItems);
+
+builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
