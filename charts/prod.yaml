@@ -1,7 +1,5 @@
 environment: prod
 nameOverride: devops-teams-notification-api
 appPath: /devops-teams-notification-api
-serviceAccountName: devops-teams-notification-sa
-clientId: 87883449-c399-48d4-aede-85b43875af1a
 env:
   ASPNETCORE_ENVIRONMENT: "prod"
