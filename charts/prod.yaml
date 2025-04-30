@@ -1,5 +1,3 @@
 environment: prod
-nameOverride: devops-teams-notification-api
-appPath: /devops-teams-notification-api
 env:
   ASPNETCORE_ENVIRONMENT: "prod"
