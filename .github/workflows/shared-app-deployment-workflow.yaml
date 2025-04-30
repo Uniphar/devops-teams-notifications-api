@@ -63,8 +63,8 @@ jobs:
         id: gh-app
         uses: getsentry/action-github-app-token@v3
         with:
-          app_id: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-          private_key: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.ACTIONS_AUTH_APP_ID }}
+          private-key: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
 
       - name: checkout devops-azure repo
         uses: actions/checkout@v4
