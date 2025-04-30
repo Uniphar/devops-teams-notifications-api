@@ -20,10 +20,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
 // Register Semantic Kernel
 builder.Services.AddKernel();
-var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
-builder.Configuration.AddAzureKeyVault(
-    new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"),
-    new DefaultAzureCredential());
+
 // Values from app registration
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
@@ -43,7 +40,8 @@ var inMemoryItems = new Dictionary<string, string?>
 };
 // will use workload if available
 TokenCredential credentials = new DefaultAzureCredential();
-if (!string.IsNullOrWhiteSpace(clientSecret))
+// no secret so fedrate
+if (string.IsNullOrWhiteSpace(clientSecret))
 {
     // ServiceConnection, for workload id
     inMemoryItems.Add($"Connections:{svName}:Settings:AuthType", "FederatedCredentials");
