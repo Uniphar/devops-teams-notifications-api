@@ -40,7 +40,6 @@ var inMemoryItems = new Dictionary<string, string?>
     { $"Connections:{svName}:Settings:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
     { $"Connections:{svName}:ClientId", clientId },
     { $"Connections:{svName}:Settings:Scopes:0", "https://api.botframework.com/.default" }
-   
 };
 // will use workload if available
 TokenCredential credentials = new DefaultAzureCredential();
@@ -57,8 +56,8 @@ else
     inMemoryItems.Add($"Connections:{svName}:ClientSecret", clientSecret);
     credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
 }
-builder.Configuration.AddInMemoryCollection(inMemoryItems);
 
+builder.Configuration.AddInMemoryCollection(inMemoryItems);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
