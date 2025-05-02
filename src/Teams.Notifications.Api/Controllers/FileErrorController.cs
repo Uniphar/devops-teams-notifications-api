@@ -30,8 +30,10 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
-    public async Task Post(FileErrorModel fileError)
+    public async Task<IActionResult> Post(FileErrorModel fileError)
     {
+        if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
+            return BadRequest("Extension between uploaded file and filename needs to be equal");
         try
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
@@ -43,6 +45,8 @@ public class FileErrorController : ControllerBase
             _logger.LogError(e, "Something went wrong creating the message");
             throw;
         }
+
+        return Ok();
     }
 
     /// <summary>
@@ -50,12 +54,14 @@ public class FileErrorController : ControllerBase
     /// </summary>
     /// <param name="fileError">The information about the file</param>
     [HttpPut]
-  
+
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
-    public async Task Put(FileErrorModel fileError)
+    public async Task<IActionResult> Put(FileErrorModel fileError)
     {
+        if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
+            return BadRequest("Extension between uploaded file and filename needs to be equal");
         try
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
@@ -67,6 +73,8 @@ public class FileErrorController : ControllerBase
             _logger.LogError(e, "Something went wrong updating the message");
             throw;
         }
+
+        return Ok();
     }
 
     /// <summary>
@@ -78,8 +86,10 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
-    public async Task Delete(FileErrorModel fileError)
+    public async Task<IActionResult> Delete(FileErrorModel fileError)
     {
+        if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
+            return BadRequest("Extension between uploaded file and filename needs to be equal");
         try
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
@@ -91,5 +101,7 @@ public class FileErrorController : ControllerBase
             _logger.LogError(e, "Something went wrong deleting the message");
             throw;
         }
+
+        return Ok();
     }
 }
