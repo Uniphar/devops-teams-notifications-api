@@ -30,6 +30,7 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Post(FileErrorModel fileError)
     {
         if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
@@ -58,6 +59,7 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Put(FileErrorModel fileError)
     {
         if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
@@ -86,6 +88,7 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Delete(FileErrorModel fileError)
     {
         if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
