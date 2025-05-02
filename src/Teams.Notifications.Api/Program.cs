@@ -25,7 +25,9 @@ builder.Services.AddKernel();
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
 var clientSecret = builder.Configuration["ClientSecret"];
+
 const string svName = "ServiceConnection";
+const string ConnectionSettings = $"Connections:{svName}:Settings";
 var inMemoryItems = new Dictionary<string, string?>
 {
     { "TokenValidation:Audiences:0", clientId },
@@ -34,24 +36,24 @@ var inMemoryItems = new Dictionary<string, string?>
     { "ConnectionsMap:0:ServiceUrlSettings", "*" },
     { "ConnectionsMap:0:Connection", svName },
     // ServiceConnection
-    { $"Connections:{svName}:Settings:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
-    { $"Connections:{svName}:ClientId", clientId },
-    { $"Connections:{svName}:Settings:Scopes:0", "https://api.botframework.com/.default" }
+    { $"{ConnectionSettings}:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
+    { $"{ConnectionSettings}:ClientId", clientId },
+    { $"{ConnectionSettings}:Scopes:0", "https://api.botframework.com/.default" }
 };
 // will use workload if available
 TokenCredential credentials = new DefaultAzureCredential();
-// no secret so fedrate
+// no secret so Federate
 if (string.IsNullOrWhiteSpace(clientSecret))
 {
     // ServiceConnection, for workload id
-    inMemoryItems.Add($"Connections:{svName}:Settings:AuthType", "FederatedCredentials");
-    inMemoryItems.Add($"Connections:{svName}:FederatedClientId", clientId);
+    inMemoryItems.Add($"{ConnectionSettings}:AuthType", "FederatedCredentials");
+    inMemoryItems.Add($"{ConnectionSettings}:FederatedClientId", clientId);
 }
 else
 {
     // ServiceConnection, for env with secret
-    inMemoryItems.Add($"Connections:{svName}:Settings:AuthType", "ClientSecret");
-    inMemoryItems.Add($"Connections:{svName}:ClientSecret", clientSecret);
+    inMemoryItems.Add($"{ConnectionSettings}:AuthType", "ClientSecret");
+    inMemoryItems.Add($"{ConnectionSettings}:ClientSecret", clientSecret);
     credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
 }
 
@@ -63,8 +65,9 @@ builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
 
 builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 builder.Services.AddMemoryCache();
+// Add ApplicationOptions
+builder.AddAgentApplicationOptions();
 builder.AddAgent<FileErrorAgent>();
-builder.Services.AddSingleton<IStorage, MemoryStorage>();
 builder.Services.AddControllers(o => { o.Conventions.Add(new HideChannelApi()); });
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
 );
@@ -82,11 +85,13 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
 });
 
-// Add ApplicationOptions
-builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
-{
-    StartTypingTimer = false
-});
+// Register IStorage.  For development, MemoryStorage is suitable.
+// For production Agents, persisted storage should be used so
+// that state survives Agent restarts, and operate correctly
+// in a cluster of Agent instances.
+builder.Services.AddSingleton<IStorage, MemoryStorage>();
+
+
 
 var app = builder.Build();
 

@@ -22,6 +22,7 @@ Since this uses federation we cannot use it locally, for this we will use a bot 
 1. Create a dev tunnel:
 
    ```bash
+   devtunnel user login # only once every 24h or so
    devtunnel host -p 3978 --allow-anonymous
 
    ```
