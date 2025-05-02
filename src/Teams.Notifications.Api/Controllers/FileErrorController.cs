@@ -33,7 +33,7 @@ public class FileErrorController : ControllerBase
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Post(FileErrorModel fileError)
     {
-        if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
+        if (!IsFileExtensionValid(fileError))
             return BadRequest("Extension between uploaded file and filename needs to be equal");
         try
         {
