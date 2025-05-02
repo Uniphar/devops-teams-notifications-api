@@ -1,5 +1,6 @@
 using System.Data;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
@@ -68,7 +69,10 @@ builder.Services.AddMemoryCache();
 // Add ApplicationOptions
 builder.AddAgentApplicationOptions();
 builder.AddAgent<FileErrorAgent>();
-builder.Services.AddControllers(o => { o.Conventions.Add(new HideChannelApi()); });
+builder
+    .Services
+    .AddControllers(o => { o.Conventions.Add(new HideChannelApi()); })
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
 );
 builder.Services.AddEndpointsApiExplorer();

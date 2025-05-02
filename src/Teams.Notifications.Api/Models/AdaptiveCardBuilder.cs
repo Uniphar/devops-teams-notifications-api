@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Models;
+﻿using Teams.Notifications.Api.Agents;
+
+namespace Teams.Notifications.Api.Models;
 
 public class AdaptiveCardBuilder
 {
@@ -12,15 +14,21 @@ public class AdaptiveCardBuilder
             case FileErrorStatusEnum.Failed:
                 statusString = "❌ Failed";
                 title = "🚨 File Processing Error";
-                info = "There was an issue processing the file.";
+                info = "There was an issue processing the file. Please check the file and make sure the system is working right";
                 break;
             case FileErrorStatusEnum.InProgress:
                 statusString = "In progress";
                 title = "File is reprocessing";
-                info = "You requested to reprocess the file";
+                info = "The external system has let us known that they are not reprocessing your file";
+                break;
+            case FileErrorStatusEnum.SystemNotified:
+                statusString = "System notified";
+                title = "We sent a message to the external system";
+                info = "Thank you for pressing reprocess, the external system has been notified and we are working on getting it reprocessed, you can check this card for updates";
                 break;
             // can never happen only failed and in progress are options
             case FileErrorStatusEnum.Success:
+           
             default:
                 statusString = "❌ Failed";
                 title = "🚨 File Processing Error";
@@ -34,9 +42,11 @@ public class AdaptiveCardBuilder
                 new AdaptiveExecuteAction
                 {
                     Title = "🔁 Reprocess File",
-                    Data = new
+                    Data = new AdaptiveCardSubmitData
                     {
-                        action = "reprocessFile"
+                        FileName = model.FileName,
+                        System = model.System,
+                        JobId = model.JobId
                     },
                     Verb = "process",
                     Id = "process"
@@ -74,6 +84,12 @@ public class AdaptiveCardBuilder
         };
         if (model.OriginalErrorTimestamp != null)
             adaptiveFacts.Add(new AdaptiveFact("Timestamp:", model.OriginalErrorTimestamp?.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture)));
+        var titleColor = model.Status switch
+        {
+            FileErrorStatusEnum.InProgress => AdaptiveTextColor.Warning,
+            FileErrorStatusEnum.Failed => AdaptiveTextColor.Attention,
+            _ => AdaptiveTextColor.Good
+        };
         return new AdaptiveCard(new AdaptiveSchemaVersion(1, 5))
         {
             Body =
@@ -83,7 +99,7 @@ public class AdaptiveCardBuilder
                     Text = title,
                     Weight = AdaptiveTextWeight.Bolder,
                     Size = AdaptiveTextSize.Large,
-                    Color = AdaptiveTextColor.Warning
+                    Color = titleColor
                 },
 
                 new AdaptiveTextBlock

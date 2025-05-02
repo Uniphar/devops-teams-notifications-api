@@ -18,5 +18,10 @@ public enum FileErrorStatusEnum
     /// <summary>
     ///     In progress
     /// </summary>
-    InProgress = 1
+    InProgress = 1,
+
+    /// <summary>
+    ///     System has been notified, we are on it!
+    /// </summary>
+    SystemNotified = 2
 }

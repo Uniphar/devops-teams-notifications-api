@@ -1,4 +1,6 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using System.Text.Json.Serialization;
+using Microsoft.Agents.Core.Serialization;
+using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Agents;
@@ -25,13 +27,14 @@ public class FileErrorAgent : AgentApplication
 
     protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken cancellationToken)
     {
+        var submitData = ProtocolJsonSerializer.ToObject<AdaptiveCardSubmitData>(data);
         //mock we could get all the info from the turn contexts activity, do our api call and then return an in progress action
         var fileError = new FileErrorModel
         {
-            FileName = "Unknown",
-            System = "Unknown",
-            JobId = "Unknown",
-            Status = FileErrorStatusEnum.InProgress
+            FileName = submitData.FileName,
+            System = submitData.System,
+            JobId = submitData.JobId,
+            Status = FileErrorStatusEnum.SystemNotified
         };
         var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError, null).ToJson();
         // Create a response message based on the response content type from the WeatherForecastAgent
