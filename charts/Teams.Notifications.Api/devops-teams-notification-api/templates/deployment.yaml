@@ -1,4 +1,4 @@
-{{- $name := include "teams-notification-api.name" . -}}
+{{- $name := include "devops-teams-notification-api.name" . -}}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
