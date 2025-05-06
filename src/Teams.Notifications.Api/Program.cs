@@ -6,8 +6,6 @@ using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
 using Teams.Notifications.Api.Agents;
@@ -15,7 +13,6 @@ using Teams.Notifications.Api.DelegatingHandlers;
 using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
-using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
 const string appPathPrefix = "devops-teams-notification-api";
