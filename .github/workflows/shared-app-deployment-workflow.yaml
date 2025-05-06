@@ -46,7 +46,7 @@ on:
 
 jobs:
   deploy_app:
-    name: Deploy Application to ${{ inputs.environment }}
+    name: Deploy Application to ${{ inputs.environment }} ${{ matrix.regionShortCode }}
     environment: ${{ inputs.environment }}
     runs-on: ubuntu-latest
     strategy:
