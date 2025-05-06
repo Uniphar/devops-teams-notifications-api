@@ -98,7 +98,7 @@ builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 
 var app = builder.Build();
-
+app.UseForwardedHeaders();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
