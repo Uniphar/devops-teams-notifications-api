@@ -50,6 +50,7 @@ public class FileErrorController : ControllerBase
         return Ok();
     }
 
+ 
     /// <summary>
     ///     Creates or updates the file error in teams
     /// </summary>
@@ -62,8 +63,9 @@ public class FileErrorController : ControllerBase
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Put(FileErrorModel fileError)
     {
-        if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
+        if (!IsFileExtensionValid(fileError))
             return BadRequest("Extension between uploaded file and filename needs to be equal");
+       
         try
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
@@ -91,7 +93,7 @@ public class FileErrorController : ControllerBase
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Delete(FileErrorModel fileError)
     {
-        if (fileError.File != null && Path.GetExtension(fileError.File.FileName) != Path.GetExtension(fileError.FileName))
+        if (!IsFileExtensionValid(fileError))
             return BadRequest("Extension between uploaded file and filename needs to be equal");
         try
         {
@@ -107,4 +109,9 @@ public class FileErrorController : ControllerBase
 
         return Ok();
     }
+    private static bool IsFileExtensionValid(FileErrorModel fileError)
+    {
+        return fileError.File == null || Path.GetExtension(fileError.File.FileName) == Path.GetExtension(fileError.FileName);
+    }
+
 }
