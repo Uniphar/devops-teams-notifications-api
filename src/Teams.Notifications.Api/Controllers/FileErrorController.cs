@@ -1,6 +1,6 @@
 ﻿namespace Teams.Notifications.Api.Controllers;
 
-[Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
+[Microsoft.AspNetCore.Mvc.Route("[controller]")]
 [ApiController]
 public class FileErrorController : ControllerBase
 {
