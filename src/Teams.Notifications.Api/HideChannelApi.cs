@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc.Routing;
+
 namespace Teams.Notifications.Api;
 
 internal sealed class HideChannelApi : IControllerModelConvention

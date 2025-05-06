@@ -15,6 +15,7 @@ using Teams.Notifications.Api.DelegatingHandlers;
 using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
+using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
 const string appPathPrefix = "devops-teams-notification-api";
@@ -74,9 +75,12 @@ builder.Services.AddMemoryCache();
 // Add ApplicationOptions
 builder.AddAgentApplicationOptions();
 builder.AddAgent<FileErrorAgent>();
-builder.Services.AddControllers(o =>
+builder
+    .Services
+    .AddControllers(o =>
     {
         o.Conventions.Add(new HideChannelApi());
+        o.Conventions.Add(new GlobalRouteConvention(appPathPrefix));
     })
     .AddJsonOptions(options =>
     {
@@ -87,8 +91,7 @@ builder.Services.AddControllers(o =>
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 
-builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
-);
+builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -111,7 +114,6 @@ builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
 app.UseSwagger(options =>
 {
     options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json";
@@ -121,7 +123,5 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("v1/swagger.json", "V1");
     c.RoutePrefix = $"{appPathPrefix}/swagger";
 });
-
-app.UsePathBase("/" + appPathPrefix);
 app.UseRouting();
 app.Run();
