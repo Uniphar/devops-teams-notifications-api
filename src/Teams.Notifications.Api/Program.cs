@@ -12,6 +12,7 @@ using Teams.Notifications.Api.Agents;
 using Teams.Notifications.Api.DelegatingHandlers;
 using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
+using Endpoint = Microsoft.AspNetCore.Http.Endpoint;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
@@ -120,5 +121,5 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("v1/swagger.json", "V1");
     c.RoutePrefix = $"{appPathPrefix}/swagger";
 });
-app.UseRouting();
+app.MapControllers();
 app.Run();
