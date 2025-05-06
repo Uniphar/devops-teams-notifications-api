@@ -39,3 +39,7 @@ devops-azure will create the bot services automatically, but to be able to use t
 `https://dev.teams.microsoft.com/apps` and create a new app, using all the credentials, as an example the debug bot is provided in `src\Teams.Notifications.Api\appManifest`, if you create a new app, compare the manifest with the json provided you can figure out pretty easily what you are missing (note that id is unique per org/app and that the clientId is peppered in the manifest), this is preferred over doing it by just uploading it as a zip as the manifest version might be newer!
 
 The pending apps you can find in `https://admin.teams.microsoft.com/policies/manage-apps` with pim you can approve these, to view, choose app type= custom app
+
+### Where to find stuff
+
+`https://api.dev.uniphar.ie/devops-teams-notification-api/swagger` for the swagger page (change dev to the right env)

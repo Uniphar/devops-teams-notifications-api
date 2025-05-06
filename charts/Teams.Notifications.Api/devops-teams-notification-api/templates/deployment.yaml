@@ -5,15 +5,22 @@ metadata:
   name: {{ $name }}
   labels:
     app: {{ $name }}
+    app.kubernetes.io/name: {{ $name }}
+    version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-        app: {{ $name }}
+      app: {{ $name }}
+      app.kubernetes.io/name: {{ $name }}
   template:
     metadata:
       labels:
         app: {{ $name }}
+        app.kubernetes.io/name: {{ $name }}
+        version: {{ .Chart.AppVersion | quote }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
         azure.workload.identity/use: "true"
     spec:
       serviceAccountName: "compute-aks-devops-{{ .Values.environment }}-k8s-sa"
