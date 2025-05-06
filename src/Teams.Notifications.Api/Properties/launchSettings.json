@@ -7,7 +7,7 @@
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:3978",
-      "launchUrl": "swagger",
+      "launchUrl": "devops-teams-notification-api/swagger",
       "launchBrowser": true
     }
   },

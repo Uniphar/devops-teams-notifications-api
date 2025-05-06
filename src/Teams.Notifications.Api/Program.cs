@@ -1,10 +1,12 @@
 using System.Data;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
@@ -15,7 +17,10 @@ using Teams.Notifications.Api.Services;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
+const string appPathPrefix = "devops-teams-notification-api";
+
 var builder = WebApplication.CreateBuilder(args);
+
 
 // this is what the bot is communicating on
 builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
@@ -69,10 +74,19 @@ builder.Services.AddMemoryCache();
 // Add ApplicationOptions
 builder.AddAgentApplicationOptions();
 builder.AddAgent<FileErrorAgent>();
-builder
-    .Services
-    .AddControllers(o => { o.Conventions.Add(new HideChannelApi()); })
-    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+builder.Services.AddControllers(o =>
+    {
+        o.Conventions.Add(new HideChannelApi());
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
 );
 builder.Services.AddEndpointsApiExplorer();
@@ -96,18 +110,18 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 
-
 var app = builder.Build();
-app.UseForwardedHeaders();
-app.UseHttpsRedirection();
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment()) app.UseDeveloperExceptionPage();
+app.UseSwagger(options =>
 {
-    app.UseDeveloperExceptionPage();
-    app.MapControllers().AllowAnonymous();
-}
+    options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json";
+});
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("v1/swagger.json", "V1");
+    c.RoutePrefix = $"{appPathPrefix}/swagger";
+});
 
-
-app.MapControllers();
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UsePathBase("/" + appPathPrefix);
+app.UseRouting();
 app.Run();

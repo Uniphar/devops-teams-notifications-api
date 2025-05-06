@@ -50,7 +50,7 @@ public class FileErrorController : ControllerBase
         return Ok();
     }
 
- 
+
     /// <summary>
     ///     Creates or updates the file error in teams
     /// </summary>
@@ -65,7 +65,7 @@ public class FileErrorController : ControllerBase
     {
         if (!IsFileExtensionValid(fileError))
             return BadRequest("Extension between uploaded file and filename needs to be equal");
-       
+
         try
         {
             var teamId = await _managerService.GetTeamIdAsync(_teamName);
@@ -109,9 +109,6 @@ public class FileErrorController : ControllerBase
 
         return Ok();
     }
-    private static bool IsFileExtensionValid(FileErrorModel fileError)
-    {
-        return fileError.File == null || Path.GetExtension(fileError.File.FileName) == Path.GetExtension(fileError.FileName);
-    }
 
+    private static bool IsFileExtensionValid(FileErrorModel fileError) => fileError.File == null || Path.GetExtension(fileError.File.FileName) == Path.GetExtension(fileError.FileName);
 }
