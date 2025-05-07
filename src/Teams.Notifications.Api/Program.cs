@@ -5,7 +5,9 @@ using System.Text.Json.Serialization;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
 using Teams.Notifications.Api.Agents;
@@ -13,7 +15,6 @@ using Teams.Notifications.Api.DelegatingHandlers;
 using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
 using Teams.Notifications.Api.Telemetry;
-using Endpoint = Microsoft.AspNetCore.Http.Endpoint;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
@@ -90,7 +91,8 @@ builder
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
-builder.Services.AddApplicationInsightsTelemetryProcessor<TelemetryProcessor>();
+builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
+builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
