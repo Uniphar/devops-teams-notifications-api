@@ -37,14 +37,14 @@ spec:
             timeoutSeconds: 30
             httpGet:
               path: {{ .Values.healthUrl }}
-              scheme: HTTPS
+              scheme: HTTP
               port: 8080         
           readinessProbe:
             periodSeconds: 20
             timeoutSeconds: 30
             httpGet:
               path: {{ .Values.healthUrl }}
-              scheme: HTTPS
+              scheme: HTTP
               port: 8080
           env:
           - name: ASPNETCORE_URLS
