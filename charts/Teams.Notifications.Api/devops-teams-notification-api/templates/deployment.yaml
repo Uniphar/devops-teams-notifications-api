@@ -32,6 +32,20 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          livenessProbe:
+            periodSeconds: 20
+            timeoutSeconds: 30
+            httpGet:
+              path: {{ .Values.healthUrl }}
+              scheme: HTTPS
+              port: 8080         
+          readinessProbe:
+            periodSeconds: 20
+            timeoutSeconds: 30
+            httpGet:
+              path: {{ .Values.healthUrl }}
+              scheme: HTTPS
+              port: 8080
           env:
           - name: ASPNETCORE_URLS
             value: "http://+:8080"

@@ -2,6 +2,7 @@
 replicaCount: 1
 nameOverride: devops-teams-notification-api
 appPath: /devops-teams-notification-api
+healthUrl: /health
 port: 8080
 environment: dev
 env:
