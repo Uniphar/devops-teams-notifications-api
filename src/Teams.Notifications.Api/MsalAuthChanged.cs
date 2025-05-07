@@ -18,6 +18,7 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     private readonly string _tenantId;
     private string? _lastJwtWorkLoadIdentity;
     private DateTimeOffset _lastReadWorkloadIdentity;
+    private readonly string _host;
 
 
     public MsalAuthChanged(IServiceProvider systemServiceProvider, IConfigurationSection msalConfigurationSection)
@@ -26,6 +27,7 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
         _clientId = config["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
         _tenantId = config["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
         _clientSecret = config["ClientSecret"];
+        _host = config["AZURE_AUTHORITY_HOST"];
         _federatedTokenFile = config["AZURE_FEDERATED_TOKEN_FILE"];
     }
 
@@ -82,12 +84,8 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     {
         // initialize the MSAL client
         var cAppBuilder = ConfidentialClientApplicationBuilder
-            .CreateWithApplicationOptions(
-                new ConfidentialClientApplicationOptions
-                {
-                    ClientId = _clientId
-                })
-            .WithLegacyCacheCompatibility(false)
+            .Create(_clientId)
+            .WithAuthority(_host, _tenantId) 
             .WithCacheOptions(new CacheOptions(true));
 
 
