@@ -28,6 +28,7 @@ builder.Services.AddKernel();
 // Values from app registration
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
+var host = builder.Configuration["AZURE_AUTHORITY_HOST"] ?? throw new NoNullAllowedException("host is required");
 var clientSecret = builder.Configuration["ClientSecret"];
 
 // will use workload if available
