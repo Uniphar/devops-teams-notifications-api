@@ -1,0 +1,3 @@
+environment: test
+env:
+  ASPNETCORE_ENVIRONMENT: "test"

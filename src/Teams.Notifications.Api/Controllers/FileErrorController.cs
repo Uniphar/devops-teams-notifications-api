@@ -1,6 +1,6 @@
 ﻿namespace Teams.Notifications.Api.Controllers;
 
-[Microsoft.AspNetCore.Mvc.Route("api/[controller]")]
+[Microsoft.AspNetCore.Mvc.Route("[controller]")]
 [ApiController]
 public class FileErrorController : ControllerBase
 {
@@ -30,43 +30,43 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
-    public async Task Post(FileErrorModel fileError)
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
+    public async Task<IActionResult> Post(FileErrorModel fileError)
     {
-        try
-        {
-            var teamId = await _managerService.GetTeamIdAsync(_teamName);
-            var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Something went wrong creating the message");
-            throw;
-        }
+        if (!IsFileExtensionValid(fileError))
+            return BadRequest("Extension between uploaded file and filename needs to be equal");
+
+        var teamId = await _managerService.GetTeamIdAsync(_teamName);
+        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
+        await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
+
+
+        return Ok();
     }
+
 
     /// <summary>
     ///     Creates or updates the file error in teams
     /// </summary>
     /// <param name="fileError">The information about the file</param>
     [HttpPut]
-  
+
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
-    public async Task Put(FileErrorModel fileError)
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
+    public async Task<IActionResult> Put(FileErrorModel fileError)
     {
-        try
-        {
-            var teamId = await _managerService.GetTeamIdAsync(_teamName);
-            var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Something went wrong updating the message");
-            throw;
-        }
+        if (!IsFileExtensionValid(fileError))
+            return BadRequest("Extension between uploaded file and filename needs to be equal");
+
+
+        var teamId = await _managerService.GetTeamIdAsync(_teamName);
+        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
+        await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
+
+
+        return Ok();
     }
 
     /// <summary>
@@ -78,18 +78,18 @@ public class FileErrorController : ControllerBase
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
-    public async Task Delete(FileErrorModel fileError)
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
+    public async Task<IActionResult> Delete(FileErrorModel fileError)
     {
-        try
-        {
-            var teamId = await _managerService.GetTeamIdAsync(_teamName);
-            var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Something went wrong deleting the message");
-            throw;
-        }
+        if (!IsFileExtensionValid(fileError))
+            return BadRequest("Extension between uploaded file and filename needs to be equal");
+
+        var teamId = await _managerService.GetTeamIdAsync(_teamName);
+        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
+        await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
+
+        return Ok();
     }
+
+    private static bool IsFileExtensionValid(FileErrorModel fileError) => fileError.File == null || Path.GetExtension(fileError.File.FileName) == Path.GetExtension(fileError.FileName);
 }

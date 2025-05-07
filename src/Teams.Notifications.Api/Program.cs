@@ -1,34 +1,41 @@
 using System.Data;
 using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
 using Teams.Notifications.Api.Agents;
 using Teams.Notifications.Api.DelegatingHandlers;
 using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
+using Teams.Notifications.Api.Telemetry;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
+const string appPathPrefix = "devops-teams-notification-api";
+
 var builder = WebApplication.CreateBuilder(args);
+
 
 // this is what the bot is communicating on
 builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
 // Register Semantic Kernel
 builder.Services.AddKernel();
-var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
-builder.Configuration.AddAzureKeyVault(
-    new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"),
-    new DefaultAzureCredential());
+
 // Values from app registration
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
-var tokenFile = builder.Configuration["AZURE_FEDERATED_TOKEN_FILE"]?? throw new NoNullAllowedException("FederatedToken is required");
+var clientSecret = builder.Configuration["ClientSecret"];
+
 const string svName = "ServiceConnection";
-builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+const string ConnectionSettings = $"Connections:{svName}:Settings";
+var inMemoryItems = new Dictionary<string, string?>
 {
     { "TokenValidation:Audiences:0", clientId },
     { "TokenValidation:TenantId", tenantId },
@@ -36,30 +43,57 @@ builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     { "ConnectionsMap:0:ServiceUrlSettings", "*" },
     { "ConnectionsMap:0:Connection", svName },
     // ServiceConnection
-    { $"Connections:{svName}:Settings:AuthType", "WorkloadIdentity" },
-    { $"Connections:{svName}:Settings:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
-    { $"Connections:{svName}:ClientId", clientId },
-    { $"Connections:{svName}:FederatedTokenFile", tokenFile },
-    { $"Connections:{svName}:Settings:Scopes:0", "https://api.botframework.com/.default" }
-});
-var tokenCredential = new WorkloadIdentityCredential(new WorkloadIdentityCredentialOptions
+    { $"{ConnectionSettings}:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
+    { $"{ConnectionSettings}:ClientId", clientId },
+    { $"{ConnectionSettings}:Scopes:0", "https://api.botframework.com/.default" }
+};
+// will use workload if available
+TokenCredential credentials = new DefaultAzureCredential();
+// no secret so Federate
+if (string.IsNullOrWhiteSpace(clientSecret))
 {
-    ClientId = clientId,
-    TenantId = tenantId,
-    TokenFilePath = tokenFile
-});
-builder.Services.AddSingleton(new GraphServiceClient(tokenCredential));
+    // ServiceConnection, for workload id
+    inMemoryItems.Add($"{ConnectionSettings}:AuthType", "FederatedCredentials");
+    inMemoryItems.Add($"{ConnectionSettings}:FederatedClientId", clientId);
+}
+else
+{
+    // ServiceConnection, for env with secret
+    inMemoryItems.Add($"{ConnectionSettings}:AuthType", "ClientSecret");
+    inMemoryItems.Add($"{ConnectionSettings}:ClientSecret", clientSecret);
+    credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+}
+
+builder.Configuration.AddInMemoryCollection(inMemoryItems);
+builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
-
+builder.Services.AddHealthChecks();
 builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 builder.Services.AddMemoryCache();
+// Add ApplicationOptions
+builder.AddAgentApplicationOptions();
 builder.AddAgent<FileErrorAgent>();
-builder.Services.AddSingleton<IStorage, MemoryStorage>();
-builder.Services.AddControllers(o => { o.Conventions.Add(new HideChannelApi()); });
-builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]
-);
+builder
+    .Services
+    .AddControllers(o =>
+    {
+        o.Conventions.Add(new HideChannelApi());
+        o.Conventions.Add(new GlobalRouteConvention(appPathPrefix));
+    })
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
+builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
+builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
+builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -74,22 +108,23 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
 });
 
-// Add ApplicationOptions
-builder.Services.AddTransient(sp => new AgentApplicationOptions(sp.GetRequiredService<IStorage>())
-{
-    StartTypingTimer = false
-});
+// Register IStorage.  For development, MemoryStorage is suitable.
+// For production Agents, persisted storage should be used so
+// that state survives Agent restarts, and operate correctly
+// in a cluster of Agent instances.
+builder.Services.AddSingleton<IStorage, MemoryStorage>();
+
 
 var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+app.MapHealthChecks($"/health");
+app.UseSwagger(options =>
 {
-    app.UseDeveloperExceptionPage();
-    app.MapControllers().AllowAnonymous();
-}
-
-
+    options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json";
+});
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("v1/swagger.json", "V1");
+    c.RoutePrefix = $"{appPathPrefix}/swagger";
+});
 app.MapControllers();
-app.UseSwagger();
-app.UseSwaggerUI();
 app.Run();

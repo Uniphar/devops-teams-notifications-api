@@ -1,4 +1,4 @@
-{{- $name := include "helm-dotnet.name" . -}}
+{{- $name := include "devops-teams-notification-api.name" . -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

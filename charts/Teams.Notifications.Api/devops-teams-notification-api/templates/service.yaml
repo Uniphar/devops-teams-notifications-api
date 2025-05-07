@@ -1,4 +1,4 @@
-{{- $name := include "helm-dotnet.name" . -}}
+{{- $name := include "devops-teams-notification-api.name" . -}}
 apiVersion: v1
 kind: Service
 metadata:

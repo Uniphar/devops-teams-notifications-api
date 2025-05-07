@@ -1,0 +1,4 @@
+environment: dev
+
+env:
+  ASPNETCORE_ENVIRONMENT: "dev"

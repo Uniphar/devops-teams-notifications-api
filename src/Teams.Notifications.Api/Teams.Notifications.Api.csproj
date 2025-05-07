@@ -5,18 +5,20 @@
 		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
 		<NoWarn>$(NoWarn);SKEXP0010;1591</NoWarn>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>			
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards" Version="*" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
 		<PackageReference Include="Azure.Identity" Version="*" />
+		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="*" />
 		<PackageReference Include="Microsoft.Agents.Authentication.Msal" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Builder" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Extensions.Teams" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Builder.Dialogs" Version="*-*" />
 		<PackageReference Include="Microsoft.Agents.Hosting.AspNetCore" Version="*-*" />
+		<PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="*" />
 		<PackageReference Include="Microsoft.SemanticKernel.Agents.AzureAI" Version="*-*" />
 		<PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="*" />
 		<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="*" />
