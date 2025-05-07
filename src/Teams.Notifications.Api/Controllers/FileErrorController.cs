@@ -35,17 +35,11 @@ public class FileErrorController : ControllerBase
     {
         if (!IsFileExtensionValid(fileError))
             return BadRequest("Extension between uploaded file and filename needs to be equal");
-        try
-        {
-            var teamId = await _managerService.GetTeamIdAsync(_teamName);
-            var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Something went wrong creating the message");
-            throw;
-        }
+
+        var teamId = await _managerService.GetTeamIdAsync(_teamName);
+        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
+        await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
+
 
         return Ok();
     }
@@ -66,17 +60,11 @@ public class FileErrorController : ControllerBase
         if (!IsFileExtensionValid(fileError))
             return BadRequest("Extension between uploaded file and filename needs to be equal");
 
-        try
-        {
-            var teamId = await _managerService.GetTeamIdAsync(_teamName);
-            var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Something went wrong updating the message");
-            throw;
-        }
+
+        var teamId = await _managerService.GetTeamIdAsync(_teamName);
+        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
+        await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
+
 
         return Ok();
     }
@@ -95,17 +83,10 @@ public class FileErrorController : ControllerBase
     {
         if (!IsFileExtensionValid(fileError))
             return BadRequest("Extension between uploaded file and filename needs to be equal");
-        try
-        {
-            var teamId = await _managerService.GetTeamIdAsync(_teamName);
-            var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-            await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Something went wrong deleting the message");
-            throw;
-        }
+
+        var teamId = await _managerService.GetTeamIdAsync(_teamName);
+        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
+        await _fileErrorService.CreateUpdateOrDeleteFileErrorCardAsync(fileError, teamId, channelId);
 
         return Ok();
     }
