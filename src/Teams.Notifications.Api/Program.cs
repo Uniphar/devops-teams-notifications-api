@@ -30,17 +30,9 @@ var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllow
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
 var clientSecret = builder.Configuration["ClientSecret"];
 
-var inMemoryItems = new Dictionary<string, string?>
-{
-    { "TokenValidation:Audiences:0", clientId },
-    { "TokenValidation:TenantId", tenantId },
-};
 // will use workload if available
 TokenCredential credentials = new DefaultAzureCredential();
-
-
 if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
-builder.Configuration.AddInMemoryCollection(inMemoryItems);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
