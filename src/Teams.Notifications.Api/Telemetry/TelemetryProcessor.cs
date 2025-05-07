@@ -1,6 +1,6 @@
 ﻿namespace Teams.Notifications.Api.Telemetry;
 
-public class TelemetryProcessor(ITelemetryProcessor next) : ITelemetryProcessor
+internal class TelemetryProcessor(ITelemetryProcessor next) : ITelemetryProcessor
 {
     public void Process(ITelemetry item)
     {
@@ -11,7 +11,7 @@ public class TelemetryProcessor(ITelemetryProcessor next) : ITelemetryProcessor
         }
 
         if (telemetryItem.Properties.TryGetValue(HttpContextTelemetryInitializer.RequestPath, out var requestPath))
-            if (requestPath.EndsWith("/health"))
+            if (requestPath.EndsWith("/health", StringComparison.OrdinalIgnoreCase))
                 return;
 
         next.Process(item);

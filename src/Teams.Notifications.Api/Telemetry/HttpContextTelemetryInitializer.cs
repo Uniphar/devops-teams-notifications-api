@@ -1,9 +1,9 @@
 ﻿namespace Teams.Notifications.Api.Telemetry;
 
-public class HttpContextTelemetryInitializer(IHttpContextAccessor httpContextAccessor) : ITelemetryInitializer
+internal class HttpContextTelemetryInitializer(IHttpContextAccessor httpContextAccessor) : ITelemetryInitializer
 {
     public const string RequestPath = "UrlPath";
-    public const string ResponseStatusCode = "StatusCode";
+    private const string ResponseStatusCode = "StatusCode";
 
     public void Initialize(ITelemetry telemetry)
     {
