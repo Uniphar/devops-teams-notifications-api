@@ -18,24 +18,26 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     private readonly string _tenantId;
     private string? _lastJwtWorkLoadIdentity;
     private DateTimeOffset _lastReadWorkloadIdentity;
-    private readonly string _host;
 
-
+// instead of using the config we can directly pull and set all the env variables, unlike the MsalAuth option
     public MsalAuthChanged(IServiceProvider systemServiceProvider, IConfigurationSection msalConfigurationSection)
     {
         var config = systemServiceProvider.GetRequiredService<IConfiguration>();
         _clientId = config["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
         _tenantId = config["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
-        _host = config["AZURE_AUTHORITY_HOST"] ?? throw new NoNullAllowedException("host is required");
         _clientSecret = config["ClientSecret"];
         _federatedTokenFile = config["AZURE_FEDERATED_TOKEN_FILE"];
-        if (string.IsNullOrWhiteSpace(_clientSecret) && string.IsNullOrWhiteSpace(_federatedTokenFile))
-        {
-            throw new NoNullAllowedException("Secret or token file is required");
-        }
+        if (string.IsNullOrWhiteSpace(_clientSecret) && string.IsNullOrWhiteSpace(_federatedTokenFile)) throw new NoNullAllowedException("Secret or token file is required");
     }
 
-
+    /// <summary>
+    /// simplified version of the MsalAuth from the sdk, just to ease our use case
+    /// </summary>
+    /// <param name="resourceUrl"></param>
+    /// <param name="scopes"></param>
+    /// <param name="forceRefresh"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     public async Task<string> GetAccessTokenAsync(string resourceUrl, IList<string> scopes, bool forceRefresh = false)
     {
         if (!Uri.IsWellFormedUriString(resourceUrl, UriKind.RelativeOrAbsolute)) throw new ArgumentException("Invalid instance URL");
@@ -87,17 +89,20 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     private IConfidentialClientApplication InnerCreateClientApplication()
     {
         // initialize the MSAL client
-        var cAppBuilder = ConfidentialClientApplicationBuilder
-            .Create(_clientId)
-            .WithAuthority(_host, _tenantId) 
-            .WithCacheOptions(new CacheOptions(true));
-
-
+        // same as: src\libraries\Authentication\Authentication.Msal\MsalAuth.cs:118
+        ConfidentialClientApplicationBuilder cAppBuilder = ConfidentialClientApplicationBuilder.CreateWithApplicationOptions(
+            new ConfidentialClientApplicationOptions()
+            {
+                ClientId = _clientId,
+            });
+        // we only use tenant so this is perfect
         cAppBuilder.WithTenantId(_tenantId);
 
+        // we want to have an option for client secret for local dev
         if (!string.IsNullOrWhiteSpace(_clientSecret))
             cAppBuilder.WithClientSecret(_clientSecret);
         else
+            // same as https://github.com/microsoft/Agents-for-net/pull/228/files#diff-44f4195f52226b6d9dc9b4c2dd14855625ebdfdca19c04baf53bd7ebe619939eR233
             cAppBuilder.WithClientAssertion(() =>
             {
                 // read only once every 5 minutes, less heavy for I/O
