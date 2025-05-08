@@ -19,6 +19,9 @@ const string appPathPrefix = "devops-teams-notification-api";
 
 var builder = WebApplication.CreateBuilder(args);
 
+var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
+
+TokenCredential credentials = new DefaultAzureCredential();
 
 // this is what the bot is communicating on
 builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
@@ -28,11 +31,10 @@ builder.Services.AddKernel();
 // Values from app registration
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
-var host = builder.Configuration["AZURE_AUTHORITY_HOST"] ?? throw new NoNullAllowedException("host is required");
+
 var clientSecret = builder.Configuration["ClientSecret"];
 
 // will use workload if available
-TokenCredential credentials = new DefaultAzureCredential();
 if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
@@ -59,6 +61,8 @@ builder
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
+// key vault is required for ApplicationInsights, since it needs the connection string
+builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
 builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
 builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
