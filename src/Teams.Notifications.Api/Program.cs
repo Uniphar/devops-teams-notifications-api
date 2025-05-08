@@ -5,16 +5,13 @@ using System.Text.Json.Serialization;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
 using Teams.Notifications.Api.Agents;
 using Teams.Notifications.Api.DelegatingHandlers;
 using Teams.Notifications.Api.Middlewares;
 using Teams.Notifications.Api.Services;
-using Teams.Notifications.Api.Telemetry;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
@@ -22,6 +19,9 @@ const string appPathPrefix = "devops-teams-notification-api";
 
 var builder = WebApplication.CreateBuilder(args);
 
+var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
+
+TokenCredential credentials = new DefaultAzureCredential();
 
 // this is what the bot is communicating on
 builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
@@ -31,40 +31,11 @@ builder.Services.AddKernel();
 // Values from app registration
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
+
 var clientSecret = builder.Configuration["ClientSecret"];
 
-const string svName = "ServiceConnection";
-const string ConnectionSettings = $"Connections:{svName}:Settings";
-var inMemoryItems = new Dictionary<string, string?>
-{
-    { "TokenValidation:Audiences:0", clientId },
-    { "TokenValidation:TenantId", tenantId },
-    // ConnectionsMap with the ServiceConnection
-    { "ConnectionsMap:0:ServiceUrlSettings", "*" },
-    { "ConnectionsMap:0:Connection", svName },
-    // ServiceConnection
-    { $"{ConnectionSettings}:AuthorityEndpoint", "https://login.microsoftonline.com/" + tenantId },
-    { $"{ConnectionSettings}:ClientId", clientId },
-    { $"{ConnectionSettings}:Scopes:0", "https://api.botframework.com/.default" }
-};
 // will use workload if available
-TokenCredential credentials = new DefaultAzureCredential();
-// no secret so Federate
-if (string.IsNullOrWhiteSpace(clientSecret))
-{
-    // ServiceConnection, for workload id
-    inMemoryItems.Add($"{ConnectionSettings}:AuthType", "FederatedCredentials");
-    inMemoryItems.Add($"{ConnectionSettings}:FederatedClientId", clientId);
-}
-else
-{
-    // ServiceConnection, for env with secret
-    inMemoryItems.Add($"{ConnectionSettings}:AuthType", "ClientSecret");
-    inMemoryItems.Add($"{ConnectionSettings}:ClientSecret", clientSecret);
-    credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
-}
-
-builder.Configuration.AddInMemoryCollection(inMemoryItems);
+if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
@@ -90,6 +61,8 @@ builder
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
+// key vault is required for ApplicationInsights, since it needs the connection string
+builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
 builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
 builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
