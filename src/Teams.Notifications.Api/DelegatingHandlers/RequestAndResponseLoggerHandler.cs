@@ -10,7 +10,7 @@ namespace Teams.Notifications.Api.DelegatingHandlers;
 public class RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHandler> logger) : DelegatingHandler
 {
     private const int MaxBodyLength = 10000; // we don't want to log  big request or responses
-    private static readonly bool ShouldLog = true;
+    private static readonly bool ShouldLog = false;
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
         CancellationToken cancellationToken
