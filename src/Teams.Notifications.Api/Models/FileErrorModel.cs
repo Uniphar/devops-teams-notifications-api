@@ -47,7 +47,8 @@ public sealed record FileErrorModel
     /// <example>StackTrace: Found and error in </example>
     [FromForm]
     [JsonPropertyName("errorMessage")]
-    public string ErrorMessage { get; set; } = string.Empty;
+
+    public string? ErrorMessage { get; set; } 
 
     /// <summary>
     ///     When the file originally went into error
