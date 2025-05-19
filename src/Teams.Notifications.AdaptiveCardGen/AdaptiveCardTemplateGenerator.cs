@@ -65,25 +65,21 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
         return
             $$"""
-                              using Microsoft.AspNetCore.Mvc;
-                              using Newtonsoft.Json;
-                              using GeneratedCardModels;
-
-                namespace GeneratedCardControllers
-                              {
-                                  [ApiController]
-                                  [Route("api/cards")]
-                                  public class {{controllerName}} : ControllerBase
-                                  {
-                                      [HttpPost("{{safeRoute}}")]
-                                      public IActionResult Render([FromBody] {{modelName}} model)
-                                      {
-                                  
-
-                            return Ok();
-                        }
-                    }
-                }
+              using GeneratedCardModels;
+              
+              namespace GeneratedCardControllers
+              {
+                  [ApiController]
+                  [Microsoft.AspNetCore.Mvc.Route("api/cards/[controller]")]
+                  public class {{controllerName}} : ControllerBase
+                  {
+                      [HttpPost]
+                      public IActionResult Render([FromBody] {{modelName}} model)
+                      {
+                          return Ok();
+                      }
+                  }
+              }
               """;
     }
 }
