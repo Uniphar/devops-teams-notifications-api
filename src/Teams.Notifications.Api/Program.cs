@@ -61,11 +61,15 @@ builder
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
+if (environment != "local")
+{
 // key vault is required for ApplicationInsights, since it needs the connection string
-builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
-builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
-builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
-builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
+    builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
+    builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
+    builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
+    builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
+}
+
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
