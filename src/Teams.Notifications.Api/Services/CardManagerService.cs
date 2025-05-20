@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Teams.Notifications.AdaptiveCardGen;
 using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
@@ -35,10 +36,24 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
 
     private async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel
     {
-        await using var file = File.OpenRead($"./Templates/{jsonFileName}");
-        // mod with the model
-        var item = JsonSerializer.Deserialize<AdaptiveCard>(file);
+        var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
+        var props = text.GetPropertiesFromJson();
+        // replace all props with the values
+        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type);
+
+        var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(item));
+        // some solution to be able to track an unique id across the channel
+        item.Body.Add(new AdaptiveTextBlock("•")
+        {
+            Color = AdaptiveTextColor.Accent,
+            Size = AdaptiveTextSize.Small,
+            Id = model.UniqueId,
+            IsSubtle = true,
+            IsVisible = false,
+            Wrap = true,
+        });
+        var jsonAdaptiveCard = item.ToJson();
         var activity = new Activity
         {
             Type = "message",
@@ -47,7 +62,7 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
                 new()
                 {
                     ContentType = AdaptiveCard.ContentType,
-                    Content = item.ToJson()
+                    Content = jsonAdaptiveCard
                 }
             }
         };
@@ -79,4 +94,5 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
             Conversation = new ConversationAccount(id: channelId),
             ActivityId = channelId
         };
+   
 }

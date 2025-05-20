@@ -36,11 +36,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     {
         var (path, content) = item;
         var fileName = Path.GetFileNameWithoutExtension(path);
-        // very simple regex where {{name:type}} means is that what you want, it has to be C# compatible, otherwise it will break
-        var matches = Regex.Matches(content, "{{(?<name>.*?):(?<type>.*?)}}");
-        var properties = matches
-            .Cast<Match>()
-            .ToDictionary(m => m.Groups["name"].Value, m => m.Groups["type"].Value);
+        var properties = content.GetPropertiesFromJson();
 
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";
@@ -51,6 +47,8 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         var controllerSource = GenerateController(modelName, controllerName, filename);
         spc.AddSource($"{fileName}Controller.g.cs", SourceText.From(controllerSource, Encoding.UTF8));
     }
+
+
 
     private static string GenerateModel(string modelName, Dictionary<string, string> props)
     {
