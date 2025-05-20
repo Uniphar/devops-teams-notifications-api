@@ -18,9 +18,11 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // defined in the Teams.Notifications.Api.csproj as additional item's
-        var templateAndContent = context.AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))            
-            .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));;
+        var templateAndContent = context
+            .AdditionalTextsProvider
+            .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
+            .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));
+        ;
         var controllerTemplate = context
             .AdditionalTextsProvider
             .Where(file => file.Path.EndsWith("CardTemplateController.cs", StringComparison.Ordinal) && file.Path.Contains("ControllerTemplate"))

@@ -39,6 +39,7 @@ if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCred
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
+builder.Services.AddTransient<ICardManagerService, CardManagerService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
 builder.Services.AddHealthChecks();
 builder.Services.AddAgentAspNetAuthentication(builder.Configuration);

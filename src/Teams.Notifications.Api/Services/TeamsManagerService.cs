@@ -37,6 +37,37 @@ public class TeamsManagerService : ITeamsManagerService
         return channelId ?? throw new InvalidOperationException();
     }
 
+    public async Task<string?> GetMessageId(string teamId, string channelId, string uniqueId)
+    {
+        // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
+        var response = await _graphClient
+            .Teams[teamId]
+            .Channels[channelId]
+            .Messages
+            .GetAsync(x => x.QueryParameters.Top = 100);
+        // no need to do anything if there is no message
+        if (response?.Value == null) return string.Empty;
+        var id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId))?.Id;
+        if (!string.IsNullOrWhiteSpace(id))
+            return id;
+        while (response?.OdataNextLink != null)
+        {
+            var configuration = new RequestInformation
+            {
+                HttpMethod = Method.GET,
+                URI = new Uri(response.OdataNextLink)
+            };
+
+            response = await _graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
+            if (response?.Value == null) throw new Exception("Messages should not be null if there is a next page");
+            id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId))?.Id;
+            if (!string.IsNullOrWhiteSpace(id))
+                return id;
+        }
+
+        return id;
+    }
+
     public async Task<string?> GetMessageId(string teamId, string channelId, FileErrorModel modelToFind)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
@@ -68,6 +99,7 @@ public class TeamsManagerService : ITeamsManagerService
         return id;
     }
 
+ 
     public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream)
     {
         var file = await GetFile(teamId, channelId, fileUrl);

@@ -2,7 +2,7 @@
 
 public interface ICardManagerService
 {
-    Task CreateCard(string jsonFileName, object model, string teamId, string channelId);
-    Task UpdateCard(string jsonFileName, string uniqueId, object model, string teamId, string channelId);
+    Task CreateCard<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel;
+    Task UpdateCard<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel;
     Task DeleteCard(string jsonFileName, string uniqueId, string teamId, string channelId);
 }
