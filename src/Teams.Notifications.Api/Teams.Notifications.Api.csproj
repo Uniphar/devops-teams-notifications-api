@@ -10,11 +10,7 @@
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
-	<ItemGroup>
-		<!-- Tells the compiler to ignore the generated files when compiling the project (it will still be part of the compilation) -->
-		<Compile Remove="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
-		<None Include="$(CompilerGeneratedFilesOutputPath)/**/*.cs" />
-	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards" Version="*" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
@@ -36,7 +32,10 @@
 		<PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
 		<ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" OutputItemType="Analyzer" />
 		<AdditionalFiles Include="Templates\**\*.json" />
+	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Generated\" />
 	</ItemGroup>
 
 </Project>

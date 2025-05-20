@@ -1,7 +1,7 @@
 {
   "type": "AdaptiveCard",
   "body": [
-    { "type": "TextBlock", "text": "{{Greeting}}, {{UserName}}!" }
+    { "type": "TextBlock", "text": "{{Greeting:string}}, {{UserName:string}} with Id {{Id:int}}!" }
   ],
   "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
   "version": "1.2"

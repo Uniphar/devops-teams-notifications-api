@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace AdaptiveCardSourceGen;
+namespace Teams.Notifications.AdaptiveCardGen;
 
 [Generator]
 
@@ -16,70 +17,73 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        var templates = context.AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"));
-
-        var templateAndContent = templates
+        // defined in the Teams.Notifications.Api.csproj as additional item's
+        var templateAndContent = context.AdditionalTextsProvider
+            .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))            
+            .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));;
+        var controllerTemplate = context
+            .AdditionalTextsProvider
+            .Where(file => file.Path.EndsWith("CardTemplateController.cs", StringComparison.Ordinal) && file.Path.Contains("ControllerTemplate"))
             .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));
-
-        context.RegisterSourceOutput(templateAndContent, (spc, item) =>
-        {
-            var (path, content) = item;
-            var fileName = Path.GetFileNameWithoutExtension(path);
-            var matches = Regex.Matches(content, "{{(.*?)}}");
-
-            var properties = matches
-                .Cast<Match>()
-                .Select(m => m.Groups[1].Value)
-                .Distinct()
-                .ToList();
-
-            var modelSource = GenerateModel(fileName, properties);
-            spc.AddSource($"{fileName}Model.g.cs", SourceText.From(modelSource, Encoding.UTF8));
-
-            var controllerSource = GenerateController(fileName, properties);
-            spc.AddSource($"{fileName}Controller.g.cs", SourceText.From(controllerSource, Encoding.UTF8));
-        });
+        var bla = controllerTemplate.Collect();
+        // get the content of each item, when you call this method
+        context.RegisterSourceOutput(templateAndContent, (spc, item) => { CreateFiles(item, spc); });
     }
 
-    private static string GenerateModel(string name, List<string> props)
+    private void CreateFiles((string Path, string Content) item, SourceProductionContext spc)
     {
-        var propsCode = string.Join("\n", props.Select(p => $"        public string {p} {{ get; set; }}"));
+        var (path, content) = item;
+        var fileName = Path.GetFileNameWithoutExtension(path);
+        // very simple regex where {{name:type}} means is that what you want, it has to be C# compatible, otherwise it will break
+        var matches = Regex.Matches(content, "{{(?<name>.*?):(?<type>.*?)}}");
+        var properties = matches
+            .Cast<Match>()
+            .ToDictionary(m => m.Groups["name"].Value, m => m.Groups["type"].Value);
+
+        var modelName = $"{fileName}Model";
+        var controllerName = $"{fileName}Controller";
+        var filename = $"{fileName}.json";
+        var modelSource = GenerateModel(modelName, properties);
+        spc.AddSource($"{fileName}Model.g.cs", SourceText.From(modelSource, Encoding.UTF8));
+
+        var controllerSource = GenerateController(modelName, controllerName, filename);
+        spc.AddSource($"{fileName}Controller.g.cs", SourceText.From(controllerSource, Encoding.UTF8));
+    }
+
+    private static string GenerateModel(string modelName, Dictionary<string, string> props)
+    {
+        // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
+        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {p.Value} {p.Key} {{ get; set; }}"));
         return
             $$"""
-              namespace GeneratedCardModels
+              namespace Teams.Notifications.Api.Models;
+              public class {{modelName}} : BaseTemplateModel
               {
-                  public class {{name}}Model
-                  {
-              {{propsCode}}
-                  }
+              {{propertiesOfTheModel}}
               }
               """;
     }
 
-    private static string GenerateController(string name, List<string> props)
+    private static string GenerateController(string modelName, string controllerName, string filename)
     {
-        var modelName = $"{name}Model";
-        var safeRoute = name.ToLowerInvariant();
-        var controllerName = $"{name}Controller";
+        var text = ReadResource("CardTemplateController.csgen")
+            .Replace("{{controllerName}}", controllerName)
+            .Replace("{{modelName}}", modelName)
+            .Replace("{{filename}}", filename);
+        return text;
+    }
 
-        return
-            $$"""
-              using GeneratedCardModels;
-              
-              namespace GeneratedCardControllers
-              {
-                  [ApiController]
-                  [Microsoft.AspNetCore.Mvc.Route("api/cards/[controller]")]
-                  public class {{controllerName}} : ControllerBase
-                  {
-                      [HttpPost]
-                      public IActionResult Render([FromBody] {{modelName}} model)
-                      {
-                          return Ok();
-                      }
-                  }
-              }
-              """;
+    private static string ReadResource(string name)
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+
+        var resourcePath = assembly
+            .GetManifestResourceNames()
+            .Single(str => str.EndsWith(name));
+
+
+        using (var stream = assembly.GetManifestResourceStream(resourcePath))
+        using (var reader = new StreamReader(stream))
+            return reader.ReadToEnd();
     }
 }
