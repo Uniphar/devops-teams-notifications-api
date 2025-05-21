@@ -7,8 +7,8 @@ namespace Teams.Notifications.Api.Services;
 
 public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config) : ICardManagerService
 {
-    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(config["AZURE_CLIENT_ID"]);
-    private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(config["AZURE_TENANT_ID"]);
+    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException("AZURE_CLIENT_ID");
+    private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException("AZURE_TENANT_ID");
 
 
     public async Task CreateCard<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel
