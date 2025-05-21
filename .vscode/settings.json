@@ -1,0 +1,11 @@
+{
+  "json.format.enable": false,
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": ".*\\.json$",
+        "command": "dotnet run --project ${workspaceFolder}/Teams.Notifications.Formatter -- format"
+      }
+    ]
+  }
+}
