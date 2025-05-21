@@ -37,7 +37,7 @@ public class TeamsManagerService : ITeamsManagerService
         return channelId ?? throw new InvalidOperationException();
     }
 
-    public async Task<string?> GetMessageId(string teamId, string channelId, string uniqueId)
+    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string uniqueId)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
         var response = await _graphClient

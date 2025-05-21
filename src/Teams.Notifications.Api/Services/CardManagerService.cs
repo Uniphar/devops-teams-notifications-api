@@ -23,8 +23,8 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
 
     public async Task DeleteCard(string jsonFileName, string uniqueId, string teamId, string channelId)
     {
-        var conversationReference = CetConversationReference(channelId);
-        var id = await teamsManagerService.GetMessageId(teamId, channelId, uniqueId);
+        var conversationReference = GetConversationReference(channelId);
+        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, uniqueId);
         // check that we found the item to delete
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(id));
         // delete the item
@@ -66,8 +66,8 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
                 }
             }
         };
-        var conversationReference = CetConversationReference(channelId);
-        var id = await teamsManagerService.GetMessageId(teamId, channelId, model.UniqueId);
+        var conversationReference = GetConversationReference(channelId);
+        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, model.UniqueId);
         // found an existing card so update id
         if (!string.IsNullOrWhiteSpace(id))
         {
