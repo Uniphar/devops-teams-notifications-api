@@ -86,7 +86,7 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
             CancellationToken.None);
     }
 
-    private ConversationReference CetConversationReference(string channelId) =>
+    private ConversationReference GetConversationReference(string channelId) =>
         new()
         {
             ChannelId = Channels.Msteams,
