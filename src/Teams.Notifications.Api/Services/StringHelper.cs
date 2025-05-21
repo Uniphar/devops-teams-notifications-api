@@ -10,7 +10,7 @@ public static class StringHelper
         return type switch
         {
             "string" => content.Replace(toReplace, TryGetStringPropertyValue(model, property)),
-            "int" => content.Replace(toReplace, TryGetIntPropertyValue(model, property).ToString()),
+            "int" => content.Replace(toReplace, TryGetIntPropertyValue(model, property).GetValueOrDefault().ToString()),
             _ => content
         };
     }

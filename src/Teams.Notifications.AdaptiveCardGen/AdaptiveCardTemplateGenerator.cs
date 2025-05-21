@@ -22,12 +22,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
             .AdditionalTextsProvider
             .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
             .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));
-        ;
-        var controllerTemplate = context
-            .AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith("CardTemplateController.cs", StringComparison.Ordinal) && file.Path.Contains("ControllerTemplate"))
-            .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));
-        var bla = controllerTemplate.Collect();
+        
         // get the content of each item, when you call this method
         context.RegisterSourceOutput(templateAndContent, (spc, item) => { CreateFiles(item, spc); });
     }
