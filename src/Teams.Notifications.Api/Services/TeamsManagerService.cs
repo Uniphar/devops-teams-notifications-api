@@ -46,7 +46,7 @@ public class TeamsManagerService : ITeamsManagerService
             .Messages
             .GetAsync(x => x.QueryParameters.Top = 100);
         // no need to do anything if there is no message
-        if (response?.Value == null) return string.Empty;
+        if (response?.Value == null) return null;
         var id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId))?.Id;
         if (!string.IsNullOrWhiteSpace(id))
             return id;
