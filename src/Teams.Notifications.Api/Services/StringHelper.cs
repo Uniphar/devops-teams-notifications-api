@@ -9,7 +9,7 @@ public static class StringHelper
         var toReplace = "{{" + property + ":" + type + "}}";
         return type switch
         {
-            "string" => content.Replace(toReplace, TryGetStringPropertyValue(model, property)),
+            "string" => content.Replace(toReplace, TryGetStringPropertyValue(model, property) ?? string.Empty),
             "int" => content.Replace(toReplace, TryGetIntPropertyValue(model, property).GetValueOrDefault().ToString()),
             _ => content
         };
