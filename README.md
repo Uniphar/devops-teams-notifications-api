@@ -43,3 +43,7 @@ The pending apps you can find in `https://admin.teams.microsoft.com/policies/man
 ### Where to find stuff
 
 `https://api.dev.uniphar.ie/devops-teams-notification-api/swagger` for the swagger page (change dev to the right env)
+
+### Easy formatting
+
+If you move the pre-commit file from the root, to `.git/hooks/pre-commit` it will automatically format your Adaptive card templates, otherwise you will either have to run the task `Run formatter` in vscode or the build will fail!
