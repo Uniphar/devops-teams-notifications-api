@@ -59,7 +59,7 @@ public class TeamsManagerService : ITeamsManagerService
             };
 
             response = await _graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
-            if (response?.Value == null) throw new Exception("Messages should not be null if there is a next page");
+            if (response?.Value == null) throw new InvalidOperationException("Messages should not be null if there is a next page");
             id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId))?.Id;
             if (!string.IsNullOrWhiteSpace(id))
                 return id;
@@ -90,7 +90,7 @@ public class TeamsManagerService : ITeamsManagerService
             };
 
             response = await _graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
-            if (response?.Value == null) throw new Exception("Messages should not be null if there is a next page");
+            if (response?.Value == null) throw new InvalidOperationException("Messages should not be null if there is a next page");
             id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(modelToFind))?.Id;
             if (!string.IsNullOrWhiteSpace(id))
                 return id;
