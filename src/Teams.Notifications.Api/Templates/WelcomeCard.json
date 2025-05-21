@@ -1,8 +1,10 @@
 {
   "type": "AdaptiveCard",
+  "version": "1.5",
   "body": [
-    { "type": "TextBlock", "text": "Hello {{Greeting:string}}, {{UserName:string}}!" }
-  ],
-  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-  "version": "1.5"
+    {
+      "type": "TextBlock",
+      "text": "Hello {{Greeting:string}}, {{UserName:string}}!"
+    }
+  ]
 }
