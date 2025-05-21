@@ -4,7 +4,7 @@
     "commands": [
       {
         "match": ".*\\.json$",
-        "command": "dotnet run --project ${workspaceFolder}/Teams.Notifications.Formatter -- format"
+        "command": "dotnet run --project ${workspaceFolder}/src/Teams.Notifications.Formatter -- format"
       }
     ]
   }
