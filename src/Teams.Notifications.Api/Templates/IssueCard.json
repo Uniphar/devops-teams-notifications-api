@@ -1,10 +1,13 @@
 {
   "type": "AdaptiveCard",
+  "version": "1.5",
   "speak": "Version 2.2 performance optimization",
   "body": [
     {
+      "type": "ColumnSet",
       "columns": [
         {
+          "type": "Column",
           "width": "auto",
           "items": [
             {
@@ -12,39 +15,28 @@
               "name": "Branch",
               "color": "Accent"
             }
-          ],
-          "type": "Column"
+          ]
         },
         {
+          "type": "Column",
           "width": "stretch",
           "items": [
             {
-              "size": "Large",
+              "type": "TextBlock",
+              "size": "large",
+              "weight": "bolder",
               "text": "{{Title:string}}",
-              "weight": "Bolder",
-              "wrap": true,
-              "type": "TextBlock"
+              "wrap": true
             }
           ],
-          "verticalContentAlignment": "Center",
-          "spacing": "Small",
-          "type": "Column"
+          "verticalContentAlignment": "center",
+          "spacing": "small"
         }
       ],
-      "spacing": "Small",
-      "type": "ColumnSet"
+      "spacing": "small"
     },
     {
       "type": "Table",
-      "targetWidth": "AtLeast:Narrow",
-      "columns": [
-        {
-          "width": 1
-        },
-        {
-          "width": 2
-        }
-      ],
       "rows": [
         {
           "type": "TableRow",
@@ -54,12 +46,12 @@
               "items": [
                 {
                   "type": "TextBlock",
+                  "weight": "bolder",
                   "text": "Status",
-                  "wrap": true,
-                  "weight": "Bolder"
+                  "wrap": true
                 }
               ],
-              "verticalContentAlignment": "Center"
+              "verticalContentAlignment": "center"
             },
             {
               "type": "TableCell",
@@ -70,7 +62,7 @@
                   "wrap": true
                 }
               ],
-              "verticalContentAlignment": "Center"
+              "verticalContentAlignment": "center"
             }
           ]
         },
@@ -82,9 +74,9 @@
               "items": [
                 {
                   "type": "TextBlock",
+                  "weight": "bolder",
                   "text": "Due Date",
-                  "wrap": true,
-                  "weight": "Bolder"
+                  "wrap": true
                 }
               ]
             },
@@ -108,12 +100,12 @@
               "items": [
                 {
                   "type": "TextBlock",
+                  "weight": "bolder",
                   "text": "Priority",
-                  "wrap": true,
-                  "weight": "Bolder"
+                  "wrap": true
                 }
               ],
-              "verticalContentAlignment": "Center"
+              "verticalContentAlignment": "center"
             },
             {
               "type": "TableCell",
@@ -139,28 +131,34 @@
                       "width": "stretch",
                       "items": [
                         {
-                          "color": "Attention",
+                          "type": "TextBlock",
+                          "color": "attention",
                           "text": "{{Priority:string}}",
                           "wrap": true,
-                          "spacing": "Small",
-                          "type": "TextBlock"
+                          "spacing": "small"
                         }
                       ],
-                      "spacing": "Small"
+                      "spacing": "small"
                     }
                   ],
-                  "spacing": "Small"
+                  "spacing": "small"
                 }
               ],
-              "verticalContentAlignment": "Center"
+              "verticalContentAlignment": "center"
             }
           ]
         }
       ],
-      "firstRowAsHeaders": false,
-      "showGridLines": false
+      "columns": [
+        {
+          "width": 1
+        },
+        {
+          "width": 2
+        }
+      ],
+      "showGridLines": false,
+      "targetWidth": "AtLeast:Narrow"
     }
-  ],
-  "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
-  "version": "1.5"
+  ]
 }
