@@ -44,12 +44,17 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     }
 
 
-
     private static string GenerateModel(string modelName, Dictionary<string, string> props)
     {
+        if (props.Values.Any(x => x == "file"))
+        {
+            props = props.Where(x => x.Value != "file").ToDictionary(x => x.Key, x => x.Value);
+            props.Add("File", "IFormFile");
+        }
+
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
         var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {p.Value} {p.Key} {{ get; set; }}"));
-  
+
         return
             $$"""
               namespace Teams.Notifications.Api.Models;

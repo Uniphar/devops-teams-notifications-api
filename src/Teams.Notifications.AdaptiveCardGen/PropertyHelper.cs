@@ -23,7 +23,7 @@ public static class PropertyHelper
         //name is key, type is value, due to dict
         wrongItems = nameAndType
             .Where(x => x.Value is not
-                ("int" or "string" or "file" or "webhook-url")
+                ("int" or "string" or "file")
             )
             .ToDictionary(x => x.Key, x => x.Value);
   

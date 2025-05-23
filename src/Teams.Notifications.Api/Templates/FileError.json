@@ -44,9 +44,7 @@
     {
       "type": "Action.Execute",
       "id": "process",
-      "data": {
-        "UrlToCallBack": "{{UrlToCallBack:webhook-url}}"
-      },
+      "data": {},
       "verb": "process",
       "title": "🔁 Reprocess File"
     },
