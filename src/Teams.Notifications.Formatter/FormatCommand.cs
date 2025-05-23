@@ -1,4 +1,6 @@
-﻿using AdaptiveCards;
+﻿using System.Xml.Serialization;
+using AdaptiveCards;
+using Teams.Notifications.AdaptiveCardGen;
 using Teams.Notifications.Formatter.Util;
 
 namespace Teams.Notifications.Formatter;
@@ -29,10 +31,25 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
     private static void FormatFile(string sourcePath, Stream formattedFile)
     {
         var text = File.ReadAllText(sourcePath);
-        var item = AdaptiveCard.FromJson(text).Card;
-        var formatted = item.ToJson();
-        var sw = new StreamWriter(formattedFile);
+        var props = text.GetPropertiesFromJson();
+        if (!props.IsValidTypes(out var WrongItems))
+        {
+            var file = Path.GetFileName(sourcePath);
+            AnsiConsole.MarkupLineInterpolated($"[bold red]One of the files has incompatible properties[/] for file [bold white]{file}[/] ");
+            var table = new Table();
+            table.AddColumn(new TableColumn("[green]Template[/]"));
+            table.AddColumn(new TableColumn(new Markup("[yellow]Type[/]")));
+            table.AddColumn(new TableColumn("[blue]Property name[/]"));
+            WrongItems.ToList().ForEach(x => table.AddRow("[bold green]{{" + x.Key + ":" + x.Value + "}}[/]", $"[yellow]{x.Value}[/]", $"[blue]{x.Key}[/]"));
+            AnsiConsole.Write(table);
+            GitHubActions.Error("Formatting", $"One of the files has incompatible properties, check the following file: {file} for property: {string.Join(",", WrongItems.Keys)}, unrecognised type(s) {string.Join(",", WrongItems.Values)}");
+            throw new InvalidDataException($"Unrecognised types {string.Join(",", WrongItems.Values)}");
+        }
 
+        var item = AdaptiveCard.FromJson(text).Card;
+        var formatted = item.ToJson() ?? string.Empty;
+
+        var sw = new StreamWriter(formattedFile);
         sw.Write(formatted);
         sw.Flush(); //otherwise you are risking empty stream
     }

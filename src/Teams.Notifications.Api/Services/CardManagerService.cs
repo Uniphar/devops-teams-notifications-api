@@ -10,17 +10,6 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException("AZURE_CLIENT_ID");
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException("AZURE_TENANT_ID");
 
-
-    public async Task CreateCard<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel
-    {
-        await CreateOrUpdate(jsonFileName, model, teamId, channelId);
-    }
-
-    public async Task UpdateCard<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel
-    {
-        await CreateOrUpdate(jsonFileName, model, teamId, channelId);
-    }
-
     public async Task DeleteCard(string jsonFileName, string uniqueId, string teamId, string channelId)
     {
         var conversationReference = GetConversationReference(channelId);
@@ -34,7 +23,7 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
             CancellationToken.None);
     }
 
-    private async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel
+    public async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel
     {
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
         var props = text.GetPropertiesFromJson();

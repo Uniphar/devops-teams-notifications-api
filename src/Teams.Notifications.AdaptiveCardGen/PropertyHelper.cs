@@ -17,5 +17,12 @@ namespace Teams.Notifications.AdaptiveCardGen
                 .ToDictionary(m => m.Groups["name"].Value, m => m.Groups["type"].Value);
             return properties;
         }
+
+        public static bool IsValidTypes(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
+        {
+            //name is key, type is value, due to dict
+            wrongItems = nameAndType.Where(x => x.Value is not ("int" or "string" or "file")).ToDictionary(x => x.Key, x => x.Value);
+            return !wrongItems.Any();
+        }
     }
 }
