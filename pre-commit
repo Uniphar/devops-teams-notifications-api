@@ -1,0 +1,11 @@
+#!/bin/sh
+echo "Running Teams.Notifications.Formatter before commit..."
+
+# Run formatter with dotnet
+dotnet run --project ./src/Teams.Notifications.Formatter -- format
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+  echo "Formatter failed. Commit aborted."
+  exit 1
+fi

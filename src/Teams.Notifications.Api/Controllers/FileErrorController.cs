@@ -4,8 +4,8 @@
 [ApiController]
 public class FileErrorController : ControllerBase
 {
-    private const string _teamName = "Frontgate Files Moving Integration Test In";
-    private const string _channelName = "General";
+    private const string _teamName = "Notifications Platform";
+    private const string _channelName = "File Errors";
     private readonly IFileErrorManagerService _fileErrorService;
     private readonly ILogger<FileErrorController> _logger;
     private readonly ITeamsManagerService _managerService;

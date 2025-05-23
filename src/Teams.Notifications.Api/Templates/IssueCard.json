@@ -1,0 +1,164 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "speak": "Version 2.2 performance optimization",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Icon",
+              "name": "Branch",
+              "color": "Accent"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "items": [
+            {
+              "type": "TextBlock",
+              "size": "large",
+              "weight": "bolder",
+              "text": "{{Title:string}}",
+              "wrap": true
+            }
+          ],
+          "verticalContentAlignment": "center",
+          "spacing": "small"
+        }
+      ],
+      "spacing": "small"
+    },
+    {
+      "type": "Table",
+      "rows": [
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "weight": "bolder",
+                  "text": "Status",
+                  "wrap": true
+                }
+              ],
+              "verticalContentAlignment": "center"
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "{{ReviewText:string}}",
+                  "wrap": true
+                }
+              ],
+              "verticalContentAlignment": "center"
+            }
+          ]
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "weight": "bolder",
+                  "text": "Due Date",
+                  "wrap": true
+                }
+              ]
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "{{Date:string}}",
+                  "wrap": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "TableRow",
+          "cells": [
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "weight": "bolder",
+                  "text": "Priority",
+                  "wrap": true
+                }
+              ],
+              "verticalContentAlignment": "center"
+            },
+            {
+              "type": "TableCell",
+              "items": [
+                {
+                  "type": "ColumnSet",
+                  "columns": [
+                    {
+                      "type": "Column",
+                      "width": "auto",
+                      "items": [
+                        {
+                          "type": "Icon",
+                          "name": "Flag",
+                          "color": "Attention",
+                          "size": "xSmall",
+                          "horizontalAlignment": "Center"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "Column",
+                      "width": "stretch",
+                      "items": [
+                        {
+                          "type": "TextBlock",
+                          "color": "attention",
+                          "text": "{{Priority:string}}",
+                          "wrap": true,
+                          "spacing": "small"
+                        }
+                      ],
+                      "spacing": "small"
+                    }
+                  ],
+                  "spacing": "small"
+                }
+              ],
+              "verticalContentAlignment": "center"
+            }
+          ]
+        }
+      ],
+      "columns": [
+        {
+          "width": 1
+        },
+        {
+          "width": 2
+        }
+      ],
+      "showGridLines": false,
+      "targetWidth": "AtLeast:Narrow"
+    }
+  ]
+}
