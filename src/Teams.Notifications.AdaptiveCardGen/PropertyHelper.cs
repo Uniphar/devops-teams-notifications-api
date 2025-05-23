@@ -21,7 +21,18 @@ public static class PropertyHelper
     public static bool IsValidTypes(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
     {
         //name is key, type is value, due to dict
-        wrongItems = nameAndType.Where(x => x.Value is not ("int" or "string" or "file-link")).ToDictionary(x => x.Key, x => x.Value);
+        wrongItems = nameAndType
+            .Where(x => x.Value is not
+                ("int" or "string" or "file" or "webhook-url")
+            )
+            .ToDictionary(x => x.Key, x => x.Value);
+  
+        return !wrongItems.Any();
+    }
+
+    public static bool IsValidFile(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
+    {
+        wrongItems = nameAndType.Where(x => x is { Value: "file", Key: not ("FileUrl" or "FileName") }).ToDictionary(x => x.Key, x => x.Value);
         return !wrongItems.Any();
     }
 }

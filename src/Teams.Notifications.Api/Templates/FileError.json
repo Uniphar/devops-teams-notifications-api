@@ -19,15 +19,15 @@
       "facts": [
         {
           "title": "File:",
-          "value": "Test.xml"
+          "value": "{{FileName:file}}"
         },
         {
           "title": "System:",
-          "value": "FrontGateExample"
+          "value": "{{System:string}}"
         },
         {
           "title": "Job ID:",
-          "value": "file-moving-example"
+          "value": "{{JobId:string}}"
         },
         {
           "title": "Status:",
@@ -35,7 +35,7 @@
         },
         {
           "title": "Timestamp:",
-          "value": "05/23/2025 14:29:14"
+          "value": "{{Timestamp:string}}"
         }
       ]
     }
@@ -45,16 +45,14 @@
       "type": "Action.Execute",
       "id": "process",
       "data": {
-        "FileName": "Test.xml",
-        "System": "FrontGateExample",
-        "JobId": "file-moving-example"
+        "UrlToCallBack": "{{UrlToCallBack:webhook-url}}"
       },
       "verb": "process",
       "title": "🔁 Reprocess File"
     },
     {
       "type": "Action.OpenUrl",
-      "url": "https://uniphargroup.sharepoint.com/sites/frontgate-740bf3a6-b3a0-4100-a1c0-5d7c94c32377/Shared%20Documents/error/Test.xml",
+      "url": "{{FileUrl:file}}",
       "title": "📂 Download file"
     },
     {
@@ -66,7 +64,7 @@
           {
             "type": "TextBlock",
             "color": "attention",
-            "text": "StackTrace: Found and error in ",
+            "text": "{{Error:string}}",
             "wrap": true,
             "fontType": "monospace"
           }

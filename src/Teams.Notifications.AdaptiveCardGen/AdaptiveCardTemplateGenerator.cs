@@ -49,6 +49,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     {
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
         var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {p.Value} {p.Key} {{ get; set; }}"));
+  
         return
             $$"""
               namespace Teams.Notifications.Api.Models;
