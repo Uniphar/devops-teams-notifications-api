@@ -8,7 +8,7 @@ namespace Teams.Notifications.Api.Models;
 /// <summary>
 ///     File Error Message
 /// </summary>
-public sealed record FileErrorModel
+public sealed record FileErrorModelOld
 {
     /// <summary>
     /// The file to upload
@@ -68,7 +68,7 @@ public sealed record FileErrorModel
 
 public static class FileErrorModelExtensions
 {
-    public static string GetId(this FileErrorModel input)
+    public static string GetId(this FileErrorModelOld input)
     {
         // Combine with |
         var combined = $"{input.System}|{input.JobId}|{input.FileName}";

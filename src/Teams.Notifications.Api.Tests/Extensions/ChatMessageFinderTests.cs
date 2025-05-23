@@ -7,7 +7,7 @@ public class ChatMessageFinderTests
     [TestMethod]
     public void BasicTrueTest()
     {
-        var fileError = new FileErrorModel
+        var fileError = new FileErrorModelOld
         {
             FileName = "Test.txt",
             System = "FrontGateExample",
@@ -32,7 +32,7 @@ public class ChatMessageFinderTests
     [TestMethod]
     public void BasicFalseTest()
     {
-        var fileError = new FileErrorModel
+        var fileError = new FileErrorModelOld
         {
             FileName = "Test.txt",
             System = "FrontGateExample",

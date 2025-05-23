@@ -68,7 +68,7 @@ public class TeamsManagerService : ITeamsManagerService
         return id;
     }
 
-    public async Task<string?> GetMessageId(string teamId, string channelId, FileErrorModel modelToFind)
+    public async Task<string?> GetMessageId(string teamId, string channelId, FileErrorModelOld modelToFind)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
         var response = await _graphClient

@@ -1,0 +1,67 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "large",
+      "weight": "bolder",
+      "color": "warning",
+      "text": "File is reprocessing"
+    },
+    {
+      "type": "TextBlock",
+      "text": "The external system has let us known that they are not reprocessing your file",
+      "wrap": true
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "File:",
+          "value": "Test.xml"
+        },
+        {
+          "title": "System:",
+          "value": "FrontGateExample"
+        },
+        {
+          "title": "Job ID:",
+          "value": "file-moving-example"
+        },
+        {
+          "title": "Status:",
+          "value": "In progress"
+        },
+        {
+          "title": "Timestamp:",
+          "value": "05/23/2025 14:30:16"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "url": "https://uniphargroup.sharepoint.com/sites/frontgate-740bf3a6-b3a0-4100-a1c0-5d7c94c32377/Shared%20Documents/error/Test.xml",
+      "title": "📂 Download file"
+    },
+    {
+      "type": "Action.ShowCard",
+      "card": {
+        "type": "AdaptiveCard",
+        "version": "1.5",
+        "body": [
+          {
+            "type": "TextBlock",
+            "color": "attention",
+            "text": "StackTrace: Found and error in ",
+            "wrap": true,
+            "fontType": "monospace"
+          }
+        ]
+      },
+      "title": "🔍 View Error Details"
+    }
+  ]
+}

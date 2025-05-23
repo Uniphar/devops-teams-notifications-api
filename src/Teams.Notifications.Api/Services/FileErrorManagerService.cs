@@ -8,12 +8,12 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(config["AZURE_CLIENT_ID"]);
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(config["AZURE_TENANT_ID"]);
 
-    public async Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamId, string channelId)
+    public async Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModelOld fileError, string teamId, string channelId)
     {
         var url = fileError.File != null
             ? await teamsManagerService.UploadFile(teamId, channelId, "error/" + fileError.FileName, fileError.File.OpenReadStream())
             : await teamsManagerService.GetFileUrl(teamId, channelId, "error/" + fileError.FileName);
- 
+        var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError, url).ToJson();
 
         var activity = new Activity
         {
@@ -23,7 +23,7 @@ public sealed class FileErrorManagerService(IChannelAdapter adapter, ITeamsManag
                 new()
                 {
                     ContentType = AdaptiveCard.ContentType,
-                    Content = AdaptiveCardBuilder.CreateFileProcessingCard(fileError, url).ToJson()
+                    Content = json
                 }
             }
         };

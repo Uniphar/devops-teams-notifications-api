@@ -4,7 +4,7 @@ namespace Teams.Notifications.Api.Models;
 
 public class AdaptiveCardBuilder
 {
-    public static AdaptiveCard CreateFileProcessingCard(FileErrorModel model, string? url)
+    public static AdaptiveCard CreateFileProcessingCard(FileErrorModelOld model, string? url)
     {
         string statusString;
         string title;

@@ -93,6 +93,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 
+
 var app = builder.Build();
 app.MapHealthChecks($"/health");
 app.UseSwagger(options =>
@@ -105,4 +106,16 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = $"{appPathPrefix}/swagger";
 });
 app.MapControllers();
+
+app
+    .MapPost("/api/messages", async (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => { await adapter.ProcessAsync(request, response, agent, cancellationToken); })
+    .RequireAuthorization()
+    // exclude from api explorer
+    .ExcludeFromDescription();
+app
+    .MapGet("/api/messages", async (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => { await adapter.ProcessAsync(request, response, agent, cancellationToken); })
+    .RequireAuthorization()
+    // exclude from api explorer
+    .ExcludeFromDescription();
+
 app.Run();

@@ -51,7 +51,7 @@ public sealed class TeamsChannelMessagingServiceTests
         var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName);
         Assert.IsNotEmpty(teamId);
         Assert.IsNotEmpty(channelId);
-        var fileError = new FileErrorModel
+        var fileError = new FileErrorModelOld
         {
             FileName = "Test.txt",
             System = "FrontGateExample",

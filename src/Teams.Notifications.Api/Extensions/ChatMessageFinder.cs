@@ -14,7 +14,7 @@ public static class ChatMessageFinder
         return true;
     }
 
-    public static bool GetMessageThatHas(this ChatMessage chatMessage, FileErrorModel modelToFind)
+    public static bool GetMessageThatHas(this ChatMessage chatMessage, FileErrorModelOld modelToFind)
     {
         // quick skip, we don't want to give back a removed item
         if (chatMessage.DeletedDateTime != null) return false;

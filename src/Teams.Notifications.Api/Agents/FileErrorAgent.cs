@@ -29,7 +29,7 @@ public class FileErrorAgent : AgentApplication
     {
         var submitData = ProtocolJsonSerializer.ToObject<AdaptiveCardSubmitData>(data);
         //mock we could get all the info from the turn contexts activity, do our api call and then return an in progress action
-        var fileError = new FileErrorModel
+        var fileError = new FileErrorModelOld
         {
             FileName = submitData.FileName,
             System = submitData.System,

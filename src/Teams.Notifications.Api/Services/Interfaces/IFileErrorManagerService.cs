@@ -2,5 +2,5 @@
 
 public interface IFileErrorManagerService
 {
-    Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModel fileError, string teamId, string channelId);
+    Task CreateUpdateOrDeleteFileErrorCardAsync(FileErrorModelOld fileError, string teamId, string channelId);
 }
