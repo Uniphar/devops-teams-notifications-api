@@ -13,14 +13,15 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
-        var conversationReference = GetConversationReference(channelName);
+        var conversationReference = GetConversationReference(channelId);
         var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId);
         // check that we found the item to delete
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(uniqueId));
+        conversationReference.ActivityId = id;
         // delete the item
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
-            (turnContext, cancellationToken) => turnContext.DeleteActivityAsync(id, cancellationToken),
+            (turnContext, cancellationToken) => adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken),
             CancellationToken.None);
     }
 
