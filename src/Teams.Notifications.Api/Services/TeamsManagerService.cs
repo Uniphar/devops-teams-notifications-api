@@ -53,7 +53,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .ToList();
         // no need to do anything if there is no message
         if (responses == null) return null;
-        var id = responses.FirstOrDefault(s => s.GetMessageThatHas(uniqueId, jsonFileName))?.Id;
+        var id = responses.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
         if (!string.IsNullOrWhiteSpace(id))
             return id;
         while (response?.OdataNextLink != null)
@@ -66,7 +66,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
             response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
             if (response?.Value == null) throw new InvalidOperationException("Messages should not be null if there is a next page");
-            id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId, jsonFileName))?.Id;
+            id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
             if (!string.IsNullOrWhiteSpace(id))
                 return id;
         }
