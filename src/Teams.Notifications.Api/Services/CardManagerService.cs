@@ -35,7 +35,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         {
             var file = model.GetFileValue();
             if (file != null)
-                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, "error/" + file.FileName, file.OpenReadStream());
+                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName+"/error/" + file.FileName, file.OpenReadStream());
         }
 
         // replace all props with the values
