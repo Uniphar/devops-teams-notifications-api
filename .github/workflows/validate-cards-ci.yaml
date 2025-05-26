@@ -1,0 +1,30 @@
+name: Validate Adaptive cards
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    paths:
+      - .github/workflows/validate-cards-ci.yaml
+      - src/Teams.Notifications.Api/Templates/**
+      - src/Teams.Notifications.Formatter/**
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  defs_ci:
+    name: Validate formatting and schemas
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.x
+
+      - name: check configs formatted
+        working-directory: ./src/Teams.Notifications.Formatter
+        run: dotnet run format --check

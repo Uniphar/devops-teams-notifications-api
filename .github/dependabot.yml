@@ -9,26 +9,14 @@ updates:
     schedule:
       interval: daily
     target-branch: "main"
-    labels:
-      - "dependencies"
-    reviewers:
-      - "Uniphar/DevOps"
   - package-ecosystem: dotnet-sdk
     directory: "/"
     schedule:
       interval: daily
     target-branch: "main"
-    labels:
-      - "dependencies"
-    reviewers:
-      - "Uniphar/DevOps"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "weekly"
     target-branch: "main"
-    labels:
-      - "dependencies"
-    reviewers:
-      - "Uniphar/DevOps"
