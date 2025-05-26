@@ -14,15 +14,10 @@ public class {{controllerName}} : ControllerBase
     private const string _channelName = "File Errors";
     private const string jsonFileName = "{{filename}}";
     private readonly ICardManagerService _cardManagerService;
-    private readonly ITeamsManagerService _managerService;
-
-
-    public {{controllerName}}(ICardManagerService cardManagerService, ITeamsManagerService managerService)
+    public {{controllerName}}(ICardManagerService cardManagerService)
     {
         _cardManagerService = cardManagerService;
-        _managerService = managerService;
     }
-
 
     /// <summary>
     ///     Creates or updates the file error in teams
@@ -35,11 +30,7 @@ public class {{controllerName}} : ControllerBase
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Post({{modelName}} model)
     {
-        var teamId = await _managerService.GetTeamIdAsync(_teamName);
-        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-        await _cardManagerService.CreateOrUpdate(jsonFileName, model, teamId, channelId);
-
-
+        await _cardManagerService.CreateOrUpdate(jsonFileName, model, _teamName, _channelName);
         return Ok();
     }
 
@@ -55,10 +46,8 @@ public class {{controllerName}} : ControllerBase
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     public async Task<IActionResult> Delete(string uniqueId)
     {
-        var teamId = await _managerService.GetTeamIdAsync(_teamName);
-        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-        await _cardManagerService.DeleteCard(jsonFileName, uniqueId, teamId, channelId);
+       await _cardManagerService.DeleteCard(jsonFileName, uniqueId, _teamName, _channelName);
 
-        return Ok();
+       return Ok();
     }
 }

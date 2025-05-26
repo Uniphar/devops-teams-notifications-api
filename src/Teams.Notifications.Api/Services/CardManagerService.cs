@@ -9,9 +9,11 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(config["AZURE_CLIENT_ID"]);
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(config["AZURE_TENANT_ID"]);
 
-    public async Task DeleteCard(string jsonFileName, string uniqueId, string teamId, string channelId)
+    public async Task DeleteCard(string jsonFileName, string uniqueId, string teamName, string channelName)
     {
-        var conversationReference = GetConversationReference(channelId);
+        var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
+        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
+        var conversationReference = GetConversationReference(channelName);
         var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, uniqueId);
         // check that we found the item to delete
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(uniqueId));
@@ -22,8 +24,10 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             CancellationToken.None);
     }
 
-    public async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamId, string channelId) where T : BaseTemplateModel
+    public async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel
     {
+        var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
+        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
         var props = text.GetPropertiesFromJson();
         var fileUrl = string.Empty;
