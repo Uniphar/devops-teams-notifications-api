@@ -7,7 +7,5 @@ namespace Teams.Notifications.Api.Services;
 
 internal sealed class AuthResults
 {
-    public AuthenticationResult MsalAuthResult { get; set; }
-    public Uri TargetServiceUrl { get; set; }
-    public object MsalAuthClient { get; set; }
+    public required AuthenticationResult MsalAuthResult { get; init; }
 }

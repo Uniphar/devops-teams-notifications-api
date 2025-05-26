@@ -53,7 +53,7 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
             {
                 var accessToken = _cacheList[instanceUri].MsalAuthResult.AccessToken;
                 var tokenExpiresOn = _cacheList[instanceUri].MsalAuthResult.ExpiresOn;
-                if (tokenExpiresOn != null && tokenExpiresOn < DateTimeOffset.UtcNow.Subtract(TimeSpan.FromSeconds(30)))
+                if (tokenExpiresOn < DateTimeOffset.UtcNow.Subtract(TimeSpan.FromSeconds(30)))
                 {
                     accessToken = string.Empty; // flush the access token if it is about to expire.
                     _cacheList.Remove(instanceUri, out _);
@@ -72,9 +72,7 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
         var authResult = await msalAuthClient.AcquireTokenForClient(localScopes).WithForceRefresh(true).ExecuteAsync().ConfigureAwait(false);
         var authResultPayload = new AuthResults
         {
-            MsalAuthResult = authResult,
-            TargetServiceUrl = instanceUri,
-            MsalAuthClient = msalAuthClient
+            MsalAuthResult = authResult
         };
 
         if (_cacheList.ContainsKey(instanceUri))
