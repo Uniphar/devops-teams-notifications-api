@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Tests.Services;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]
 [TestCategory("Integration")]
@@ -26,7 +28,7 @@ public sealed class TeamsChannelMessagingServiceTests
 
 
         var graph = new GraphServiceClient(_defaultCredential);
-        _teamManager = new TeamsManagerService(graph);
+        _teamManager = new TeamsManagerService(graph, new ConfigurationManager());
     }
 
     [TestMethod]

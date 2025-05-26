@@ -2,15 +2,14 @@
 
 namespace Teams.Notifications.Api.Services;
 
-public class TeamsManagerService : ITeamsManagerService
+public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
-    private readonly GraphServiceClient _graphClient;
+    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(config["AZURE_CLIENT_ID"]);
 
-    public TeamsManagerService(GraphServiceClient graphClient) => _graphClient = graphClient;
 
     public async Task<string> GetTeamIdAsync(string teamName)
     {
-        var groups = await _graphClient.Teams.GetAsync(request =>
+        var groups = await graphClient.Teams.GetAsync(request =>
         {
             request.QueryParameters.Filter = $"displayName eq '{teamName}'";
             request.QueryParameters.Select = ["id"];
@@ -23,7 +22,7 @@ public class TeamsManagerService : ITeamsManagerService
 
     public async Task<string> GetChannelIdAsync(string teamId, string channelName)
     {
-        var channels = await _graphClient
+        var channels = await graphClient
             .Teams[teamId]
             .Channels
             .GetAsync(request =>
@@ -37,17 +36,24 @@ public class TeamsManagerService : ITeamsManagerService
         return channelId ?? throw new InvalidOperationException();
     }
 
-    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string uniqueId)
+    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
-        var response = await _graphClient
+        var response = await graphClient
             .Teams[teamId]
             .Channels[channelId]
             .Messages
-            .GetAsync(x => x.QueryParameters.Top = 100);
+            .GetAsync(x => { x.QueryParameters.Top = 100; });
+        var responses = response
+            ?.Value
+            ?.Where(x => x.DeletedDateTime == null &&
+                         x.From?.Application != null &&
+                         x.From.Application.Id == _clientId
+            )
+            .ToList();
         // no need to do anything if there is no message
-        if (response?.Value == null) return null;
-        var id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId))?.Id;
+        if (responses == null) return null;
+        var id = responses.FirstOrDefault(s => s.GetMessageThatHas(uniqueId, jsonFileName))?.Id;
         if (!string.IsNullOrWhiteSpace(id))
             return id;
         while (response?.OdataNextLink != null)
@@ -58,9 +64,9 @@ public class TeamsManagerService : ITeamsManagerService
                 URI = new Uri(response.OdataNextLink)
             };
 
-            response = await _graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
+            response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
             if (response?.Value == null) throw new InvalidOperationException("Messages should not be null if there is a next page");
-            id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId))?.Id;
+            id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(uniqueId, jsonFileName))?.Id;
             if (!string.IsNullOrWhiteSpace(id))
                 return id;
         }
@@ -81,10 +87,10 @@ public class TeamsManagerService : ITeamsManagerService
 
     private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileUrl)
     {
-        var filesFolder = await _graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync();
+        var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync();
         var driveId = filesFolder?.ParentReference?.DriveId;
 
-        var item = _graphClient.Drives[driveId].Items["root"];
+        var item = graphClient.Drives[driveId].Items["root"];
         var file = item.ItemWithPath(fileUrl);
         return file;
     }

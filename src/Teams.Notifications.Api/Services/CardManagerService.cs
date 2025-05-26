@@ -14,7 +14,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
         var conversationReference = GetConversationReference(channelName);
-        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, uniqueId);
+        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId);
         // check that we found the item to delete
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(uniqueId));
         // delete the item
@@ -35,7 +35,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         {
             var file = model.GetFileValue();
             if (file != null)
-                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName+"/error/" + file.FileName, file.OpenReadStream());
+                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + file.FileName, file.OpenReadStream());
         }
 
         // replace all props with the values
@@ -44,7 +44,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
         // some solution to be able to track a unique id across the channel
-        item.Body.Add(new AdaptiveTextBlock("•")
+        item.Body.Add(new AdaptiveTextBlock(jsonFileName)
         {
             Color = AdaptiveTextColor.Accent,
             Size = AdaptiveTextSize.Small,
@@ -67,7 +67,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             }
         };
         var conversationReference = GetConversationReference(channelId);
-        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, model.UniqueId);
+        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, model.UniqueId);
         // found an existing card so update id
         if (!string.IsNullOrWhiteSpace(id))
         {
