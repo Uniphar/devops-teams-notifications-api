@@ -36,6 +36,6 @@ public static class PropertyHelper
 
     public static bool HasFileTemplate(this Dictionary<string, string> nameAndType)
     {
-        return nameAndType.Any(x => x is { Value: "file", Key: not ("FileUrl" or "FileName") });
+        return nameAndType.Any(x => x is { Value: "file", Key: "FileUrl" or "FileName" });
     }
 }
