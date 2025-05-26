@@ -38,7 +38,6 @@ var clientSecret = builder.Configuration["ClientSecret"];
 if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
-builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ICardManagerService, CardManagerService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
 builder.Services.AddHealthChecks();
@@ -46,7 +45,7 @@ builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 builder.Services.AddMemoryCache();
 // Add ApplicationOptions
 builder.AddAgentApplicationOptions();
-builder.AddAgent<FileErrorAgent>();
+builder.AddAgent<CardActionAgent>();
 builder
     .Services
     .AddControllers(o =>
@@ -66,9 +65,8 @@ if (environment != "local")
 {
 // key vault is required for ApplicationInsights, since it needs the connection string
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
-    builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
-    builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
-    builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
+    builder.Services.AddApplicationInsightsTelemetry(options => options.EnableAdaptiveSampling = false);
+    builder.Services.AddApplicationInsightsTelemetryWorkerService(options => options.EnableAdaptiveSampling = false);
 }
 
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]);
@@ -93,13 +91,9 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 
-
 var app = builder.Build();
-app.MapHealthChecks($"/health");
-app.UseSwagger(options =>
-{
-    options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json";
-});
+app.MapHealthChecks("/health");
+app.UseSwagger(options => { options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json"; });
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("v1/swagger.json", "V1");

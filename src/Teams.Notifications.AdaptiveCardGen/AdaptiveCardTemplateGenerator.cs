@@ -4,14 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Teams.Notifications.AdaptiveCardGen;
 
 [Generator]
-
 public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
 {
@@ -22,7 +20,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
             .AdditionalTextsProvider
             .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
             .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));
-        
+
         // get the content of each item, when you call this method
         context.RegisterSourceOutput(templateAndContent, (spc, item) => { CreateFiles(item, spc); });
     }

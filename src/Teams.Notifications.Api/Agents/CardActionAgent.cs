@@ -1,18 +1,17 @@
-﻿using System.Text.Json.Serialization;
-using Microsoft.Agents.Core.Serialization;
+﻿using System.Text.RegularExpressions;
 using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Agents;
 
-public class FileErrorAgent : AgentApplication
+public class CardActionAgent : AgentApplication
 {
-    public FileErrorAgent(AgentApplicationOptions options) : base(options)
+    public CardActionAgent(AgentApplicationOptions options) : base(options)
     {
-        AdaptiveCards.OnActionExecute("process", ProcessCardActionAsync);
+        AdaptiveCards.OnActionExecute(new Regex(".*?"), ProcessCardActionAsync);
     }
 
-    [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)] 
+    [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)]
     protected async Task MemberAddedAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
         await turnContext.SendActivityAsync(MessageFactory.Text("Welcome new user"), cancellationToken);
@@ -27,21 +26,13 @@ public class FileErrorAgent : AgentApplication
 
     protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken cancellationToken)
     {
-        var submitData = ProtocolJsonSerializer.ToObject<AdaptiveCardSubmitData>(data);
-        //mock we could get all the info from the turn contexts activity, do our api call and then return an in progress action
-        var fileError = new FileErrorModelOld
-        {
-            FileName = submitData.FileName,
-            System = submitData.System,
-            JobId = submitData.JobId,
-            Status = FileErrorStatusEnum.SystemNotified
-        };
-        var json = AdaptiveCardBuilder.CreateFileProcessingCard(fileError, null).ToJson();
+        // var submitData = ProtocolJsonSerializer.ToObject<AdaptiveCardSubmitData>(data);
+
         // Create a response message based on the response content type from the WeatherForecastAgent
         var attachment = new Attachment
         {
             ContentType = AdaptiveCard.ContentType,
-            Content = json
+            Content = "We got an action, but this is not yet implemented!"
         };
         var pendingActivity = new Activity
         {

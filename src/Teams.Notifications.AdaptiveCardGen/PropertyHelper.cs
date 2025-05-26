@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Teams.Notifications.AdaptiveCardGen;
@@ -26,7 +24,7 @@ public static class PropertyHelper
                 ("int" or "string" or "file")
             )
             .ToDictionary(x => x.Key, x => x.Value);
-  
+
         return !wrongItems.Any();
     }
 
@@ -34,5 +32,10 @@ public static class PropertyHelper
     {
         wrongItems = nameAndType.Where(x => x is { Value: "file", Key: not ("FileUrl" or "FileName") }).ToDictionary(x => x.Key, x => x.Value);
         return !wrongItems.Any();
+    }
+
+    public static bool HasFileTemplate(this Dictionary<string, string> nameAndType)
+    {
+        return nameAndType.Any(x => x is { Value: "file", Key: not ("FileUrl" or "FileName") });
     }
 }

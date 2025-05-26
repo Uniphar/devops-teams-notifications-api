@@ -1,21 +1,20 @@
-﻿using System.Text.Json;
-using Teams.Notifications.AdaptiveCardGen;
+﻿using Teams.Notifications.AdaptiveCardGen;
 using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
 
-public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config) : ICardManagerService
+public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config) : ICardManagerService
 {
-    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException("AZURE_CLIENT_ID");
-    private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException("AZURE_TENANT_ID");
+    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(config["AZURE_CLIENT_ID"]);
+    private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(config["AZURE_TENANT_ID"]);
 
     public async Task DeleteCard(string jsonFileName, string uniqueId, string teamId, string channelId)
     {
         var conversationReference = GetConversationReference(channelId);
         var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, uniqueId);
         // check that we found the item to delete
-        if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(id));
+        if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(uniqueId));
         // delete the item
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
@@ -27,12 +26,20 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
     {
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
         var props = text.GetPropertiesFromJson();
+        var fileUrl = string.Empty;
+        if (props.HasFileTemplate())
+        {
+            var file = model.GetFileValue();
+            if (file != null)
+                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, "error/" + file.FileName, file.OpenReadStream());
+        }
+
         // replace all props with the values
-        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type);
+        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl);
 
         var item = AdaptiveCard.FromJson(text).Card;
-        if (item == null) throw new ArgumentNullException(nameof(item));
-        // some solution to be able to track an unique id across the channel
+        if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
+        // some solution to be able to track a unique id across the channel
         item.Body.Add(new AdaptiveTextBlock("•")
         {
             Color = AdaptiveTextColor.Accent,
@@ -40,7 +47,7 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
             Id = model.UniqueId,
             IsSubtle = true,
             IsVisible = false,
-            Wrap = true,
+            Wrap = true
         });
         var jsonAdaptiveCard = item.ToJson();
         var activity = new Activity
@@ -83,5 +90,4 @@ public class CardManagerService(IChannelAdapter adapter, ITeamsManagerService te
             Conversation = new ConversationAccount(id: channelId),
             ActivityId = channelId
         };
-   
 }

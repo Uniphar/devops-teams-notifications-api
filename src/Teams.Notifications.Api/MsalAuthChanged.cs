@@ -6,8 +6,9 @@ using Microsoft.Identity.Client;
 using Teams.Notifications.Api.Services;
 
 namespace Teams.Notifications.Api;
+
 /// <summary>
-/// Taken from MSAL auth to do this: https://github.com/microsoft/Agents-for-net/pull/228
+///     Taken from MSAL auth to do this: https://github.com/microsoft/Agents-for-net/pull/228
 /// </summary>
 public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
 {
@@ -31,7 +32,7 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     }
 
     /// <summary>
-    /// simplified version of the MsalAuth from the sdk, just to ease our use case
+    ///     simplified version of the MsalAuth from the sdk, just to ease our use case
     /// </summary>
     /// <param name="resourceUrl"></param>
     /// <param name="scopes"></param>
@@ -90,10 +91,10 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     {
         // initialize the MSAL client
         // same as: src\libraries\Authentication\Authentication.Msal\MsalAuth.cs:118
-        ConfidentialClientApplicationBuilder cAppBuilder = ConfidentialClientApplicationBuilder.CreateWithApplicationOptions(
-            new ConfidentialClientApplicationOptions()
+        var cAppBuilder = ConfidentialClientApplicationBuilder.CreateWithApplicationOptions(
+            new ConfidentialClientApplicationOptions
             {
-                ClientId = _clientId,
+                ClientId = _clientId
             });
         // we only use tenant so this is perfect
         cAppBuilder.WithTenantId(_tenantId);
