@@ -75,14 +75,12 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     private static string ReadResource(string name)
     {
         var assembly = Assembly.GetExecutingAssembly();
-
         var resourcePath = assembly
             .GetManifestResourceNames()
-            .Single(str => str.EndsWith(name));
-
-
-        using (var stream = assembly.GetManifestResourceStream(resourcePath))
-        using (var reader = new StreamReader(stream))
-            return reader.ReadToEnd();
+            .Single(str => str.EndsWith(name, StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourcePath);
+        if (stream == null) return string.Empty;
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }
