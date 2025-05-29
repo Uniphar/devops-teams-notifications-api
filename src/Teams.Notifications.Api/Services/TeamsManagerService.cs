@@ -16,11 +16,9 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                 requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
                 requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
             });
-        if (result?.Value?.Count == 0)
-        {
-            throw new InvalidOperationException("Please install the bot on the Team, it is not installed at the moment");
-        }
+        if (result?.Value?.Count == 0) throw new InvalidOperationException("Please install the bot on the Team, it is not installed at the moment");
     }
+
     public async Task<string> GetTeamIdAsync(string teamName)
     {
         var groups = await graphClient.Teams.GetAsync(request =>

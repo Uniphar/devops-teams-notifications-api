@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
@@ -83,6 +84,37 @@ builder.Services.AddSwaggerGen(c =>
         });
     c.IncludeXmlComments(Assembly.GetExecutingAssembly());
     c.EnableAnnotations();
+    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme,
+        new OpenApiSecurityScheme
+        {
+            Name = "Basic Authentication",
+            Description = "Enter test username and password",
+            In = ParameterLocation.Header,
+            Scheme = JwtBearerDefaults.AuthenticationScheme,
+            BearerFormat = "JWT",
+            Type = SecuritySchemeType.OAuth2,
+            Flows = new OpenApiOAuthFlows
+            {
+                ClientCredentials = new OpenApiOAuthFlow()
+            }
+        });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                },
+                Scheme = JwtBearerDefaults.AuthenticationScheme,
+                Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
 });
 
 // Register IStorage.  For development, MemoryStorage is suitable.

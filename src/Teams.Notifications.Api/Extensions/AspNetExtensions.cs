@@ -119,5 +119,9 @@ internal static class AspNetExtensions
                     OnAuthenticationFailed = _ => Task.CompletedTask
                 };
             });
+
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(Const.AuthorizationPolicyWriter, policy => policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower()));
     }
 }
