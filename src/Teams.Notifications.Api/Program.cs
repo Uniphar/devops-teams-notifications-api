@@ -50,6 +50,7 @@ builder
     .Services
     .AddControllers(o =>
     {
+        o.Filters.Add<ExceptionHandlingFilter>();
         o.Conventions.Add(new HideChannelApi());
         o.Conventions.Add(new GlobalRouteConvention(appPathPrefix));
     })

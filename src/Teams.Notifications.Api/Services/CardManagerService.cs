@@ -12,6 +12,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task DeleteCard(string jsonFileName, string uniqueId, string teamName, string channelName)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
+        await teamsManagerService.CheckBotIsInTeam(teamId);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
         var conversationReference = GetConversationReference(channelId);
         var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId);
@@ -28,6 +29,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
+        await teamsManagerService.CheckBotIsInTeam(teamId);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
         var props = text.GetPropertiesFromJson();

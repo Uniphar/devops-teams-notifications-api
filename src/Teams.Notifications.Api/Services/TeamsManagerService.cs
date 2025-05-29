@@ -6,6 +6,21 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
 
+    public async Task CheckBotIsInTeam(string teamId)
+    {
+        var result = await graphClient
+            .Teams[teamId]
+            .InstalledApps
+            .GetAsync(requestConfiguration =>
+            {
+                requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
+                requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+            });
+        if (result?.Value?.Count == 0)
+        {
+            throw new InvalidOperationException("Please install the bot on the Team, it is not installed at the moment");
+        }
+    }
     public async Task<string> GetTeamIdAsync(string teamName)
     {
         var groups = await graphClient.Teams.GetAsync(request =>
@@ -15,8 +30,8 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         });
 
         if (groups is not { Value: [Team { Id: var teamId }] })
-            throw new InvalidOperationException($"Teams with displayName {teamName} does not exist");
-        return teamId ?? throw new InvalidOperationException();
+            throw new InvalidOperationException($"Team with name {teamName} does not exist");
+        return teamId ?? throw new InvalidOperationException($"Team with name {teamName} does not exist");
     }
 
     public async Task<string> GetChannelIdAsync(string teamId, string channelName)
@@ -31,8 +46,8 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             });
 
         if (channels is not { Value: [{ Id: var channelId }] })
-            throw new InvalidOperationException($"Channel with displayName {channelName} does not exist");
-        return channelId ?? throw new InvalidOperationException();
+            throw new InvalidOperationException($"Channel with name {channelName} does not exist");
+        return channelId ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
     }
 
     public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId)
@@ -64,7 +79,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             };
 
             response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
-            if (response?.Value == null) throw new InvalidOperationException("Messages should not be null if there is a next page");
+            if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
             id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
             if (!string.IsNullOrWhiteSpace(id))
                 return id;

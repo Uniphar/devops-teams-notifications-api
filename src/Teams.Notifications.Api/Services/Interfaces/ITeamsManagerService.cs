@@ -7,4 +7,5 @@ public interface ITeamsManagerService
     Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId);
     Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream);
     Task<string> GetFileUrl(string teamId, string channelId, string fileErrorFileName);
+    Task CheckBotIsInTeam(string teamId);
 }
