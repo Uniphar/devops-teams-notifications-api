@@ -24,8 +24,8 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     public MsalAuthChanged(IServiceProvider systemServiceProvider, IConfigurationSection msalConfigurationSection)
     {
         var config = systemServiceProvider.GetRequiredService<IConfiguration>();
-        _clientId = config["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
-        _tenantId = config["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
+        _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(systemServiceProvider), "Missing AZURE_CLIENT_ID");
+        _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(systemServiceProvider), "Missing AZURE_TENANT_ID");
         _clientSecret = config["ClientSecret"];
         _federatedTokenFile = config["AZURE_FEDERATED_TOKEN_FILE"];
         if (string.IsNullOrWhiteSpace(_clientSecret) && string.IsNullOrWhiteSpace(_federatedTokenFile)) throw new NoNullAllowedException("Secret or token file is required");

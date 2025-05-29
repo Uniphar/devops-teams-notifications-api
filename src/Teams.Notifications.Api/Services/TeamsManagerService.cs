@@ -4,8 +4,7 @@ namespace Teams.Notifications.Api.Services;
 
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
-    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(config["AZURE_CLIENT_ID"]);
-
+    private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
 
     public async Task<string> GetTeamIdAsync(string teamName)
     {
