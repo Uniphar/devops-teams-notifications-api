@@ -1,0 +1,39 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "large",
+      "weight": "bolder",
+      "color": "warning",
+      "text": "File is reprocessing"
+    },
+    {
+      "type": "TextBlock",
+      "text": "The external system has let us known that they are not reprocessing your file",
+      "wrap": true
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "File:",
+          "value": "{{FileName:string}}"
+        },
+        {
+          "title": "System:",
+          "value": "{{System:string}}"
+        },
+        {
+          "title": "Job ID:",
+          "value": "{{JobId:string}}"
+        },
+        {
+          "title": "Status:",
+          "value": "In progress"
+        }
+      ]
+    }
+  ]
+}

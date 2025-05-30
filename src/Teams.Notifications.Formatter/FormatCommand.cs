@@ -1,5 +1,4 @@
-﻿using System.Xml.Serialization;
-using AdaptiveCards;
+﻿using AdaptiveCards;
 using Teams.Notifications.AdaptiveCardGen;
 using Teams.Notifications.Formatter.Util;
 
@@ -35,13 +34,23 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
         if (!props.IsValidTypes(out var WrongItems))
         {
             var file = Path.GetFileName(sourcePath);
-            AnsiConsole.MarkupLineInterpolated($"[bold red]One of the files has incompatible properties[/] for file [bold white]{file}[/] ");
+            AnsiConsole.MarkupLineInterpolated($"[bold red]The following file has incompatible properties[/] [bold white]{file}[/] ");
             var table = new Table();
             table.AddColumn(new TableColumn("[green]Template[/]"));
             table.AddColumn(new TableColumn(new Markup("[yellow]Type[/]")));
             table.AddColumn(new TableColumn("[blue]Property name[/]"));
             WrongItems.ToList().ForEach(x => table.AddRow("[bold green]{{" + x.Key + ":" + x.Value + "}}[/]", $"[yellow]{x.Value}[/]", $"[blue]{x.Key}[/]"));
             AnsiConsole.Write(table);
+            GitHubActions.Error("Formatting", $"One of the files has incompatible properties, check the following file: {file} for property: {string.Join(",", WrongItems.Keys)}, unrecognised type(s) {string.Join(",", WrongItems.Values)}");
+            throw new InvalidDataException($"Unrecognised types {string.Join(",", WrongItems.Values)}");
+        }
+
+        if (!props.IsValidFile(out _))
+        {
+            var file = Path.GetFileName(sourcePath);
+            AnsiConsole.MarkupLineInterpolated($"[bold red]The following file has a file-url or file-name but not the File as property name[/] [bold white]{file}[/]");
+            AnsiConsole.MarkupLine("Only [bold white]{{FileName:file}}[/] or/and [bold white]{{FileUrl:file}}[/] , which will create a IFormFile File entry to upload to");
+
             GitHubActions.Error("Formatting", $"One of the files has incompatible properties, check the following file: {file} for property: {string.Join(",", WrongItems.Keys)}, unrecognised type(s) {string.Join(",", WrongItems.Values)}");
             throw new InvalidDataException($"Unrecognised types {string.Join(",", WrongItems.Values)}");
         }

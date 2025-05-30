@@ -4,14 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Teams.Notifications.AdaptiveCardGen;
 
 [Generator]
-
 public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
 {
@@ -22,7 +20,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
             .AdditionalTextsProvider
             .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
             .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));
-        
+
         // get the content of each item, when you call this method
         context.RegisterSourceOutput(templateAndContent, (spc, item) => { CreateFiles(item, spc); });
     }
@@ -44,11 +42,17 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     }
 
 
-
     private static string GenerateModel(string modelName, Dictionary<string, string> props)
     {
+        if (props.Values.Any(x => x == "file"))
+        {
+            props = props.Where(x => x.Value != "file").ToDictionary(x => x.Key, x => x.Value);
+            props.Add("File", "IFormFile");
+        }
+
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
         var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {p.Value} {p.Key} {{ get; set; }}"));
+
         return
             $$"""
               namespace Teams.Notifications.Api.Models;
@@ -71,14 +75,12 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     private static string ReadResource(string name)
     {
         var assembly = Assembly.GetExecutingAssembly();
-
         var resourcePath = assembly
             .GetManifestResourceNames()
-            .Single(str => str.EndsWith(name));
-
-
-        using (var stream = assembly.GetManifestResourceStream(resourcePath))
-        using (var reader = new StreamReader(stream))
-            return reader.ReadToEnd();
+            .Single(str => str.EndsWith(name, StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(resourcePath);
+        if (stream == null) return string.Empty;
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 }

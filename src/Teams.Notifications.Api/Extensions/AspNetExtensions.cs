@@ -22,7 +22,7 @@ internal static class AspNetExtensions
     /// <param name="configuration"></param>
     public static void AddAgentAspNetAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var tenantId = configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
+        var tenantId = configuration["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(configuration), "Missing AZURE_TENANT_ID");
         //ABS public cloud
         var validTokenIssuers = new List<string>
         {
@@ -119,5 +119,9 @@ internal static class AspNetExtensions
                     OnAuthenticationFailed = _ => Task.CompletedTask
                 };
             });
+
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(Const.AuthorizationPolicyWriter, policy => policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower()));
     }
 }

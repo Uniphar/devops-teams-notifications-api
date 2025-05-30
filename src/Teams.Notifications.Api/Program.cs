@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Agents.Storage;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.OpenApi.Models;
 using Teams.Notifications.Api;
@@ -38,7 +39,6 @@ var clientSecret = builder.Configuration["ClientSecret"];
 if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
-builder.Services.AddTransient<IFileErrorManagerService, FileErrorManagerService>();
 builder.Services.AddTransient<ICardManagerService, CardManagerService>();
 builder.Services.AddTransient<ITeamsManagerService, TeamsManagerService>();
 builder.Services.AddHealthChecks();
@@ -46,11 +46,12 @@ builder.Services.AddAgentAspNetAuthentication(builder.Configuration);
 builder.Services.AddMemoryCache();
 // Add ApplicationOptions
 builder.AddAgentApplicationOptions();
-builder.AddAgent<FileErrorAgent>();
+builder.AddAgent<CardActionAgent>();
 builder
     .Services
     .AddControllers(o =>
     {
+        o.Filters.Add<ExceptionHandlingFilter>();
         o.Conventions.Add(new HideChannelApi());
         o.Conventions.Add(new GlobalRouteConvention(appPathPrefix));
     })
@@ -66,9 +67,8 @@ if (environment != "local")
 {
 // key vault is required for ApplicationInsights, since it needs the connection string
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
-    builder.Services.AddApplicationInsightsTelemetry((options) => options.EnableAdaptiveSampling = false);
-    builder.Services.AddApplicationInsightsTelemetryWorkerService((options) => options.EnableAdaptiveSampling = false);
-    builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
+    builder.Services.AddApplicationInsightsTelemetry(options => options.EnableAdaptiveSampling = false);
+    builder.Services.AddApplicationInsightsTelemetryWorkerService(options => options.EnableAdaptiveSampling = false);
 }
 
 builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]);
@@ -84,6 +84,37 @@ builder.Services.AddSwaggerGen(c =>
         });
     c.IncludeXmlComments(Assembly.GetExecutingAssembly());
     c.EnableAnnotations();
+    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme,
+        new OpenApiSecurityScheme
+        {
+            Name = "Basic Authentication",
+            Description = "Enter test username and password",
+            In = ParameterLocation.Header,
+            Scheme = JwtBearerDefaults.AuthenticationScheme,
+            BearerFormat = "JWT",
+            Type = SecuritySchemeType.OAuth2,
+            Flows = new OpenApiOAuthFlows
+            {
+                ClientCredentials = new OpenApiOAuthFlow()
+            }
+        });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = JwtBearerDefaults.AuthenticationScheme
+                },
+                Scheme = JwtBearerDefaults.AuthenticationScheme,
+                Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        }
+    });
 });
 
 // Register IStorage.  For development, MemoryStorage is suitable.
@@ -94,15 +125,24 @@ builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 
 var app = builder.Build();
-app.MapHealthChecks($"/health");
-app.UseSwagger(options =>
-{
-    options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json";
-});
+app.MapHealthChecks("/health");
+app.UseSwagger(options => { options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json"; });
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("v1/swagger.json", "V1");
     c.RoutePrefix = $"{appPathPrefix}/swagger";
 });
 app.MapControllers();
+
+app
+    .MapPost("/api/messages", async (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => { await adapter.ProcessAsync(request, response, agent, cancellationToken); })
+    .RequireAuthorization()
+    // exclude from api explorer
+    .ExcludeFromDescription();
+app
+    .MapGet("/api/messages", async (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => { await adapter.ProcessAsync(request, response, agent, cancellationToken); })
+    .RequireAuthorization()
+    // exclude from api explorer
+    .ExcludeFromDescription();
+
 app.Run();
