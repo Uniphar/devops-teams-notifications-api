@@ -1,0 +1,64 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "medium",
+      "weight": "bolder",
+      "text": "**Flow Name:** {{FlowName:string}}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "**Timestamp:** {{TimeStamp:string}}",
+      "wrap": true,
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "text": "**Message ID:** {{FlowMessageId:string}}",
+      "wrap": true,
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "text": "**Source:** {{Source:string}} → **Destination:** {{Destination:string}}",
+      "wrap": true,
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "text": "**Intermediary:** {{Intermediary:string}}",
+      "wrap": true,
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "weight": "bolder",
+      "color": "attention",
+      "text": "**Status:** {{Status:string}}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "**Purchase Order By Customer:** {{PurchaseOrderByCustomer:string}}",
+      "wrap": true,
+      "spacing": "medium"
+    },
+    {
+      "type": "TextBlock",
+      "weight": "bolder",
+      "text": "**Error:**",
+      "wrap": true,
+      "spacing": "medium"
+    },
+    {
+      "type": "TextBlock",
+      "color": "attention",
+      "text": "{{Error:string}}",
+      "wrap": true,
+      "spacing": "none"
+    }
+  ]
+}
