@@ -1,11 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Data;
-using Microsoft.Agents.Authentication;
-using Microsoft.Agents.Authentication.Msal;
-using Microsoft.Identity.Client;
-using Teams.Notifications.Api.Services;
-
-namespace Teams.Notifications.Api;
+﻿namespace Teams.Notifications.Api;
 
 /// <summary>
 ///     Taken from MSAL auth to do this: https://github.com/microsoft/Agents-for-net/pull/228

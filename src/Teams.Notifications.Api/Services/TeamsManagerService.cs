@@ -1,6 +1,4 @@
-﻿using Microsoft.Kiota.Abstractions;
-
-namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Services;
 
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {

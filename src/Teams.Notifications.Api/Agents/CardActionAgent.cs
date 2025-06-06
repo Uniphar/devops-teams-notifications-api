@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Agents;

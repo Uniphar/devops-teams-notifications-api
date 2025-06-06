@@ -20,6 +20,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards" Version="*" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="*" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
 		<PackageReference Include="Azure.Identity" Version="*" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="*" />

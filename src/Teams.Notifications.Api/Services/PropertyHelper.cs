@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Services;
 
 public static class PropertyHelper
 {

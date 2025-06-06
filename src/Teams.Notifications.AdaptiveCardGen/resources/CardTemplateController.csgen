@@ -8,7 +8,7 @@ namespace Teams.Notifications.Api.Controllers;
 
 [Microsoft.AspNetCore.Mvc.Route("[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(AuthenticationSchemes = "NotificationScheme")]
 public class {{controllerName}} : ControllerBase
 {
     private const string jsonFileName = "{{filename}}";

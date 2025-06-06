@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
-
-namespace Teams.Notifications.Api;
+﻿namespace Teams.Notifications.Api;
 
 internal class ExceptionHandlingFilter : IExceptionFilter
 {

@@ -1,18 +1,3 @@
-using System.Data;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Azure.Core;
-using Azure.Identity;
-using Microsoft.Agents.Storage;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.OpenApi.Models;
-using Teams.Notifications.Api;
-using Teams.Notifications.Api.Agents;
-using Teams.Notifications.Api.DelegatingHandlers;
-using Teams.Notifications.Api.Middlewares;
-using Teams.Notifications.Api.Services;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
@@ -84,19 +69,27 @@ builder.Services.AddSwaggerGen(c =>
         });
     c.IncludeXmlComments(Assembly.GetExecutingAssembly());
     c.EnableAnnotations();
-    c.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme,
+    c.AddSecurityDefinition("NotificationScheme",
         new OpenApiSecurityScheme
         {
-            Name = "Basic Authentication",
-            Description = "Enter test username and password",
+            Name = "Authorization",
+            Description = "JWT Bearer authentication for API access",
             In = ParameterLocation.Header,
-            Scheme = JwtBearerDefaults.AuthenticationScheme,
+            Scheme = "Bearer",
             BearerFormat = "JWT",
-            Type = SecuritySchemeType.OAuth2,
-            Flows = new OpenApiOAuthFlows
-            {
-                ClientCredentials = new OpenApiOAuthFlow()
-            }
+            Type = SecuritySchemeType.Http
+        });
+
+    // AgentScheme definition
+    c.AddSecurityDefinition("AgentScheme",
+        new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Description = "JWT Bearer authentication for Agent endpoints",
+            In = ParameterLocation.Header,
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            Type = SecuritySchemeType.Http
         });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -110,6 +103,20 @@ builder.Services.AddSwaggerGen(c =>
                 },
                 Scheme = JwtBearerDefaults.AuthenticationScheme,
                 Name = JwtBearerDefaults.AuthenticationScheme,
+                In = ParameterLocation.Header
+            },
+            new List<string>()
+        },
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "AgentScheme"
+                },
+                Scheme = "Bearer",
+                Name = "AgentScheme",
                 In = ParameterLocation.Header
             },
             new List<string>()
@@ -135,13 +142,13 @@ app.UseSwaggerUI(c =>
 app.MapControllers();
 
 app
-    .MapPost("/api/messages", async (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => { await adapter.ProcessAsync(request, response, agent, cancellationToken); })
-    .RequireAuthorization()
+    .MapPost("/api/messages", (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(request, response, agent, cancellationToken))
+    .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = "AgentScheme" })
     // exclude from api explorer
     .ExcludeFromDescription();
 app
-    .MapGet("/api/messages", async (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => { await adapter.ProcessAsync(request, response, agent, cancellationToken); })
-    .RequireAuthorization()
+    .MapGet("/api/messages", (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(request, response, agent, cancellationToken))
+    .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = "AgentScheme" })
     // exclude from api explorer
     .ExcludeFromDescription();
 

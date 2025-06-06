@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace Teams.Notifications.Api.DelegatingHandlers;
+﻿namespace Teams.Notifications.Api.DelegatingHandlers;
 
 /// <summary>
 ///     HTTP client helper that can be used for logging all api traffic flowing out of the system

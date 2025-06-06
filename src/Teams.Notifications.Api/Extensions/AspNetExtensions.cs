@@ -1,14 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Data;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Agents.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.IdentityModel.Validators;
-
-namespace Teams.Notifications.Api.Extensions;
+﻿namespace Teams.Notifications.Api.Extensions;
 
 internal static class AspNetExtensions
 {
@@ -43,85 +33,91 @@ internal static class AspNetExtensions
 
         // If the `OpenIdMetadataUrl` setting is not specified, use the default based on `IsGov`.  This is what is used to authenticate Entra ID tokens.
         const string openIdMetadataUrl = AuthenticationConstants.PublicOpenIdMetadataUrl;
-
         var openIdRefreshInterval = BaseConfigurationManager.DefaultAutomaticRefreshInterval;
-
         services
-            .AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+            .AddAuthentication("NotificationScheme")
+            .AddMicrosoftIdentityWebApi(jwtBearerOptions => { },
+                microsoftIdentityOptions =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ClockSkew = TimeSpan.FromMinutes(5),
-                    ValidIssuers = validTokenIssuers,
-                    ValidAudiences = audiences,
-                    ValidateIssuerSigningKey = true,
-                    RequireSignedTokens = true
-                };
-
-                // Using Microsoft.IdentityModel.Validators
-                options.TokenValidationParameters.EnableAadSigningKeyIssuerValidation();
-
-                options.Events = new JwtBearerEvents
-                {
-                    // Create a ConfigurationManager based on the requestor.  This is to handle ABS non-Entra tokens.
-                    OnMessageReceived = async context =>
-                    {
-                        var authorizationHeader = context.Request.Headers.Authorization.ToString();
-
-                        if (string.IsNullOrEmpty(authorizationHeader))
-                        {
-                            // Default to AadTokenValidation handling
-                            context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
-                            await Task.CompletedTask.ConfigureAwait(false);
-                            return;
-                        }
-
-                        var parts = authorizationHeader.Split(' ');
-                        if (parts is not ["Bearer", _])
-                        {
-                            // Default to AadTokenValidation handling
-                            context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
-                            await Task.CompletedTask.ConfigureAwait(false);
-                            return;
-                        }
-
-                        JwtSecurityToken token = new(parts[1]);
-                        var issuer = token.Claims.FirstOrDefault(claim => claim.Type == AuthenticationConstants.IssuerClaim)?.Value;
-
-                        if (AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
-                            // Use the Azure Bot authority for this configuration manager
-                            context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(azureBotServiceOpenIdMetadataUrl,
-                                _ => new ConfigurationManager<OpenIdConnectConfiguration>(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
-                                {
-                                    AutomaticRefreshInterval = openIdRefreshInterval
-                                });
-                        else
-                            context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(openIdMetadataUrl,
-                                _ => new ConfigurationManager<OpenIdConnectConfiguration>(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
-                                {
-                                    AutomaticRefreshInterval = openIdRefreshInterval
-                                });
-
-                        await Task.CompletedTask.ConfigureAwait(false);
-                    },
-
-                    OnTokenValidated = _ => Task.CompletedTask,
-                    OnForbidden = _ => Task.CompletedTask,
-                    OnAuthenticationFailed = _ => Task.CompletedTask
-                };
-            });
-
+                    microsoftIdentityOptions.Instance = "https://login.microsoftonline.com/";
+                    microsoftIdentityOptions.TenantId = Environment.GetEnvironmentVariable("AZURE_ENTRA_EXTERNAL_TENANT_ID");
+                    microsoftIdentityOptions.ClientId = configuration["devops-teams-notification-api-client-id"];
+                });
+        // authorization policies for the API
         services
             .AddAuthorizationBuilder()
             .AddPolicy(Const.AuthorizationPolicyWriter, policy => policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower()));
+        // authentication for the BOT
+        services
+            .AddAuthentication("AgentScheme")
+            .AddJwtBearer("AgentScheme",
+                options =>
+                {
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.FromMinutes(5),
+                        ValidIssuers = validTokenIssuers,
+                        ValidAudiences = audiences,
+                        ValidateIssuerSigningKey = true,
+                        RequireSignedTokens = true
+                    };
+
+                    // Using Microsoft.IdentityModel.Validators
+                    options.TokenValidationParameters.EnableAadSigningKeyIssuerValidation();
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        // Create a ConfigurationManager based on the requestor.  This is to handle ABS non-Entra tokens.
+                        OnMessageReceived = async context =>
+                        {
+                            var authorizationHeader = context.Request.Headers.Authorization.ToString();
+
+                            if (string.IsNullOrEmpty(authorizationHeader))
+                            {
+                                // Default to AadTokenValidation handling
+                                context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
+                                await Task.CompletedTask.ConfigureAwait(false);
+                                return;
+                            }
+
+                            var parts = authorizationHeader.Split(' ');
+                            if (parts is not ["Bearer", _])
+                            {
+                                // Default to AadTokenValidation handling
+                                context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
+                                await Task.CompletedTask.ConfigureAwait(false);
+                                return;
+                            }
+
+                            JwtSecurityToken token = new(parts[1]);
+                            var issuer = token.Claims.FirstOrDefault(claim => claim.Type == AuthenticationConstants.IssuerClaim)?.Value;
+
+                            if (AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
+                                // Use the Azure Bot authority for this configuration manager
+                                context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(azureBotServiceOpenIdMetadataUrl,
+                                    _ => new ConfigurationManager<OpenIdConnectConfiguration>(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
+                                    {
+                                        AutomaticRefreshInterval = openIdRefreshInterval
+                                    });
+                            else
+                                context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(openIdMetadataUrl,
+                                    _ => new ConfigurationManager<OpenIdConnectConfiguration>(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
+                                    {
+                                        AutomaticRefreshInterval = openIdRefreshInterval
+                                    });
+
+                            await Task.CompletedTask.ConfigureAwait(false);
+                        },
+
+                        OnTokenValidated = _ => Task.CompletedTask,
+                        OnForbidden = _ => Task.CompletedTask,
+                        OnAuthenticationFailed = _ => Task.CompletedTask
+                    };
+                });
+        services.AddAuthentication(options => { options.DefaultScheme = "NotificationScheme"; });
     }
 }
