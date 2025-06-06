@@ -30,7 +30,7 @@ public class {{controllerName}} : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
-    public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName)
+    public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
         await _cardManagerService.CreateOrUpdate(jsonFileName, model, teamName, channelName);
         return Ok();
@@ -49,7 +49,7 @@ public class {{controllerName}} : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
-    public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName)
+    public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
        await _cardManagerService.DeleteCard(jsonFileName, uniqueId, teamName, channelName);
 
