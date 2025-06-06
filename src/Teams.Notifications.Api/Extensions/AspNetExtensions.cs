@@ -42,7 +42,7 @@ internal static class AspNetExtensions
                     microsoftIdentityOptions.Instance = "https://login.microsoftonline.com/";
                     microsoftIdentityOptions.TenantId = Environment.GetEnvironmentVariable("AZURE_ENTRA_EXTERNAL_TENANT_ID");
                     microsoftIdentityOptions.ClientId = configuration["devops-teams-notification-api-client-id"];
-                });
+                },"NotificationScheme");
         // authorization policies for the API
         services
             .AddAuthorizationBuilder()
