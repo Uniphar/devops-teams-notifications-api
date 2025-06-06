@@ -1,3 +1,4 @@
 environment: test
 env:
   ASPNETCORE_ENVIRONMENT: "test"
+  AZURE_ENTRA_EXTERNAL_TENANT_ID: "91550823-f8b0-4d7c-b7f4-e6d8efc88d71"

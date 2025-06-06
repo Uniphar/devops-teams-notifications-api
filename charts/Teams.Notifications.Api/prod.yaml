@@ -1,3 +1,4 @@
 environment: prod
 env:
   ASPNETCORE_ENVIRONMENT: "prod"
+  AZURE_ENTRA_EXTERNAL_TENANT_ID: "0f8f3101-51e4-4eff-a815-397aa5666f6c"
