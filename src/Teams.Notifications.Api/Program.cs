@@ -81,16 +81,6 @@ builder.Services.AddSwaggerGen(c =>
         });
 
     // AgentScheme definition
-    c.AddSecurityDefinition("AgentScheme",
-        new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-            Description = "JWT Bearer authentication for Agent endpoints",
-            In = ParameterLocation.Header,
-            Scheme = "Bearer",
-            BearerFormat = "JWT",
-            Type = SecuritySchemeType.Http
-        });
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -99,24 +89,10 @@ builder.Services.AddSwaggerGen(c =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = JwtBearerDefaults.AuthenticationScheme
-                },
-                Scheme = JwtBearerDefaults.AuthenticationScheme,
-                Name = JwtBearerDefaults.AuthenticationScheme,
-                In = ParameterLocation.Header
-            },
-            new List<string>()
-        },
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "AgentScheme"
+                    Id = "NotificationScheme"
                 },
                 Scheme = "Bearer",
-                Name = "AgentScheme",
+                Name = "NotificationScheme",
                 In = ParameterLocation.Header
             },
             new List<string>()
