@@ -8,7 +8,7 @@ namespace Teams.Notifications.Api.Controllers;
 
 [Microsoft.AspNetCore.Mvc.Route("[controller]")]
 [ApiController]
-[Authorize(AuthenticationSchemes = "NotificationScheme")]
+[Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
 public class {{controllerName}} : ControllerBase
 {
     private const string jsonFileName = "{{filename}}";
@@ -29,7 +29,7 @@ public class {{controllerName}} : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
-    [Authorize(Const.AuthorizationPolicyWriter)]
+    [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
     public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName)
     {
         await _cardManagerService.CreateOrUpdate(jsonFileName, model, teamName, channelName);
@@ -48,7 +48,7 @@ public class {{controllerName}} : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
-    [Authorize(Const.AuthorizationPolicyWriter)]
+    [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
     public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName)
     {
        await _cardManagerService.DeleteCard(jsonFileName, uniqueId, teamName, channelName);

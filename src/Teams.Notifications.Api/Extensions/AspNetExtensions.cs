@@ -46,7 +46,11 @@ internal static class AspNetExtensions
         // authorization policies for the API
         services
             .AddAuthorizationBuilder()
-            .AddPolicy(Const.AuthorizationPolicyWriter, policy => policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower()));
+            .AddPolicy(Const.AuthorizationPolicyWriter, policy =>
+            {
+                policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower());
+                policy.AuthenticationSchemes.Add("NotificationScheme");
+            });
         // authentication for the BOT
         services
             .AddAuthentication("AgentScheme")
