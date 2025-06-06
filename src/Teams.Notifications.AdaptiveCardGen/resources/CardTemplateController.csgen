@@ -8,38 +8,31 @@ namespace Teams.Notifications.Api.Controllers;
 
 [Microsoft.AspNetCore.Mvc.Route("[controller]")]
 [ApiController]
+[Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
 public class {{controllerName}} : ControllerBase
 {
-    private const string _teamName = "Notifications Platform";
-    private const string _channelName = "File Errors";
     private const string jsonFileName = "{{filename}}";
     private readonly ICardManagerService _cardManagerService;
-    private readonly ITeamsManagerService _managerService;
-
-
-    public {{controllerName}}(ICardManagerService cardManagerService, ITeamsManagerService managerService)
+    public {{controllerName}}(ICardManagerService cardManagerService)
     {
         _cardManagerService = cardManagerService;
-        _managerService = managerService;
     }
-
 
     /// <summary>
     ///     Creates or updates the file error in teams
     /// </summary>
     /// <param name="model">Information that needs to be sent to teams</param>
+    /// <param name="teamName">Teamname you want to sent the message into</param>
+    /// <param name="channelName">Channel you want to sent the message into</param>
     [HttpPost]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
-    public async Task<IActionResult> Post({{modelName}} model)
+    [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
+    public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
-        var teamId = await _managerService.GetTeamIdAsync(_teamName);
-        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-        await _cardManagerService.CreateOrUpdate(jsonFileName, model, teamId, channelId);
-
-
+        await _cardManagerService.CreateOrUpdate(jsonFileName, model, teamName, channelName);
         return Ok();
     }
 
@@ -47,18 +40,19 @@ public class {{controllerName}} : ControllerBase
     ///     Deletes the card based on the id
     /// </summary>
     /// <param name="uniqueId">The id used to know what card to delete, required</param>
+    /// <param name="teamName">Teamname you want to sent the message into</param>
+    /// <param name="channelName">Channel you want to sent the message into</param>
     [HttpDelete]
     [Produces("application/json")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
-    public async Task<IActionResult> Delete(string uniqueId)
+    [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
+    public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
-        var teamId = await _managerService.GetTeamIdAsync(_teamName);
-        var channelId = await _managerService.GetChannelIdAsync(teamId, _channelName);
-        await _cardManagerService.DeleteCard(jsonFileName, uniqueId, teamId, channelId);
+       await _cardManagerService.DeleteCard(jsonFileName, uniqueId, teamName, channelName);
 
-        return Ok();
+       return Ok();
     }
 }

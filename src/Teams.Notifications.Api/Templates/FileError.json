@@ -1,0 +1,74 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "large",
+      "weight": "bolder",
+      "color": "attention",
+      "text": "🚨 File Processing Error"
+    },
+    {
+      "type": "TextBlock",
+      "text": "There was an issue processing the file. Please check the file and make sure the system is working right",
+      "wrap": true
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "File:",
+          "value": "{{FileName:file}}"
+        },
+        {
+          "title": "System:",
+          "value": "{{System:string}}"
+        },
+        {
+          "title": "Job ID:",
+          "value": "{{JobId:string}}"
+        },
+        {
+          "title": "Status:",
+          "value": "❌ Failed"
+        },
+        {
+          "title": "Timestamp:",
+          "value": "{{Timestamp:string}}"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Execute",
+      "id": "process",
+      "data": {},
+      "verb": "process",
+      "title": "🔁 Reprocess File"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "url": "{{FileUrl:file}}",
+      "title": "📂 Download file"
+    },
+    {
+      "type": "Action.ShowCard",
+      "card": {
+        "type": "AdaptiveCard",
+        "version": "1.5",
+        "body": [
+          {
+            "type": "TextBlock",
+            "color": "attention",
+            "text": "{{Error:string}}",
+            "wrap": true,
+            "fontType": "monospace"
+          }
+        ]
+      },
+      "title": "🔍 View Error Details"
+    }
+  ]
+}

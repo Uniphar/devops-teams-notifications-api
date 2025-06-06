@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Tests.Services;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]
 [TestCategory("Integration")]
@@ -26,7 +28,7 @@ public sealed class TeamsChannelMessagingServiceTests
 
 
         var graph = new GraphServiceClient(_defaultCredential);
-        _teamManager = new TeamsManagerService(graph);
+        _teamManager = new TeamsManagerService(graph, new ConfigurationManager());
     }
 
     [TestMethod]
@@ -39,27 +41,5 @@ public sealed class TeamsChannelMessagingServiceTests
         var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName);
         Assert.IsNotEmpty(teamId);
         Assert.IsNotEmpty(channelId);
-    }
-
-    [TestMethod]
-    public async Task BasicTeamChannelAddCard()
-    {
-        const string teamName = "Frontgate Files Moving Integration Test In";
-        const string channelName = "General";
-
-        var teamId = await _teamManager.GetTeamIdAsync(teamName);
-        var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName);
-        Assert.IsNotEmpty(teamId);
-        Assert.IsNotEmpty(channelId);
-        var fileError = new FileErrorModel
-        {
-            FileName = "Test.txt",
-            System = "FrontGateExample",
-            JobId = "file-moving-example",
-            Status = FileErrorStatusEnum.Failed
-        };
-
-        var messageId = await _teamManager.GetMessageId(teamId, channelId, fileError);
-        Assert.IsNotNull(messageId);
     }
 }

@@ -2,12 +2,6 @@
 
 internal sealed class FilesDiffer(string BasePath)
 {
-    private record struct FileDiff
-    {
-        public required string SourcePath { get; init; }
-        public string? SourceHash { get; init; }
-        public required Action<string, Stream> GenerateExpectedContents { get; init; }
-    }
     private List<FileDiff> Diffs { get; } = new();
 
     public void Add(string path, Action<string, Stream> generateExpectedContents)
@@ -107,5 +101,10 @@ internal sealed class FilesDiffer(string BasePath)
         return tempFile;
     }
 
-
+    private record struct FileDiff
+    {
+        public required string SourcePath { get; init; }
+        public string? SourceHash { get; init; }
+        public required Action<string, Stream> GenerateExpectedContents { get; init; }
+    }
 }

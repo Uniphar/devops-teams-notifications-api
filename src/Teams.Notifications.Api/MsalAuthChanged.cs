@@ -1,13 +1,7 @@
-﻿using System.Collections.Concurrent;
-using System.Data;
-using Microsoft.Agents.Authentication;
-using Microsoft.Agents.Authentication.Msal;
-using Microsoft.Identity.Client;
-using Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api;
 
-namespace Teams.Notifications.Api;
 /// <summary>
-/// Taken from MSAL auth to do this: https://github.com/microsoft/Agents-for-net/pull/228
+///     Taken from MSAL auth to do this: https://github.com/microsoft/Agents-for-net/pull/228
 /// </summary>
 public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
 {
@@ -23,15 +17,15 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     public MsalAuthChanged(IServiceProvider systemServiceProvider, IConfigurationSection msalConfigurationSection)
     {
         var config = systemServiceProvider.GetRequiredService<IConfiguration>();
-        _clientId = config["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
-        _tenantId = config["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
+        _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(systemServiceProvider), "Missing AZURE_CLIENT_ID");
+        _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(systemServiceProvider), "Missing AZURE_TENANT_ID");
         _clientSecret = config["ClientSecret"];
         _federatedTokenFile = config["AZURE_FEDERATED_TOKEN_FILE"];
         if (string.IsNullOrWhiteSpace(_clientSecret) && string.IsNullOrWhiteSpace(_federatedTokenFile)) throw new NoNullAllowedException("Secret or token file is required");
     }
 
     /// <summary>
-    /// simplified version of the MsalAuth from the sdk, just to ease our use case
+    ///     simplified version of the MsalAuth from the sdk, just to ease our use case
     /// </summary>
     /// <param name="resourceUrl"></param>
     /// <param name="scopes"></param>
@@ -52,7 +46,7 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
             {
                 var accessToken = _cacheList[instanceUri].MsalAuthResult.AccessToken;
                 var tokenExpiresOn = _cacheList[instanceUri].MsalAuthResult.ExpiresOn;
-                if (tokenExpiresOn != null && tokenExpiresOn < DateTimeOffset.UtcNow.Subtract(TimeSpan.FromSeconds(30)))
+                if (tokenExpiresOn < DateTimeOffset.UtcNow.Subtract(TimeSpan.FromSeconds(30)))
                 {
                     accessToken = string.Empty; // flush the access token if it is about to expire.
                     _cacheList.Remove(instanceUri, out _);
@@ -71,9 +65,7 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
         var authResult = await msalAuthClient.AcquireTokenForClient(localScopes).WithForceRefresh(true).ExecuteAsync().ConfigureAwait(false);
         var authResultPayload = new AuthResults
         {
-            MsalAuthResult = authResult,
-            TargetServiceUrl = instanceUri,
-            MsalAuthClient = msalAuthClient
+            MsalAuthResult = authResult
         };
 
         if (_cacheList.ContainsKey(instanceUri))
@@ -90,10 +82,10 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
     {
         // initialize the MSAL client
         // same as: src\libraries\Authentication\Authentication.Msal\MsalAuth.cs:118
-        ConfidentialClientApplicationBuilder cAppBuilder = ConfidentialClientApplicationBuilder.CreateWithApplicationOptions(
-            new ConfidentialClientApplicationOptions()
+        var cAppBuilder = ConfidentialClientApplicationBuilder.CreateWithApplicationOptions(
+            new ConfidentialClientApplicationOptions
             {
-                ClientId = _clientId,
+                ClientId = _clientId
             });
         // we only use tenant so this is perfect
         cAppBuilder.WithTenantId(_tenantId);
