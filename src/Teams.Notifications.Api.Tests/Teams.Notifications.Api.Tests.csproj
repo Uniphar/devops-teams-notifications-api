@@ -10,8 +10,8 @@
 	<ItemGroup>
 		<PackageReference Include="Azure.Identity" Version="*" />
 		<PackageReference Include="GitHubActionsTestLogger" Version="*">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
 		<PackageReference Include="Moq" Version="*" />

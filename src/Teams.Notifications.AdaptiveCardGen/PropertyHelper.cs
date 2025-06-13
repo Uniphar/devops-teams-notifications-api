@@ -1,11 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Teams.Notifications.AdaptiveCardGen;
 
 public static class PropertyHelper
 {
+    public static List<string> ExtractKeysWithTemplates(this string json)
+    {
+        var result = new List<string>();
+        using var doc = JsonDocument.Parse(json);
+        foreach (var property in doc.RootElement.EnumerateObject())
+        {
+            var value = property.Value.GetString();
+            if (!string.IsNullOrEmpty(value) && value.StartsWith("{{", StringComparison.Ordinal) && value.EndsWith("}}", StringComparison.Ordinal)) result.Add(property.Name);
+        }
+
+        return result;
+    }
+
     public static Dictionary<string, string> GetPropertiesFromJson(this string content)
     {
         // very simple regex where {{name:type}} means is that what you want, it has to be C# compatible, otherwise it will break

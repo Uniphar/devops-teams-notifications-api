@@ -1,7 +1,3 @@
-using AdaptiveCards;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using AdaptiveCards;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Teams.Notifications.AdaptiveCardGen;
 
 [Generator]
@@ -38,8 +38,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         {
             if (action is not AdaptiveExecuteAction adaptiveExecute) continue;
             var data = Regex.Replace(adaptiveExecute.DataJson, @"\r\n?|\n", "");
-            var fullString = string.Empty;
-            var converter = JsonConvert.DeserializeObject(data);
+            var props = data.ExtractKeysWithTemplates();
 
             //foreach (var prop in converter.GetType().GetProperties()) fullString += $" {prop.Name}, {prop.GetValue(converter, null)}";
             // to show warnings in the IDE, we need to use this, just an example
@@ -52,22 +51,22 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
                     DiagnosticSeverity.Warning,
                     true),
                 Location.None,
-                data));
+                string.Join(",", props)));
         }
 
         var modelProperties = content.GetPropertiesFromJson();
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";
         var filename = $"{fileName}.json";
-        var modelSource = GenerateModel(modelName, modelProperties);
+        var modelSource = GenerateModel(modelName, modelProperties, spc);
         spc.AddSource($"{fileName}Model.g.cs", SourceText.From(modelSource, Encoding.UTF8));
 
-        var controllerSource = GenerateController(modelName, controllerName, filename);
+        var controllerSource = GenerateController(modelName, controllerName, filename, spc);
         spc.AddSource($"{fileName}Controller.g.cs", SourceText.From(controllerSource, Encoding.UTF8));
     }
 
 
-    private static string GenerateModel(string modelName, Dictionary<string, string> props)
+    private static string GenerateModel(string modelName, Dictionary<string, string> props, SourceProductionContext spc)
     {
         if (props.Values.Any(x => x == "file"))
         {
@@ -88,23 +87,36 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
               """;
     }
 
-    private static string GenerateController(string modelName, string controllerName, string filename)
+    private static string GenerateController(string modelName, string controllerName, string filename, SourceProductionContext spc)
     {
-        var text = ReadResource("CardTemplateController.csgen")
+        var text = ReadResource("CardTemplateController.csgen", spc)
             .Replace("{{controllerName}}", controllerName)
             .Replace("{{modelName}}", modelName)
             .Replace("{{filename}}", filename);
         return text;
     }
 
-    private static string ReadResource(string name)
+    private static string ReadResource(string name, SourceProductionContext spc)
     {
         var assembly = Assembly.GetExecutingAssembly();
         var resourcePath = assembly
             .GetManifestResourceNames()
             .Single(str => str.EndsWith(name, StringComparison.Ordinal));
         using var stream = assembly.GetManifestResourceStream(resourcePath);
-        if (stream == null) return string.Empty;
+        if (stream == null)
+        {
+            spc.ReportDiagnostic(Diagnostic.Create(
+                new DiagnosticDescriptor(
+                    "ACG001",
+                    "AdaptiveCard generation file could not be found",
+                    "Name: {0}",
+                    "AdaptiveCardGen",
+                    DiagnosticSeverity.Error,
+                    true),
+                Location.None,
+                name));
+            return string.Empty;
+        }
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }

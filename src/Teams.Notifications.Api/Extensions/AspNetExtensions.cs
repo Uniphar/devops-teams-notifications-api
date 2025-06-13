@@ -41,16 +41,18 @@ internal static class AspNetExtensions
                 {
                     microsoftIdentityOptions.Instance = "https://login.microsoftonline.com/";
                     microsoftIdentityOptions.TenantId = configuration["AZURE_ENTRA_EXTERNAL_TENANT_ID"] ?? throw new NoNullAllowedException("EXTERNAL_TENANT_ID is required");
-                    microsoftIdentityOptions.ClientId = configuration["devops-teams-notification-api-client-id"]?? throw new NoNullAllowedException("ClientId is required");
-                },"NotificationScheme");
+                    microsoftIdentityOptions.ClientId = configuration["devops-teams-notification-api-client-id"] ?? throw new NoNullAllowedException("ClientId is required");
+                },
+                "NotificationScheme");
         // authorization policies for the API
         services
             .AddAuthorizationBuilder()
-            .AddPolicy(Const.AuthorizationPolicyWriter, policy =>
-            {
-                policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower());
-                policy.AuthenticationSchemes.Add("NotificationScheme");
-            });
+            .AddPolicy(Const.AuthorizationPolicyWriter,
+                policy =>
+                {
+                    policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower());
+                    policy.AuthenticationSchemes.Add("NotificationScheme");
+                });
         // authentication for the BOT
         services
             .AddAuthentication("AgentScheme")

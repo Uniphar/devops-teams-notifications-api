@@ -17,6 +17,9 @@
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards" Version="3.1.0" GeneratePathProperty="true" PrivateAssets="all" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="System.Text.Json" Version="9.0.5" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="System.IO.Pipelines" Version="9.0.5" GeneratePathProperty="true" PrivateAssets="all" />
+
 	</ItemGroup>
 	<PropertyGroup>
 		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
@@ -24,9 +27,15 @@
 
 	<Target Name="GetDependencyTargetPaths">
 		<ItemGroup>
-			<TargetPathWithTargetPlatformMoniker Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\Newtonsoft.Json.dll" IncludeRuntimeDependency="false" />
-			<TargetPathWithTargetPlatformMoniker Include="$(PkgAdaptiveCards)\lib\netstandard2.0\AdaptiveCards.dll" IncludeRuntimeDependency="false" />
+			<TargetPathWithTargetPlatformMoniker Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\Newtonsoft.Json.dll"
+			                                     IncludeRuntimeDependency="false" />
+			<TargetPathWithTargetPlatformMoniker Include="$(PkgAdaptiveCards)\lib\netstandard2.0\AdaptiveCards.dll"
+			                                     IncludeRuntimeDependency="false" />
+			<TargetPathWithTargetPlatformMoniker Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll"
+			                                     IncludeRuntimeDependency="false" />
+			<TargetPathWithTargetPlatformMoniker Include="$(PkgSystem_IO_Pipelines)\lib\netstandard2.0\System.IO.Pipelines.dll"
+			                                     IncludeRuntimeDependency="false" />
 		</ItemGroup>
 	</Target>
-	
+
 </Project>
