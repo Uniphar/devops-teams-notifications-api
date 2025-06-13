@@ -11,7 +11,7 @@
 		<EmbeddedResource Include="resources\CardTemplateController.csgen" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="AdaptiveCards" Version="3.1.0" />
+		<PackageReference Include="AdaptiveCards" Version="*" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="*" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="*" />
 	</ItemGroup>

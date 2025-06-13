@@ -31,8 +31,24 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
         var fileName = Path.GetFileNameWithoutExtension(path);
         var card = AdaptiveCard.FromJson(content).Card;
-        var actionProperties = card.Body;
-
+        var itemWithUnique = card.Actions.Where(x => x.Type =="Action.Execute");
+        foreach (var action in itemWithUnique)
+        {
+            if (action is not AdaptiveExecuteAction adaptiveExecute) continue;
+            var data=adaptiveExecute.Data;
+            var props=data.GetType().GetProperties().ToList();
+            var propNames = string.Join(", ", props.Select(x => x.Name));
+            spc.ReportDiagnostic(Diagnostic.Create(
+                new DiagnosticDescriptor(
+                    id: "ACG001",
+                    title: "AdaptiveCard Property Names",
+                    messageFormat: "Properties: {0}",
+                    category: "AdaptiveCardGen",
+                    DiagnosticSeverity.Info,
+                    isEnabledByDefault: true),
+                Location.None,
+                propNames));
+        }
         var modelProperties = content.GetPropertiesFromJson();
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";
