@@ -1,12 +1,14 @@
+using AdaptiveCards;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using AdaptiveCards;
+using System.Text.RegularExpressions;
 namespace Teams.Notifications.AdaptiveCardGen;
 
 [Generator]
@@ -31,24 +33,28 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
         var fileName = Path.GetFileNameWithoutExtension(path);
         var card = AdaptiveCard.FromJson(content).Card;
-        var itemWithUnique = card.Actions.Where(x => x.Type =="Action.Execute");
+        var itemWithUnique = card.Actions.Where(x => x.Type == "Action.Execute");
         foreach (var action in itemWithUnique)
         {
             if (action is not AdaptiveExecuteAction adaptiveExecute) continue;
-            var data=adaptiveExecute.Data;
-            var props=data.GetType().GetProperties().ToList();
-            var propNames = string.Join(", ", props.Select(x => x.Name));
+            var data = Regex.Replace(adaptiveExecute.DataJson, @"\r\n?|\n", "");
+            var fullString = string.Empty;
+            var converter = JsonConvert.DeserializeObject(data);
+
+            //foreach (var prop in converter.GetType().GetProperties()) fullString += $" {prop.Name}, {prop.GetValue(converter, null)}";
+            // to show warnings in the IDE, we need to use this, just an example
             spc.ReportDiagnostic(Diagnostic.Create(
                 new DiagnosticDescriptor(
-                    id: "ACG001",
-                    title: "AdaptiveCard Property Names",
-                    messageFormat: "Properties: {0}",
-                    category: "AdaptiveCardGen",
-                    DiagnosticSeverity.Info,
-                    isEnabledByDefault: true),
+                    "ACG001",
+                    "AdaptiveCard Property Names",
+                    "Properties: {0}",
+                    "AdaptiveCardGen",
+                    DiagnosticSeverity.Warning,
+                    true),
                 Location.None,
-                propNames));
+                data));
         }
+
         var modelProperties = content.GetPropertiesFromJson();
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";

@@ -11,8 +11,22 @@
 		<EmbeddedResource Include="resources\CardTemplateController.csgen" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="AdaptiveCards" Version="*" PrivateAssets="all" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="*" PrivateAssets="all" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="*" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="*" />
 	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="AdaptiveCards" Version="3.1.0" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" GeneratePathProperty="true" PrivateAssets="all" />
+	</ItemGroup>
+	<PropertyGroup>
+		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
+	</PropertyGroup>
+
+	<Target Name="GetDependencyTargetPaths">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="$(PkgNewtonsoft_Json)\lib\netstandard2.0\Newtonsoft.Json.dll" IncludeRuntimeDependency="false" />
+			<TargetPathWithTargetPlatformMoniker Include="$(PkgAdaptiveCards)\lib\netstandard2.0\AdaptiveCards.dll" IncludeRuntimeDependency="false" />
+		</ItemGroup>
+	</Target>
+	
 </Project>
