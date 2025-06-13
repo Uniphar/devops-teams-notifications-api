@@ -13,9 +13,7 @@ public static class PropertyHelper
         var properties = matches
             .Cast<Match>()
             .Select(x => new { name = x.Groups["name"].Value, type = x.Groups["type"].Value })
-            // we only want one of the name, no need to get the full thing
-            .GroupBy(p => p.name)
-            .Select(g => g.First());
+            .DistinctByProps(x => x.name);
         return properties.ToDictionary(m => m.name, m => m.type);
     }
 
