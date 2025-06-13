@@ -1,12 +1,12 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
+using AdaptiveCards;
 namespace Teams.Notifications.AdaptiveCardGen;
 
 [Generator]
@@ -28,13 +28,16 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     private void CreateFiles((string Path, string Content) item, SourceProductionContext spc)
     {
         var (path, content) = item;
-        var fileName = Path.GetFileNameWithoutExtension(path);
-        var properties = content.GetPropertiesFromJson();
 
+        var fileName = Path.GetFileNameWithoutExtension(path);
+        var card = AdaptiveCard.FromJson(content).Card;
+        var actionProperties = card.Body;
+
+        var modelProperties = content.GetPropertiesFromJson();
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";
         var filename = $"{fileName}.json";
-        var modelSource = GenerateModel(modelName, properties);
+        var modelSource = GenerateModel(modelName, modelProperties);
         spc.AddSource($"{fileName}Model.g.cs", SourceText.From(modelSource, Encoding.UTF8));
 
         var controllerSource = GenerateController(modelName, controllerName, filename);

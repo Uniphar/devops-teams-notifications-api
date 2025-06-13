@@ -12,8 +12,11 @@ public static class PropertyHelper
         var matches = Regex.Matches(content, "{{(?<name>.*?):(?<type>.*?)}}");
         var properties = matches
             .Cast<Match>()
-            .ToDictionary(m => m.Groups["name"].Value, m => m.Groups["type"].Value);
-        return properties;
+            .Select(x => new { name = x.Groups["name"].Value, type = x.Groups["type"].Value })
+            // we only want one of the name, no need to get the full thing
+            .GroupBy(p => p.name)
+            .Select(g => g.First());
+        return properties.ToDictionary(m => m.name, m => m.type);
     }
 
     public static bool IsValidTypes(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)

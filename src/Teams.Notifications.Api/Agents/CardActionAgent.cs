@@ -1,4 +1,6 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using System.Text.Json.Nodes;
+using Microsoft.Agents.Core.Serialization;
+using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Agents;
@@ -25,9 +27,8 @@ public class CardActionAgent : AgentApplication
 
     protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken cancellationToken)
     {
-        // var submitData = ProtocolJsonSerializer.ToObject<AdaptiveCardSubmitData>(data);
+        var submitData = ProtocolJsonSerializer.ToObject<JsonObject>(data);
 
-        // Create a response message based on the response content type from the WeatherForecastAgent
         var attachment = new Attachment
         {
             ContentType = AdaptiveCard.ContentType,
