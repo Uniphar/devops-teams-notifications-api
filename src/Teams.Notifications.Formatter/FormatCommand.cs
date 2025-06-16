@@ -30,7 +30,7 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
     private static void FormatFile(string sourcePath, Stream formattedFile)
     {
         var text = File.ReadAllText(sourcePath);
-        var props = text.GetPropertiesFromJson();
+        var props = text.GetMustachePropertiesFromString();
         if (!props.IsValidTypes(out var WrongItems))
         {
             var file = Path.GetFileName(sourcePath);

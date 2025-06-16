@@ -38,7 +38,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         {
             if (action is not AdaptiveExecuteAction adaptiveExecute) continue;
             var data = Regex.Replace(adaptiveExecute.DataJson, @"\r\n?|\n", "");
-            var props = data.ExtractKeysWithTemplates();
+            var props = data.ExtractPropertiesFromJson();
 
             //foreach (var prop in converter.GetType().GetProperties()) fullString += $" {prop.Name}, {prop.GetValue(converter, null)}";
             // to show warnings in the IDE, we need to use this, just an example
@@ -52,17 +52,43 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
                     true),
                 Location.None,
                 string.Join(",", props)));
+            if (!props.Any()) continue;
+            var actionModelName = $"{fileName}{adaptiveExecute.Verb}ActionModel";
+            var actionSource = GenerateActionModel(actionModelName, props, spc);
+            spc.AddSource($"{actionModelName}.g.cs", SourceText.From(actionSource, Encoding.UTF8));
         }
 
-        var modelProperties = content.GetPropertiesFromJson();
+        var modelProperties = content.GetMustachePropertiesFromString();
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";
         var filename = $"{fileName}.json";
         var modelSource = GenerateModel(modelName, modelProperties, spc);
-        spc.AddSource($"{fileName}Model.g.cs", SourceText.From(modelSource, Encoding.UTF8));
+        spc.AddSource($"{modelName}.g.cs", SourceText.From(modelSource, Encoding.UTF8));
 
         var controllerSource = GenerateController(modelName, controllerName, filename, spc);
-        spc.AddSource($"{fileName}Controller.g.cs", SourceText.From(controllerSource, Encoding.UTF8));
+        spc.AddSource($"{controllerName}.g.cs", SourceText.From(controllerSource, Encoding.UTF8));
+    }
+
+    private static string GetTypeFromActionModelMustache(KeyValuePair<string, string>? argMustacheProperties)
+    {
+        if (argMustacheProperties?.Value != null) return "string";
+        var prop = argMustacheProperties?.Value;
+        if (prop == "file") return "string";
+        if (string.IsNullOrWhiteSpace(prop)) prop = "string";
+        return prop;
+    }
+
+    private string GenerateActionModel(string actionModelName, List<PropWithMustache> props, SourceProductionContext spc)
+    {
+        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Property).Select(p => $"        public {GetTypeFromActionModelMustache(p.MustacheProperties)} {p.Property} {{ get; set; }}"));
+        return
+            $$"""
+              namespace Teams.Notifications.Api.Action.Models;
+              public class {{actionModelName}}
+              {
+              {{propertiesOfTheModel}}
+              }
+              """;
     }
 
 
@@ -117,6 +143,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
                 name));
             return string.Empty;
         }
+
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
