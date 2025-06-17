@@ -1,7 +1,4 @@
-﻿using Microsoft.Agents.Core.Serialization;
-using Microsoft.Agents.Extensions.Teams;
-using Teams.Notifications.Api.Action.Models;
-using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 
