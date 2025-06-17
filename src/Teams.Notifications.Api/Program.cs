@@ -115,7 +115,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("v1/swagger.json", "V1");
     c.RoutePrefix = $"{appPathPrefix}/swagger";
 });
-app.MapControllers();
+app.MapControllers().AllowAnonymous();
 
 app
     .MapPost("/api/messages", (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(request, response, agent, cancellationToken))

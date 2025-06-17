@@ -95,6 +95,16 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
     public async Task<string> GetFileUrl(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.WebUrl ?? string.Empty;
 
+    public async Task<KeyValuePair<string, Stream>> GetFileStreamAsync(string teamId, string channelId, string fileUrl)
+    {
+        var file = await GetFile(teamId, channelId, fileUrl);
+        var fileMeta = await file.GetAsync();
+        var content = await file.Content.GetAsync();
+        var fileName = fileMeta?.Name ?? Path.GetFileName(fileUrl);
+
+        return new KeyValuePair<string, Stream>(fileName, content);
+    }
+
     private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileUrl)
     {
         var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync();
