@@ -19,7 +19,7 @@ var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllow
 var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllowedException("TenantId is required");
 
 var clientSecret = builder.Configuration["ClientSecret"];
-builder.Services.AddSingleton(credentials);
+
 var environmentSuffix = environment == "prod" ? string.Empty : $".{environment}";
 
 var apiUrl = new Uri($"https://api{environmentSuffix}.uniphar.ie/");
@@ -37,6 +37,7 @@ builder
     ));
 // will use workload if available
 if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+builder.Services.AddSingleton(credentials);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
 builder.Services.AddTransient<ICardManagerService, CardManagerService>();
