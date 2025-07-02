@@ -14,9 +14,9 @@
 	</DataCollectionRunSettings>
 	<TestRunParameters>
 		<Parameter name="Environment" value="local" />
-		<Parameter name="ClientId" value="{{ClientId}}" />
-		<Parameter name="TenantId" value="{{TenantId}}" />
-		<Parameter name="ClientSecret" value="{{ClientSecret}}" />
+		<Parameter name="ClientId" value="c911e027-3cbc-4614-9f2e-872c20b8f4b2" />
+		<Parameter name="TenantId" value="8421dd92-337e-4405-8cfc-16118ffc5715" />
+		<Parameter name="ClientSecret" value="CHANGE_ME" />
 	</TestRunParameters>
 	<RunConfiguration>
 		<CollectSourceInformation>true</CollectSourceInformation>
