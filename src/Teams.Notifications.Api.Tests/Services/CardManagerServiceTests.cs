@@ -1,0 +1,121 @@
+using Microsoft.Agents.Builder;
+using Microsoft.Agents.Core.Models;
+using Microsoft.Extensions.Configuration;
+using Moq;
+using Teams.Notifications.Api.Services.Interfaces;
+
+namespace Teams.Notifications.Api.Tests.Services;
+
+[TestClass]
+[TestCategory("Unit")]
+public class CardManagerServiceTests
+{
+    private Mock<IChannelAdapter> _adapterMock;
+    private Mock<ITeamsManagerService> _teamsManagerServiceMock;
+    private Mock<IConfiguration> _configMock;
+
+    [TestInitialize]
+    public void Setup()
+    {
+        _adapterMock = new Mock<IChannelAdapter>();
+        _teamsManagerServiceMock = new Mock<ITeamsManagerService>();
+        _configMock = new Mock<IConfiguration>();
+        _configMock.Setup(c => c["AZURE_CLIENT_ID"]).Returns("client-id");
+        _configMock.Setup(c => c["AZURE_TENANT_ID"]).Returns("tenant-id");
+    }
+
+    private CardManagerService CreateService()
+    {
+        return new CardManagerService(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object);
+    }
+
+    [TestMethod]
+    public async Task DeleteCard_DeletesCard_WhenIdIsFound()
+    {
+        // Arrange
+        var service = CreateService();
+        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync("team")).ReturnsAsync("teamId");
+        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam("teamId")).Returns(Task.CompletedTask);
+        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync("teamId", "channel")).ReturnsAsync("channelId");
+        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId("teamId", "channelId", "file.json", "uid")).ReturnsAsync("msgId");
+        _adapterMock.Setup(x => x.ContinueConversationAsync(
+            It.IsAny<string>(),
+            It.IsAny<ConversationReference>(),
+            It.IsAny<AgentCallbackHandler>(),
+            It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        // Act
+        await service.DeleteCard("file.json", "uid", "team", "channel");
+
+        // Assert
+        _adapterMock.Verify(x => x.ContinueConversationAsync(
+            "client-id",
+            It.Is<ConversationReference>(cr => cr.ActivityId == "msgId"),
+            It.IsAny<AgentCallbackHandler>(),
+            CancellationToken.None), Times.Once);
+    }
+
+    [TestMethod]
+    public async Task DeleteCard_Throws_WhenIdNotFound()
+    {
+        // Arrange
+        var service = CreateService();
+        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync(It.IsAny<string>())).ReturnsAsync("teamId");
+        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam(It.IsAny<string>())).Returns(Task.CompletedTask);
+        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("channelId");
+        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string?)null);
+
+        // Act & Assert
+        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => service.DeleteCard("file.json", "uid", "team", "channel"));
+    }
+
+    [TestMethod]
+    public async Task CreateOrUpdate_CreatesNewCard_WhenNoExistingId()
+    {
+        // Arrange
+        var service = CreateService();
+        var model = new BaseTemplateModel { UniqueId = "uid" };
+        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync("team")).ReturnsAsync("teamId");
+        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam("teamId")).Returns(Task.CompletedTask);
+        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync("teamId", "channel")).ReturnsAsync("channelId");
+        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId("teamId", "channelId", "file.json", "uid")).ReturnsAsync((string?)null);
+
+        _adapterMock.Setup(x => x.ContinueConversationAsync(
+            It.IsAny<string>(),
+            It.IsAny<ConversationReference>(),
+            It.IsAny<AgentCallbackHandler>(),
+            It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+
+        // Act
+        await service.CreateOrUpdate("WelcomeCard.json", model, "team", "channel");
+
+        // Assert
+        _adapterMock.Verify(x => x.ContinueConversationAsync(
+            "client-id",
+            It.IsAny<ConversationReference>(),
+            It.IsAny<AgentCallbackHandler>(),
+            CancellationToken.None), Times.Once);
+    }
+
+    [TestMethod]
+    public void GetConversationReference_ReturnsExpectedReference()
+    {
+        // Arrange
+        var service = CreateService();
+        var channelId = "channelId";
+
+        // Act
+        var result = typeof(CardManagerService)
+            .GetMethod("GetConversationReference", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .Invoke(service, new object[] { channelId }) as ConversationReference;
+
+        // Assert
+        Assert.IsNotNull(result);
+        Assert.AreEqual("msteams", result.ChannelId);
+        Assert.AreEqual("https://smba.trafficmanager.net/emea/tenant-id", result.ServiceUrl);
+        Assert.AreEqual(channelId, result.Conversation.Id);
+        Assert.AreEqual(channelId, result.ActivityId);
+    }
+
+
+}
