@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Moq;
 
 namespace Teams.Notifications.Api.Tests.Services;
 
@@ -22,20 +23,21 @@ public sealed class TeamsChannelMessagingServiceTests
             _tenantId = context.Properties["TenantId"]?.ToString() ?? throw new ArgumentNullException(nameof(context));
             var clientSecret = context.Properties["ClientSecret"]!.ToString();
             _defaultCredential = new ClientSecretCredential(_tenantId, _clientId, clientSecret);
+            var _configMock = new Mock<IConfiguration>();
+            _configMock.Setup(c => c["AZURE_CLIENT_ID"]).Returns(_clientId);
+            _configMock.Setup(c => c["AZURE_TENANT_ID"]).Returns(_tenantId);
+            var graph = new GraphServiceClient(_defaultCredential);
+            _teamManager = new TeamsManagerService(graph, _configMock.Object);
         }
         else
-            _defaultCredential = new DefaultAzureCredential();
-
-
-        var graph = new GraphServiceClient(_defaultCredential);
-        _teamManager = new TeamsManagerService(graph, new ConfigurationManager());
+            _teamManager = new TeamsManagerService(new GraphServiceClient(new DefaultAzureCredential()), new ConfigurationManager());
     }
 
     [TestMethod]
     public async Task BasicTeamChannelTest()
     {
-        const string teamName = "Frontgate Files Moving Integration Test In";
-        const string channelName = "General";
+        const string teamName = "Notifications Platform";
+        const string channelName = "File Errors";
 
         var teamId = await _teamManager.GetTeamIdAsync(teamName);
         var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName);
