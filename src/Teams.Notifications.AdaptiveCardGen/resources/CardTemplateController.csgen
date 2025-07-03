@@ -4,6 +4,11 @@
 // CardTemplateModel <=>  {{modelName}}
 // CardTemplate.json <=> {{filename}}
 // ReSharper disable once CheckNamespace
+using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Teams.Notifications.Api.Services.Interfaces;
+
 namespace Teams.Notifications.Api.Controllers;
 
 [Microsoft.AspNetCore.Mvc.Route("[controller]")]
