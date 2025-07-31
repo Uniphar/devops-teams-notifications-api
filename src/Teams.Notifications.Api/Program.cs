@@ -36,7 +36,31 @@ builder
         TimeSpan.FromSeconds(30)
     ));
 // will use workload if available
-if (!string.IsNullOrWhiteSpace(clientSecret)) credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+if (!string.IsNullOrWhiteSpace(clientSecret))
+{
+    credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        { "Connections:Settings:AuthType", "ClientSecret" },
+        { "Connections:Settings:ClientId", clientId },
+        { "Connections:Settings:TenantId", tenantId },
+        { "Connections:Settings:ClientSecret", clientSecret },
+        { "Connections:Settings:Scopes:0", "https://api.botframework.com/.default" }
+    });
+}
+else
+{
+    var federatedTokenFile = builder.Configuration["AZURE_FEDERATED_TOKEN_FILE"] ?? throw new NoNullAllowedException("Token file is required");
+    builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+    {
+        { "Connections:Settings:AuthType", "WorkloadIdentity" },
+        { "Connections:Settings:ClientId", clientId },
+        { "Connections:Settings:TenantId", tenantId },
+        { "Connections:Settings:FederatedTokenFile", federatedTokenFile },
+        { "Connections:Settings:Scopes:0", "https://api.botframework.com/.default" }
+    });
+}
+
 builder.Services.AddSingleton(credentials);
 builder.Services.AddSingleton(new GraphServiceClient(credentials));
 builder.Services.AddTransient<RequestAndResponseLoggerHandler>();
@@ -132,7 +156,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("v1/swagger.json", "V1");
     c.RoutePrefix = $"{appPathPrefix}/swagger";
 });
-app.MapControllers().AllowAnonymous();
+app.MapControllers();
 
 app
     .MapPost("/api/messages", (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(request, response, agent, cancellationToken))
