@@ -40,7 +40,6 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
             var data = Regex.Replace(adaptiveExecute.DataJson, @"\r\n?|\n", "");
             var props = data.ExtractPropertiesFromJson();
 
-            //foreach (var prop in converter.GetType().GetProperties()) fullString += $" {prop.Name}, {prop.GetValue(converter, null)}";
             // to show warnings in the IDE, we need to use this, just an example
             spc.ReportDiagnostic(Diagnostic.Create(
                 new DiagnosticDescriptor(
