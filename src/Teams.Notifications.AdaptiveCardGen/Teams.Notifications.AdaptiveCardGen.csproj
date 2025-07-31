@@ -15,10 +15,10 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="*" PrivateAssets="all" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="AdaptiveCards" Version="3.1.0" GeneratePathProperty="true" PrivateAssets="all" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" GeneratePathProperty="true" PrivateAssets="all" />
-		<PackageReference Include="System.Text.Json" Version="9.0.5" GeneratePathProperty="true" PrivateAssets="all" />
-		<PackageReference Include="System.IO.Pipelines" Version="9.0.5" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="AdaptiveCards" Version="*" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="Newtonsoft.Json" Version="*" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="System.Text.Json" Version="9.*" GeneratePathProperty="true" PrivateAssets="all" />
+		<PackageReference Include="System.IO.Pipelines" Version="9.*" GeneratePathProperty="true" PrivateAssets="all" />
 
 	</ItemGroup>
 	<PropertyGroup>
