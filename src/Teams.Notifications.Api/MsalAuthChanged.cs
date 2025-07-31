@@ -1,4 +1,5 @@
-﻿namespace Teams.Notifications.Api;
+﻿
+namespace Teams.Notifications.Api;
 
 /// <summary>
 ///     Taken from MSAL auth to do this: https://github.com/microsoft/Agents-for-net/pull/228
@@ -106,5 +107,10 @@ public class MsalAuthChanged : IAccessTokenProvider, IMSALProvider
             });
 
         return cAppBuilder.Build();
+    }
+
+    public TokenCredential GetTokenCredential()
+    {
+        throw new NotImplementedException();
     }
 }
