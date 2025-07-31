@@ -77,7 +77,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         return prop;
     }
 
-    private string GenerateActionModel(string actionModelName, List<PropWithMustache> props, SourceProductionContext spc)
+    private static string GenerateActionModel(string actionModelName, List<PropWithMustache> props, SourceProductionContext spc)
     {
         var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Property).Select(p => $"        public {GetTypeFromActionModelMustache(p.MustacheProperties)} {p.Property} {{ get; set; }}"));
         return
