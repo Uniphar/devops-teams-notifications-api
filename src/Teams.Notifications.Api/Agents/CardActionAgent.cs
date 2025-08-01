@@ -29,7 +29,7 @@ public class CardActionAgent : AgentApplication
     [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Activity, Type = ActivityTypes.Message, Rank = RouteRank.Last)]
     protected async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrEmpty(turnContext.Activity.Text))
+        if (!string.IsNullOrWhitespace(turnContext.Activity.Text))
             await turnContext.SendActivityAsync(MessageFactory.Text("You are not meant to chat in this channel"), cancellationToken);
     }
 
@@ -45,7 +45,7 @@ public class CardActionAgent : AgentApplication
         var teamId = turnContext.Activity.TeamsGetTeamInfo()?.Id;
         var channelId = turnContext.Activity.TeamsGetChannelId();
 
-        if (string.IsNullOrEmpty(teamId) || string.IsNullOrEmpty(channelId))
+        if (string.IsNullOrWhitespace(teamId) || string.IsNullOrWhitespace(channelId))
             throw new InvalidOperationException("Team or Channel ID is missing from the context.");
 
         var nameAndStream = await _teamsManagerService.GetFileStreamAsync(teamId, channelId, model.PostFileStream);

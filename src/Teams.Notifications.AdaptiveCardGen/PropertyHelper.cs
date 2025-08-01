@@ -21,7 +21,7 @@ public static class PropertyHelper
 
         return (from property in doc.RootElement.EnumerateObject()
             let value = property.Value.GetString()
-            where !string.IsNullOrEmpty(value)
+            where !string.IsNullOrWhiteSpace(value)
             select new PropWithMustache { Property = property.Name, MustacheProperties = GetMustachePropertiesFromString(value).FirstOrDefault() }).ToList();
     }
 

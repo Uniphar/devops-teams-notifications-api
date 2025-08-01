@@ -82,7 +82,7 @@ internal static class AspNetExtensions
                         {
                             var authorizationHeader = context.Request.Headers.Authorization.ToString();
 
-                            if (string.IsNullOrEmpty(authorizationHeader))
+                            if (string.IsNullOrWhitespace(authorizationHeader))
                             {
                                 // Default to AadTokenValidation handling
                                 context.Options.TokenValidationParameters.ConfigurationManager ??= options.ConfigurationManager as BaseConfigurationManager;
