@@ -17,20 +17,12 @@ public static class PropertyHelper
     /// <returns>List of the props</returns>
     public static List<PropWithMustache> ExtractPropertiesFromJson(this string json)
     {
-        var result = new List<PropWithMustache>();
         using var doc = JsonDocument.Parse(json);
-        foreach (var property in doc.RootElement.EnumerateObject())
-        {
-            var value = property.Value.GetString();
-            if (!string.IsNullOrEmpty(value))
-                result.Add(new PropWithMustache
-                {
-                    Property = property.Name,
-                    MustacheProperties = GetMustachePropertiesFromString(value).FirstOrDefault()
-                });
-        }
 
-        return result;
+        return (from property in doc.RootElement.EnumerateObject()
+            let value = property.Value.GetString()
+            where !string.IsNullOrEmpty(value)
+            select new PropWithMustache { Property = property.Name, MustacheProperties = GetMustachePropertiesFromString(value).FirstOrDefault() }).ToList();
     }
 
     /// <summary>
