@@ -51,7 +51,7 @@ public class RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHan
 
     private static string FilterHeader(IEnumerable headers)
     {
-        var headersString = headers.ToString()!.Replace("\n", ",").Replace("\r", ""); // instead of an enter we want comma's
+        var headersString = headers.ToString()!.Replace("\n", ",").Replace("\r", string.Empty); // instead of an enter we want comma's
         var regex = new Regex(@"Bearer(.*?),"); // remove the bearer part, long stuff that we don't need
         return regex.Replace(headersString, "OMITTED, ");
     }

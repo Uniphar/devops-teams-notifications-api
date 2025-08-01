@@ -37,7 +37,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         foreach (var action in itemWithUnique)
         {
             if (action is not AdaptiveExecuteAction adaptiveExecute) continue;
-            var data = Regex.Replace(adaptiveExecute.DataJson, @"\r\n?|\n", "");
+            var data = Regex.Replace(adaptiveExecute.DataJson, @"\r\n?|\n", string.Empty);
             var props = data.ExtractPropertiesFromJson();
 
             // to show warnings in the IDE, we need to use this, just an example
