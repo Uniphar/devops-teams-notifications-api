@@ -8,12 +8,14 @@
 		<TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
 	</PropertyGroup>
 	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis" Version="*" />
 		<PackageReference Include="Azure.Identity" Version="*" />
 		<PackageReference Include="GitHubActionsTestLogger" Version="*">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing" Version="*" />
 		<PackageReference Include="Moq" Version="*" />
 		<PackageReference Include="MSTest.TestAdapter" Version="*" />
 		<PackageReference Include="MSTest.TestFramework" Version="*" />

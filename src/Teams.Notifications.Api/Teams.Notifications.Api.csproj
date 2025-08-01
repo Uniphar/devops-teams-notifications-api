@@ -20,7 +20,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards" Version="*" />
-		<PackageReference Include="Microsoft.Identity.Web" Version="*" />
+		<PackageReference Include="Microsoft.Identity.Web" Version="3.9.4" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
 		<PackageReference Include="Azure.Identity" Version="*" />
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="*" />
@@ -39,8 +39,7 @@
 		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="*" />
 		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="*" />
 		<PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
-		<ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj"
-		                  OutputItemType="Analyzer" />
+		<ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" OutputItemType="Analyzer" />
 		<AdditionalFiles Include="Templates\**\*.json" />
 	</ItemGroup>
 
