@@ -44,7 +44,11 @@
     {
       "type": "Action.Execute",
       "id": "process",
-      "data": {},
+      "data": {
+        "PostToUrl": "{{ReprocessUrl:string}}",
+        "PostFileStream": "{{FileUrl:file}}",
+        "PostSuccessMessage": "Sent the file to frontgate for reprocessing!"
+      },
       "verb": "process",
       "title": "🔁 Reprocess File"
     },

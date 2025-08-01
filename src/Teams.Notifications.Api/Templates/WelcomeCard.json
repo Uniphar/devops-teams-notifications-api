@@ -4,7 +4,7 @@
   "body": [
     {
       "type": "TextBlock",
-      "text": "Hello {{Greeting:string}}, {{UserName:string}}!"
+      "text": "Hello!"
     }
   ]
 }

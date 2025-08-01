@@ -30,7 +30,7 @@ jobs:
         run: |
           dotnet test -v:q --nologo --filter TestCategory=Unit /p:CollectCoverage=true --logger GitHubActions
       - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5.4.7
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
         with:
           reports: "./tests/*/coverage.cobertura.xml"
           targetdir: "coverage-results"

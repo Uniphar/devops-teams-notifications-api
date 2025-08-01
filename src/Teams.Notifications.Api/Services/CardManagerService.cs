@@ -31,7 +31,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         await teamsManagerService.CheckBotIsInTeam(teamId);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
-        var props = text.GetPropertiesFromJson();
+        var props = text.GetMustachePropertiesFromString();
         var fileUrl = string.Empty;
         if (props.HasFileTemplate())
         {
