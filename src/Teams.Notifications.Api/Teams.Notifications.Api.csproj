@@ -39,8 +39,7 @@
 		<PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="*" />
 		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="*" />
 		<PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
-		<ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj"
-		                  OutputItemType="Analyzer" />
+		<ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" OutputItemType="Analyzer" />
 		<AdditionalFiles Include="Templates\**\*.json" />
 	</ItemGroup>
 
