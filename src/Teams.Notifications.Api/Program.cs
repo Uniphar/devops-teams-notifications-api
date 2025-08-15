@@ -157,16 +157,4 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = $"{appPathPrefix}/swagger";
 });
 app.MapControllers();
-
-app
-    .MapPost("/api/messages", (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(request, response, agent, cancellationToken))
-    .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = "AgentScheme" })
-    // exclude from api explorer
-    .ExcludeFromDescription();
-app
-    .MapGet("/api/messages", (HttpRequest request, HttpResponse response, IAgentHttpAdapter adapter, IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(request, response, agent, cancellationToken))
-    .RequireAuthorization(new AuthorizeAttribute { AuthenticationSchemes = "AgentScheme" })
-    // exclude from api explorer
-    .ExcludeFromDescription();
-
 app.Run();
