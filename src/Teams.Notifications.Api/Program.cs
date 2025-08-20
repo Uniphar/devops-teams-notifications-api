@@ -41,11 +41,11 @@ if (!string.IsNullOrWhiteSpace(clientSecret))
     credentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
     builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     {
-        { "Connections:Settings:AuthType", "ClientSecret" },
-        { "Connections:Settings:ClientId", clientId },
-        { "Connections:Settings:TenantId", tenantId },
-        { "Connections:Settings:ClientSecret", clientSecret },
-        { "Connections:Settings:Scopes:0", "https://api.botframework.com/.default" }
+        { "Connections:ServiceConnection:Settings:AuthType", "ClientSecret" },
+        { "Connections:ServiceConnection:Settings:ClientId", clientId },
+        { "Connections:ServiceConnection:Settings:TenantId", tenantId },
+        { "Connections:ServiceConnection:Settings:ClientSecret", clientSecret },
+        { "Connections:ServiceConnection:Settings:Scopes:0", "https://api.botframework.com/.default" }
     });
 }
 else
@@ -53,11 +53,11 @@ else
     var federatedTokenFile = builder.Configuration["AZURE_FEDERATED_TOKEN_FILE"] ?? throw new NoNullAllowedException("Token file is required");
     builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
     {
-        { "Connections:Settings:AuthType", "WorkloadIdentity" },
-        { "Connections:Settings:ClientId", clientId },
-        { "Connections:Settings:TenantId", tenantId },
-        { "Connections:Settings:FederatedTokenFile", federatedTokenFile },
-        { "Connections:Settings:Scopes:0", "https://api.botframework.com/.default" }
+        { "Connections:ServiceConnection:Settings:AuthType", "WorkloadIdentity" },
+        { "Connections:ServiceConnection:Settings:ClientId", clientId },
+        { "Connections:ServiceConnection:Settings:TenantId", tenantId },
+        { "Connections:ServiceConnection:Settings:FederatedTokenFile", federatedTokenFile },
+        { "Connections:ServiceConnection:Settings:Scopes:0", "https://api.botframework.com/.default" }
     });
 }
 
