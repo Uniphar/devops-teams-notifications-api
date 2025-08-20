@@ -12,8 +12,8 @@ on:
       - .github/workflows/shared-app-package-workflow.yaml
       - .github/workflows/shared-app-deployment-workflow.yaml
       - .github/workflows/shared-app-integration-tests-workflow.yaml
-      - charts/Teams.Notifications.Api/**
-      - src/Teams.Notifications.Api/**
+      - charts/**
+      - src/**
 
 permissions:
   id-token: write
