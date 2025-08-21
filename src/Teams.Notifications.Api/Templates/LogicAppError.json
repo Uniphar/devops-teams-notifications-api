@@ -1,0 +1,52 @@
+{
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "size": "medium",
+      "weight": "bolder",
+      "text": "**LogicAppFlow:** {{LogicAppFlow:string}}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "text": "**Timestamp:** {{TimeStamp:string}}",
+      "wrap": true,
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "text": "**OriginalBlobUri:** {{OriginalBlobUri:string}}",
+      "wrap": true,
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "text": "**FailedFileMovedToBlobUri:** {{FailedFileMovedToBlobUri:string}}",
+      "wrap": true,
+      "spacing": "none"
+    },
+    {
+      "type": "TextBlock",
+      "weight": "bolder",
+      "color": "attention",
+      "text": "**Type of error:** {{ObjectType:string}}",
+      "wrap": true
+    },
+    {
+      "type": "TextBlock",
+      "weight": "bolder",
+      "text": "**Error:**",
+      "wrap": true,
+      "spacing": "medium"
+    },
+    {
+      "type": "TextBlock",
+      "color": "attention",
+      "text": "{{ErrorMessage:string}}",
+      "wrap": true,
+      "spacing": "none"
+    }
+  ]
+}
