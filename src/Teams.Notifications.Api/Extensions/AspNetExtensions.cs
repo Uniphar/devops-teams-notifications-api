@@ -36,7 +36,7 @@ internal static class AspNetExtensions
         var openIdRefreshInterval = BaseConfigurationManager.DefaultAutomaticRefreshInterval;
         services
             .AddAuthentication("NotificationScheme")
-            .AddMicrosoftIdentityWebApi(jwtBearerOptions => { },
+            .AddMicrosoftIdentityWebApi(_ => { },
                 microsoftIdentityOptions =>
                 {
                     microsoftIdentityOptions.Instance = "https://login.microsoftonline.com/";

@@ -25,7 +25,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             request.QueryParameters.Select = ["id"];
         });
 
-        if (groups is not { Value: [Team { Id: var teamId }] })
+        if (groups is not { Value: [{ Id: var teamId }] })
             throw new InvalidOperationException($"Team with name {teamName} does not exist");
         return teamId ?? throw new InvalidOperationException($"Team with name {teamName} does not exist");
     }
@@ -99,7 +99,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     {
         var file = await GetFile(teamId, channelId, fileUrl);
         var fileMeta = await file.GetAsync();
-        var content = await file.Content.GetAsync();
+        var content = await file.Content.GetAsync() ?? Stream.Null;
         var fileName = fileMeta?.Name ?? Path.GetFileName(fileUrl);
 
         return new KeyValuePair<string, Stream>(fileName, content);

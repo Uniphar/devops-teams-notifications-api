@@ -9,8 +9,8 @@ internal static class GitHubActions
         if (!IsCI)
             return;
 
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(title);
-        ArgumentNullException.ThrowIfNullOrWhiteSpace(message);
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
 
         var filePart = !string.IsNullOrWhiteSpace(file)
             ? $"file={Git.GetRepoRelativePath(file)},"

@@ -6,7 +6,7 @@
       "type": "TextBlock",
       "size": "medium",
       "weight": "bolder",
-      "text": "**LogicAppFlow:** {{LogicAppFlow:string}}",
+      "text": "**LogicAppFlow:** {{LogicAppFlow:string?}}",
       "wrap": true
     },
     {
@@ -17,13 +17,13 @@
     },
     {
       "type": "TextBlock",
-      "text": "**OriginalBlobUri:** {{OriginalBlobUri:string}}",
+      "text": "**OriginalBlobUri:** {{OriginalBlobUri:string?}}",
       "wrap": true,
       "spacing": "none"
     },
     {
       "type": "TextBlock",
-      "text": "**FailedFileMovedToBlobUri:** {{FailedFileMovedToBlobUri:string}}",
+      "text": "**FailedFileMovedToBlobUri:** {{FailedFileMovedToBlobUri:string?}}",
       "wrap": true,
       "spacing": "none"
     },

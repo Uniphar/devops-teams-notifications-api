@@ -1,4 +1,6 @@
-public static class Consts
+namespace Teams.Notifications.Api;
+
+internal static class Consts
 {
     public const string FrontgateApiClientId = "frontgate-api-client-id";
     public const string FrontgateApiClient = "frontgate-api";
