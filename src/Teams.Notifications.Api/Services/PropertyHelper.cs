@@ -37,9 +37,9 @@ public static class PropertyHelper
         {
             case JsonArray array:
             {
-                foreach (var arrayItem in array)
+                foreach (var (arrayItem, i) in array.Select((value, i) => (value, i)))
                     if (arrayItem is JsonObject obj && ObjectContainsPlaceholder(obj, toReplace))
-                        array.Remove(arrayItem);
+                        array.RemoveAt(i);
                     else
                         RemoveObjectsWithPlaceholder(arrayItem, toReplace);
                 break;
