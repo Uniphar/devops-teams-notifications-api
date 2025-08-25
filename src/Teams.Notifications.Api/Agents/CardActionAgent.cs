@@ -42,7 +42,7 @@ public class CardActionAgent : AgentApplication
     {
         var model = ProtocolJsonSerializer.ToObject<FileErrorprocessActionModel>(data);
 
-        var teamId = turnContext.Activity.TeamsGetTeamInfo()?.Id;
+        var teamId = turnContext.Activity.TeamsGetTeamInfo().Id;
         var channelId = turnContext.Activity.TeamsGetChannelId();
 
         if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelId))

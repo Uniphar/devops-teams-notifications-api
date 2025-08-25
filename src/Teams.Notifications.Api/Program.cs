@@ -97,7 +97,7 @@ if (environment != "local")
     builder.Services.AddApplicationInsightsTelemetryWorkerService(options => options.EnableAdaptiveSampling = false);
 }
 
-builder.Services.AddSingleton<IMiddleware[]>(sp => [new CaptureMiddleware()]);
+builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
