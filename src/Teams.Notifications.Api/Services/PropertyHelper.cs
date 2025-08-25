@@ -12,15 +12,12 @@ public static class PropertyHelper
             // optional string, will remove the block if empty
             case "string?":
                 var value = model.TryGetStringPropertyValue(property);
-                if (string.IsNullOrEmpty(value))
-                {
-                    // Parse JSON and remove objects from arrays where the property value matches the placeholder
-                    var root = JsonNode.Parse(jsonString);
-                    root = RemoveObjectsWithPlaceholder(root, toReplace);
-                    return root?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? jsonString;
-                }
+                if (!string.IsNullOrEmpty(value)) return jsonString.Replace(toReplace, value);
+                // Parse JSON and remove objects from arrays where the property value matches the placeholder
+                var root = JsonNode.Parse(jsonString);
+                root = RemoveObjectsWithPlaceholder(root, toReplace);
+                return root?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? jsonString;
 
-                return jsonString.Replace(toReplace, value);
             // required string
             case "string":
                 return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(property) ?? string.Empty);
@@ -36,15 +33,24 @@ public static class PropertyHelper
     // Recursively remove objects from arrays where the property value matches the placeholder
     private static JsonNode? RemoveObjectsWithPlaceholder(JsonNode? node, string toReplace)
     {
-        if (node is JsonArray array)
-            for (var i = array.Count - 1; i >= 0; i--)
-                if (array[i] is JsonObject obj && ObjectContainsPlaceholder(obj, toReplace))
-                    array.RemoveAt(i);
-                else
-                    RemoveObjectsWithPlaceholder(array[i], toReplace);
-        else if (node is JsonObject obj)
-            foreach (var prop in obj)
-                RemoveObjectsWithPlaceholder(prop.Value, toReplace);
+        switch (node)
+        {
+            case JsonArray array:
+            {
+                foreach (var (arrayItem, i) in array.Select((value, i) => ( value, i )))
+                    if (arrayItem is JsonObject obj && ObjectContainsPlaceholder(obj, toReplace))
+                        array.RemoveAt(i);
+                    else
+                        RemoveObjectsWithPlaceholder(array[i], toReplace);
+                break;
+            }
+            case JsonObject obj:
+            {
+                foreach (var prop in obj)
+                    RemoveObjectsWithPlaceholder(prop.Value, toReplace);
+                break;
+            }
+        }
 
         return node;
     }
