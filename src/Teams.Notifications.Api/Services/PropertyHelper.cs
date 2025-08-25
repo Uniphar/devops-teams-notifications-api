@@ -2,16 +2,38 @@
 
 public static class PropertyHelper
 {
-    public static string FindPropAndReplace<T>(this string content, T model, string property, string type, string fileUrl)
+    public static string FindPropAndReplace<T>(this string jsonString, T model, string property, string type, string fileUrl)
     {
         var toReplace = "{{" + property + ":" + type + "}}";
-        return type switch
+        switch (type)
         {
-            "string" => content.Replace(toReplace, model.TryGetStringPropertyValue(property) ?? string.Empty),
-            "int" => content.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty),
-            "file" => content.ReplaceForFile(toReplace, model, fileUrl),
-            _ => content
-        };
+            // optional string, will remove the block if empty
+            case "string?":
+                var value = model.TryGetStringPropertyValue(property);
+                if (string.IsNullOrEmpty(value))
+                {
+                    // Remove the entire object from the array where the placeholder is found
+                    // This regex matches an object in an array containing the placeholder as a value
+                    var pattern = $@"\{{[^{{}}]*?""[^""]+""\s*:\s*"".*?{Regex.Escape(toReplace)}.*?""[^{{}}]*?\}}";
+                    jsonString = Regex.Replace(jsonString, pattern, string.Empty);
+
+                    // Clean up any trailing commas in arrays
+                    jsonString = Regex.Replace(jsonString, @"\,\s*(\]|\})", "$1");
+                    jsonString = Regex.Replace(jsonString, @"\[\s*,", "[");
+                    return jsonString;
+                }
+
+                return jsonString.Replace(toReplace, value);
+            // required string
+            case "string":
+                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(property) ?? string.Empty);
+            case "int":
+                return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
+            case "file":
+                return jsonString.ReplaceForFile(toReplace, model, fileUrl);
+            default:
+                return jsonString;
+        }
     }
 
     private static string ReplaceForFile<T>(this string content, string ToReplace, T model, string fileUrl)

@@ -1,4 +1,5 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Microsoft.Agents.Core.Models;
+using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
@@ -30,32 +31,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
         await teamsManagerService.CheckBotIsInTeam(teamId);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
-        var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
-        var props = text.GetMustachePropertiesFromString();
-        var fileUrl = string.Empty;
-        if (props.HasFileTemplate())
-        {
-            var file = model.GetFileValue();
-            if (file != null)
-                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + file.FileName, file.OpenReadStream());
-        }
 
-        // replace all props with the values
-        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl);
-
-        var item = AdaptiveCard.FromJson(text).Card;
-        if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
-        // some solution to be able to track a unique id across the channel
-        item.Body.Add(new AdaptiveTextBlock(jsonFileName)
-        {
-            Color = AdaptiveTextColor.Accent,
-            Size = AdaptiveTextSize.Small,
-            Id = model.UniqueId,
-            IsSubtle = true,
-            IsVisible = false,
-            Wrap = true
-        });
-        var jsonAdaptiveCard = item.ToJson();
         var activity = new Activity
         {
             Type = "message",
@@ -64,7 +40,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 new()
                 {
                     ContentType = AdaptiveCard.ContentType,
-                    Content = jsonAdaptiveCard
+                    Content = await CreateCardFromTemplateAsync(jsonFileName, model, teamsManagerService, teamId, channelId, channelName)
                 }
             }
         };
@@ -86,6 +62,36 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 // item needs update
                 turnContext.UpdateActivityAsync(activity, cancellationToken),
             CancellationToken.None);
+    }
+
+    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName )where T : BaseTemplateModel
+    {
+        var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
+        var props = text.GetMustachePropertiesFromString();
+        var fileUrl = string.Empty;
+        if (props.HasFileTemplate())
+        {
+            var file = model.GetFileValue();
+            if (file != null)
+                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + file.FileName, file.OpenReadStream());
+        }
+
+        // replace all props with the values
+     
+        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl);
+        var item = AdaptiveCard.FromJson(text).Card;
+        if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
+        // some solution to be able to track a unique id across the channel
+        item.Body.Add(new AdaptiveTextBlock(jsonFileName)
+        {
+            Color = AdaptiveTextColor.Accent,
+            Size = AdaptiveTextSize.Small,
+            Id = model.UniqueId,
+            IsSubtle = true,
+            IsVisible = false,
+            Wrap = true
+        });
+        return item.ToJson();
     }
 
     private ConversationReference GetConversationReference(string channelId) =>
