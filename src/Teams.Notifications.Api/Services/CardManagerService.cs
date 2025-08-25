@@ -1,5 +1,4 @@
-﻿using Microsoft.Agents.Core.Models;
-using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
@@ -64,7 +63,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             CancellationToken.None);
     }
 
-    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName )where T : BaseTemplateModel
+    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName) where T : BaseTemplateModel
     {
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
         var props = text.GetMustachePropertiesFromString();
@@ -77,7 +76,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         }
 
         // replace all props with the values
-     
+
         foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl);
         var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(jsonFileName));

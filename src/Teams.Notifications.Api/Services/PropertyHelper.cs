@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Services;
+﻿using System.Text.Json.Nodes;
+
+namespace Teams.Notifications.Api.Services;
 
 public static class PropertyHelper
 {
@@ -12,15 +14,10 @@ public static class PropertyHelper
                 var value = model.TryGetStringPropertyValue(property);
                 if (string.IsNullOrEmpty(value))
                 {
-                    // Remove the entire object from the array where the placeholder is found
-                    // This regex matches an object in an array containing the placeholder as a value
-                    var pattern = $@"\{{[^{{}}]*?""[^""]+""\s*:\s*"".*?{Regex.Escape(toReplace)}.*?""[^{{}}]*?\}}";
-                    jsonString = Regex.Replace(jsonString, pattern, string.Empty);
-
-                    // Clean up any trailing commas in arrays
-                    jsonString = Regex.Replace(jsonString, @"\,\s*(\]|\})", "$1");
-                    jsonString = Regex.Replace(jsonString, @"\[\s*,", "[");
-                    return jsonString;
+                    // Parse JSON and remove objects from arrays where the property value matches the placeholder
+                    var root = JsonNode.Parse(jsonString);
+                    root = RemoveObjectsWithPlaceholder(root, toReplace);
+                    return root?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? jsonString;
                 }
 
                 return jsonString.Replace(toReplace, value);
@@ -34,6 +31,48 @@ public static class PropertyHelper
             default:
                 return jsonString;
         }
+    }
+
+    // Recursively remove objects from arrays where the property value matches the placeholder
+    private static JsonNode? RemoveObjectsWithPlaceholder(JsonNode? node, string toReplace)
+    {
+        if (node is JsonArray array)
+            for (var i = array.Count - 1; i >= 0; i--)
+                if (array[i] is JsonObject obj && ObjectContainsPlaceholder(obj, toReplace))
+                    array.RemoveAt(i);
+                else
+                    RemoveObjectsWithPlaceholder(array[i], toReplace);
+        else if (node is JsonObject obj)
+            foreach (var prop in obj)
+                RemoveObjectsWithPlaceholder(prop.Value, toReplace);
+
+        return node;
+    }
+
+    // Helper: Recursively checks if any value in the object matches
+    private static bool ObjectContainsPlaceholder(JsonObject obj, string toReplace)
+    {
+        foreach (var prop in obj)
+            switch (prop.Value)
+            {
+                case JsonValue value when value.ToString().Contains(toReplace):
+                case JsonObject childObj when ObjectContainsPlaceholder(childObj, toReplace):
+                    return true;
+                case JsonArray arr:
+                {
+                    foreach (var item in arr)
+                        switch (item)
+                        {
+                            case JsonObject arrObj when ObjectContainsPlaceholder(arrObj, toReplace):
+                            case JsonValue arrVal when arrVal.ToString().Contains(toReplace):
+                                return true;
+                        }
+
+                    break;
+                }
+            }
+
+        return false;
     }
 
     private static string ReplaceForFile<T>(this string content, string ToReplace, T model, string fileUrl)
