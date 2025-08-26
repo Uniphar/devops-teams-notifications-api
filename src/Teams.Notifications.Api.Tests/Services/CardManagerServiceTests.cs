@@ -139,5 +139,11 @@ public class CardManagerServiceTests
         Assert.IsNotNull(item.Body);
         // 5 items should be left since the rest should be removed
         Assert.AreEqual(5, item.Body.Count);
+        foreach (var element in item.Body)
+            if (element is AdaptiveTextBlock textBlock)
+            {
+                Assert.IsFalse(textBlock.Text.Contains("{{"), "No template string should be found!");
+                Assert.IsFalse(textBlock.Text.Contains("}}"), "No template string should be found!");
+            }
     }
 }

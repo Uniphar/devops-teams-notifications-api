@@ -78,7 +78,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
     private static string GenerateActionModel(string actionModelName, List<PropWithMustache> props)
     {
-        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Property).Select(p => $"        public {GetTypeFromActionModelMustache(p.MustacheProperties)} {p.Property} {{ get; set; }}"));
+        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Property).Select(p => $"        public {MakeRequiredIfNeeded(GetTypeFromActionModelMustache(p.MustacheProperties))} {p.Property} {{ get; set; }}"));
         return
             $$"""
               #nullable enable
@@ -91,6 +91,15 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
               """;
     }
 
+    private static string MakeRequiredIfNeeded(string input)
+    {
+        return input switch
+        {
+            "string" => "required string",
+            "int" => "required int",
+            _ => input
+        };
+    }
 
     private static string GenerateModel(string modelName, Dictionary<string, string> props)
     {
@@ -107,7 +116,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         }
 
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
-        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {p.Value} {p.Key} {{ get; set; }}"));
+        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {MakeRequiredIfNeeded(p.Value)} {p.Key} {{ get; set; }}"));
 
         return
             $$"""

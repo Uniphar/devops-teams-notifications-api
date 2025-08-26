@@ -38,18 +38,10 @@ public static class PropertyHelper
             .Cast<Match>()
             .Select(x => new { name = x.Groups["name"].Value, type = x.Groups["type"].Value })
             .DistinctByProps(x => x.name);
-        return properties.ToDictionary(m => m.name, m => MakeRequiredIfNeeded(m.type));
+        return properties.ToDictionary(m => m.name, m => m.type);
     }
 
-    private static string MakeRequiredIfNeeded(this string input)
-    {
-        return input switch
-        {
-            "string" => "required string",
-            "int" => "required int",
-            _ => input
-        };
-    }
+  
 
     /// <summary>
     ///     checks if the types are valid, atm int, string or file
@@ -62,7 +54,7 @@ public static class PropertyHelper
         //name is key, type is value, due to dict
         wrongItems = nameAndType
             .Where(x => x.Value is not
-                ("required int" or "required string" or "string?" or "file" or "file?")
+                ("int" or "string" or "string?" or "file" or "file?")
             )
             .ToDictionary(x => x.Key, x => x.Value);
 
