@@ -53,7 +53,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
                 string.Join(",", props)));
             if (!props.Any()) continue;
             var actionModelName = $"{fileName}{adaptiveExecute.Verb}ActionModel";
-            var actionSource = GenerateActionModel(actionModelName, props, spc);
+            var actionSource = GenerateActionModel(actionModelName, props);
             spc.AddSource($"{actionModelName}.g.cs", SourceText.From(actionSource, Encoding.UTF8));
         }
 
@@ -61,7 +61,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";
         var filename = $"{fileName}.json";
-        var modelSource = GenerateModel(modelName, modelProperties, spc);
+        var modelSource = GenerateModel(modelName, modelProperties);
         spc.AddSource($"{modelName}.g.cs", SourceText.From(modelSource, Encoding.UTF8));
 
         var controllerSource = GenerateController(modelName, controllerName, filename, spc);
@@ -70,45 +70,64 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
     private static string GetTypeFromActionModelMustache(KeyValuePair<string, string>? argMustacheProperties)
     {
-        if (argMustacheProperties?.Value != null) return "string";
         var prop = argMustacheProperties?.Value;
-        if (prop == "file") return "string";
-        if (string.IsNullOrWhiteSpace(prop)) prop = "string";
+        if (prop == "file") return "required string";
+        // seems double but intellisense doesn't like it otherwise
+        if ( prop == null ||string.IsNullOrWhiteSpace(prop)) return "string?";
         return prop;
     }
 
-    private static string GenerateActionModel(string actionModelName, List<PropWithMustache> props, SourceProductionContext spc)
+    private static string GenerateActionModel(string actionModelName, List<PropWithMustache> props)
     {
-        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Property).Select(p => $"        public {GetTypeFromActionModelMustache(p.MustacheProperties)} {p.Property} {{ get; set; }}"));
+        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Property).Select(p => $"        public {MakeRequiredIfNeeded(GetTypeFromActionModelMustache(p.MustacheProperties))} {p.Property} {{ get; set; }}"));
         return
             $$"""
+              #nullable enable
               namespace Teams.Notifications.Api.Action.Models;
               public class {{actionModelName}}
               {
               {{propertiesOfTheModel}}
               }
+              #nullable disable
               """;
     }
 
+    private static string MakeRequiredIfNeeded(string input)
+    {
+        return input switch
+        {
+            "string" => "required string",
+            "int" => "required int",
+            _ => input
+        };
+    }
 
-    private static string GenerateModel(string modelName, Dictionary<string, string> props, SourceProductionContext spc)
+    private static string GenerateModel(string modelName, Dictionary<string, string> props)
     {
         if (props.Values.Any(x => x == "file"))
         {
             props = props.Where(x => x.Value != "file").ToDictionary(x => x.Key, x => x.Value);
-            props.Add("File", "IFormFile");
+            props.Add("File", "required IFormFile");
+        }
+
+        if (props.Values.Any(x => x == "file?"))
+        {
+            props = props.Where(x => x.Value != "file?").ToDictionary(x => x.Key, x => x.Value);
+            props.Add("File", "IFormFile?");
         }
 
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
-        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {p.Value} {p.Key} {{ get; set; }}"));
+        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {MakeRequiredIfNeeded(p.Value)} {p.Key} {{ get; set; }}"));
 
         return
             $$"""
+              #nullable enable
               namespace Teams.Notifications.Api.Models;
               public class {{modelName}} : BaseTemplateModel
               {
               {{propertiesOfTheModel}}
               }
+              #nullable disable
               """;
     }
 

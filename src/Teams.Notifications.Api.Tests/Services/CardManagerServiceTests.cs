@@ -1,4 +1,5 @@
 using System.Reflection;
+using AdaptiveCards;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
 using Microsoft.Extensions.Configuration;
@@ -66,7 +67,7 @@ public class CardManagerServiceTests
         _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string?)null);
 
         // Act & Assert
-        await Assert.ThrowsExceptionAsync<ArgumentNullException>(() => service.DeleteCard("file.json", "uid", "team", "channel"));
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCard("file.json", "uid", "team", "channel"));
     }
 
     [TestMethod]
@@ -118,5 +119,31 @@ public class CardManagerServiceTests
         Assert.AreEqual("https://smba.trafficmanager.net/emea/tenant-id", result.ServiceUrl);
         Assert.AreEqual(channelId, result.Conversation.Id);
         Assert.AreEqual(channelId, result.ActivityId);
+    }
+
+    [TestMethod]
+    public async Task BasicCreateCardFromTemplateAsyncTest()
+    {
+        var model = new LogicAppErrorModel
+        {
+            TimeStamp = "01-01-1960",
+            ObjectType = "test",
+            ErrorMessage = "SomeErrorMessage",
+            UniqueId = "unique"
+        };
+        // Arrange
+        var result = await CardManagerService.CreateCardFromTemplateAsync("LogicAppError.json", model, _teamsManagerServiceMock.Object, string.Empty, string.Empty, string.Empty);
+        // Assert
+        Assert.IsNotEmpty(result);
+        var item = AdaptiveCard.FromJson(result).Card;
+        Assert.IsNotNull(item.Body);
+        // 5 items should be left since the rest should be removed
+        Assert.AreEqual(5, item.Body.Count);
+        foreach (var element in item.Body)
+            if (element is AdaptiveTextBlock textBlock)
+            {
+                Assert.IsFalse(textBlock.Text.Contains("{{"), "No template string should be found!");
+                Assert.IsFalse(textBlock.Text.Contains("}}"), "No template string should be found!");
+            }
     }
 }

@@ -41,6 +41,8 @@ public static class PropertyHelper
         return properties.ToDictionary(m => m.name, m => m.type);
     }
 
+  
+
     /// <summary>
     ///     checks if the types are valid, atm int, string or file
     /// </summary>
@@ -52,7 +54,7 @@ public static class PropertyHelper
         //name is key, type is value, due to dict
         wrongItems = nameAndType
             .Where(x => x.Value is not
-                ("int" or "string" or "file")
+                ("int" or "string" or "string?" or "file" or "file?")
             )
             .ToDictionary(x => x.Key, x => x.Value);
 
@@ -67,7 +69,7 @@ public static class PropertyHelper
     /// <returns>true if the files props are correct</returns>
     public static bool IsValidFile(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
     {
-        wrongItems = nameAndType.Where(x => x is { Value: "file", Key: not ("FileUrl" or "FileName") }).ToDictionary(x => x.Key, x => x.Value);
+        wrongItems = nameAndType.Where(x => x is { Value: "file" or "file?", Key: not ("FileUrl" or "FileName") }).ToDictionary(x => x.Key, x => x.Value);
         return !wrongItems.Any();
     }
 
@@ -78,12 +80,12 @@ public static class PropertyHelper
     /// <returns></returns>
     public static bool HasFileTemplate(this Dictionary<string, string> nameAndType)
     {
-        return nameAndType.Any(x => x is { Value: "file", Key: "FileUrl" or "FileName" });
+        return nameAndType.Any(x => x is { Value: "file" or "file?", Key: "FileUrl" or "FileName" });
     }
 }
 
 public record PropWithMustache
 {
-    public string Property { get; set; }
+    public string? Property { get; set; }
     public KeyValuePair<string, string>? MustacheProperties { get; set; }
 }
