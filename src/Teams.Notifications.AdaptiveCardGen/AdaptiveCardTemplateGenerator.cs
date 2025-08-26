@@ -73,7 +73,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         var prop = argMustacheProperties?.Value;
         if (prop == "file") return "required string";
         // seems double but intellisense doesn't like it otherwise
-        if (string.IsNullOrWhiteSpace(prop) || prop == null) return "string?";
+        if ( prop == null ||string.IsNullOrWhiteSpace(prop)) return "string?";
         return prop;
     }
 
