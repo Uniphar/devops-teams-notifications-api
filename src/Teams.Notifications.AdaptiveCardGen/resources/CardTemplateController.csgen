@@ -17,7 +17,7 @@ public class {{controllerName}} : ControllerBase
     public {{controllerName}}(ICardManagerService cardManagerService, TelemetryClient telemetry)
     {
         _cardManagerService = cardManagerService;
-        _telemetry=telemetry;
+        _telemetry = telemetry;
     }
 
     /// <summary>
