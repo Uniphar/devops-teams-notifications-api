@@ -48,28 +48,31 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             }
         };
         var conversationReference = GetConversationReference(channelId);
-        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, model.UniqueId);
+        var idFromOldMessage = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, model.UniqueId);
         // found an existing card so update id
-        if (!string.IsNullOrWhiteSpace(id))
+        if (!string.IsNullOrWhiteSpace(idFromOldMessage))
         {
-            activity.Id = id;
-            conversationReference.ActivityId = id;
+            activity.Id = idFromOldMessage;
+            conversationReference.ActivityId = idFromOldMessage;
         }
 
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
             async (turnContext, cancellationToken) =>
             {
-                if (string.IsNullOrWhiteSpace(activity.Id))
+                if (string.IsNullOrWhiteSpace(idFromOldMessage))
                 {
                     // item is new
                     var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
                     telemetry.TrackChannelNewMessage(teamName, channelName, newResult.Id);
+                    return;
                 }
 
+                // item needs update
                 var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
                 telemetry.TrackChannelUpdateMessage(teamName, channelName, updateResult.Id);
-                // item needs update
+                return;
+
             },
             CancellationToken.None);
     }
