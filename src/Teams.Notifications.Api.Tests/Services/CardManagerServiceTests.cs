@@ -2,10 +2,12 @@ using AdaptiveCards;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using System.Reflection;
 using Teams.Notifications.Api.Services.Interfaces;
+using Teams.Notifications.Api.Tests.Helpers;
 
 namespace Teams.Notifications.Api.Tests.Services;
 
@@ -16,7 +18,7 @@ public class CardManagerServiceTests
     private readonly Mock<IChannelAdapter> _adapterMock;
     private readonly Mock<IConfiguration> _configMock;
     private readonly Mock<ITeamsManagerService> _teamsManagerServiceMock;
-    private readonly Mock<TelemetryClient> _telemetryMock;
+    private readonly TelemetryClient _telemetry;
 
     public CardManagerServiceTests()
     {
@@ -25,10 +27,13 @@ public class CardManagerServiceTests
         _configMock = new Mock<IConfiguration>();
         _configMock.Setup(c => c["AZURE_CLIENT_ID"]).Returns("client-id");
         _configMock.Setup(c => c["AZURE_TENANT_ID"]).Returns("tenant-id");
-        _telemetryMock = new Mock<TelemetryClient>();
+        var testTelemetryChannel = new TestTelemetryChannel();
+        var config = TelemetryConfiguration.CreateDefault();
+        config.TelemetryChannel = testTelemetryChannel;
+        _telemetry= new TelemetryClient(config);
     }
 
-    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object, _telemetryMock.Object);
+    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object, _telemetry);
 
     [TestMethod]
     public async Task DeleteCard_DeletesCard_WhenIdIsFound()
@@ -48,7 +53,7 @@ public class CardManagerServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await service.DeleteCard("file.json", "uid", "team", "channel");
+        await service.DeleteCardAsync("file.json", "uid", "team", "channel");
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
@@ -70,7 +75,7 @@ public class CardManagerServiceTests
         _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string?)null);
 
         // Act & Assert
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCard("file.json", "uid", "team", "channel"));
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCardAsync("file.json", "uid", "team", "channel"));
     }
 
     [TestMethod]
@@ -93,7 +98,7 @@ public class CardManagerServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await service.CreateOrUpdate("WelcomeCard.json", model, "team", "channel");
+        await service.CreateOrUpdateAsync("WelcomeCard.json", model, "team", "channel");
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
@@ -141,12 +146,26 @@ public class CardManagerServiceTests
         var item = AdaptiveCard.FromJson(result).Card;
         Assert.IsNotNull(item.Body);
         // 5 items should be left since the rest should be removed
-        Assert.AreEqual(5, item.Body.Count);
+        Assert.HasCount(5, item.Body);
         foreach (var element in item.Body)
-            if (element is AdaptiveTextBlock textBlock)
+        {
+            switch (element)
             {
-                Assert.IsFalse(textBlock.Text.Contains("{{"), "No template string should be found!");
-                Assert.IsFalse(textBlock.Text.Contains("}}"), "No template string should be found!");
+                case AdaptiveTextBlock textBlock:
+                    Assert.DoesNotContain("{{", textBlock.Text, "No template string should be found!, found: {0}", textBlock.Text);
+                    Assert.DoesNotContain("}}", textBlock.Text, "No template string should be found!, found: {0}", textBlock.Text);
+                    break;
+                case AdaptiveFactSet adaptiveSet:
+                {
+                    foreach (var fact in adaptiveSet.Facts)
+                    {
+                        Assert.DoesNotContain("{{", fact.Value, "No template string should be found!, found: {0}", fact.Value);
+                        Assert.DoesNotContain("}}", fact.Value, "No template string should be found!, found: {0}", fact.Value);
+                    }
+
+                    break;
+                }
             }
+        }
     }
 }

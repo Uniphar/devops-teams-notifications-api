@@ -11,12 +11,12 @@ public static class PropertyHelper
         {
             // optional string, will remove the block if empty
             case "string?":
-                var value = model.TryGetStringPropertyValue(property);
-                if (!string.IsNullOrEmpty(value)) return jsonString.Replace(toReplace, value);
+                var valueString = model.TryGetStringPropertyValue(property);
+                if (!string.IsNullOrEmpty(valueString)) return jsonString.Replace(toReplace, valueString);
                 // Parse JSON and remove objects from arrays where the property value matches the placeholder
-                var root = JsonNode.Parse(jsonString);
-                root = RemoveObjectsWithPlaceholder(root, toReplace);
-                return root?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? jsonString;
+                var rootString = JsonNode.Parse(jsonString);
+                rootString = RemoveObjectsWithPlaceholder(rootString, toReplace);
+                return rootString?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? jsonString;
 
             // required string
             case "string":
@@ -24,6 +24,7 @@ public static class PropertyHelper
             case "int":
                 return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
             case "file":
+            case "file?":
                 return jsonString.ReplaceForFile(toReplace, model, fileUrl);
             default:
                 return jsonString;
@@ -81,13 +82,25 @@ public static class PropertyHelper
         return false;
     }
 
-    private static string ReplaceForFile<T>(this string content, string ToReplace, T model, string fileUrl)
+    private static string ReplaceForFile<T>(this string content, string toReplace, T model, string fileUrl)
     {
         var toReplaceWith = string.Empty;
+        // if we don't have a file, we need to remove it anyway
         var file = model.GetFileValue();
-        if (ToReplace == "{{FileUrl:file}}") toReplaceWith = fileUrl;
-        if (file != null && ToReplace == "{{FileName:file}}") toReplaceWith = file.Name;
-        content = content.Replace(ToReplace, toReplaceWith);
+        if (file == null)
+        {
+            var root = JsonNode.Parse(content);
+            root = RemoveObjectsWithPlaceholder(root, toReplace);
+            return root?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? content;
+        }
+
+        toReplaceWith = toReplace switch
+        {
+            "{{FileUrl:file}}" or "{{FileUrl:file?}}" => fileUrl,
+            "{{FileName:file}}" or "{{FileName:file?}}" => file.Name,
+            _ => toReplaceWith
+        };
+        content = content.Replace(toReplace, toReplaceWith);
         return content;
     }
 

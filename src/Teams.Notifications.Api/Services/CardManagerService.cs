@@ -8,7 +8,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_TENANT_ID");
 
-    public async Task DeleteCard(string jsonFileName, string uniqueId, string teamName, string channelName)
+    public async Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
         await teamsManagerService.CheckBotIsInTeam(teamId);
@@ -29,7 +29,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             CancellationToken.None);
     }
 
-    public async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel
+    public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
         await teamsManagerService.CheckBotIsInTeam(teamId);
@@ -71,8 +71,6 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 // item needs update
                 var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
                 telemetry.TrackChannelUpdateMessage(teamName, channelName, updateResult.Id);
-                return;
-
             },
             CancellationToken.None);
     }

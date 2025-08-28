@@ -35,7 +35,7 @@ public class {{controllerName}} : ControllerBase
     public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
         using (_telemetry.WithProperties(new { CreateOrUpdateCardForModel = "{{modelName}}" }))
-            await _cardManagerService.CreateOrUpdate(jsonFileName, model, teamName, channelName);
+            await _cardManagerService.CreateOrUpdateAsync(jsonFileName, model, teamName, channelName);
             return Ok();
     }
 
@@ -55,7 +55,7 @@ public class {{controllerName}} : ControllerBase
     public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
        using (_telemetry.WithProperties(new { DeleteCardForModel = "{{modelName}}" }))
-           await _cardManagerService.DeleteCard(jsonFileName, uniqueId, teamName, channelName);
+           await _cardManagerService.DeleteCardAsync(jsonFileName, uniqueId, teamName, channelName);
            return Ok();
     }
 }
