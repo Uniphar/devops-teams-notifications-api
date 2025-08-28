@@ -71,9 +71,16 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     private static string GetTypeFromActionModelMustache(KeyValuePair<string, string>? argMustacheProperties)
     {
         var prop = argMustacheProperties?.Value;
-        if (prop == "file") return "required string";
+        switch (prop)
+        {
+            case "file":
+                return "required string";
+            case "file?":
+                return "string?";
+        }
+
         // seems double but intellisense doesn't like it otherwise
-        if ( prop == null ||string.IsNullOrWhiteSpace(prop)) return "string?";
+        if (prop == null || string.IsNullOrWhiteSpace(prop)) return "string?";
         return prop;
     }
 

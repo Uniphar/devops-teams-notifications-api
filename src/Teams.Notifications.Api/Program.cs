@@ -1,3 +1,4 @@
+using Teams.Notifications.Api.Telemetry;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
@@ -93,8 +94,13 @@ if (environment != "local")
 {
 // key vault is required for ApplicationInsights, since it needs the connection string
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
+
+    builder.Logging.ClearProviders();
+    builder.Logging.AddApplicationInsights();
     builder.Services.AddApplicationInsightsTelemetry(options => options.EnableAdaptiveSampling = false);
     builder.Services.AddApplicationInsightsTelemetryWorkerService(options => options.EnableAdaptiveSampling = false);
+    builder.Services.AddApplicationInsightsKubernetesEnricher();
+    builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
 }
 
 builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
