@@ -1,9 +1,10 @@
-using System.Reflection;
 using AdaptiveCards;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using System.Reflection;
 using Teams.Notifications.Api.Services.Interfaces;
 
 namespace Teams.Notifications.Api.Tests.Services;
@@ -15,6 +16,7 @@ public class CardManagerServiceTests
     private readonly Mock<IChannelAdapter> _adapterMock;
     private readonly Mock<IConfiguration> _configMock;
     private readonly Mock<ITeamsManagerService> _teamsManagerServiceMock;
+    private readonly Mock<TelemetryClient> _telemetryMock;
 
     public CardManagerServiceTests()
     {
@@ -23,9 +25,10 @@ public class CardManagerServiceTests
         _configMock = new Mock<IConfiguration>();
         _configMock.Setup(c => c["AZURE_CLIENT_ID"]).Returns("client-id");
         _configMock.Setup(c => c["AZURE_TENANT_ID"]).Returns("tenant-id");
+        _telemetryMock = new Mock<TelemetryClient>();
     }
 
-    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object);
+    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object, _telemetryMock.Object);
 
     [TestMethod]
     public async Task DeleteCard_DeletesCard_WhenIdIsFound()

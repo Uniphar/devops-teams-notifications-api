@@ -1,9 +1,11 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Microsoft.ApplicationInsights;
+using Teams.Notifications.Api.Telemetry;
+using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
 
-public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config) : ICardManagerService
+public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config, TelemetryClient telemetry) : ICardManagerService
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_TENANT_ID");
@@ -21,7 +23,11 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         // delete the item
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
-            (turnContext, cancellationToken) => adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken),
+            async (turnContext, cancellationToken) =>
+            {
+                await adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken);
+                telemetry.TrackChannelDeleteMessage(teamName, channelName, conversationReference.ActivityId);
+            },
             CancellationToken.None);
     }
 
@@ -54,12 +60,19 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
-            (turnContext, cancellationToken) => string.IsNullOrWhiteSpace(activity.Id)
-                // item is new
-                ? turnContext.SendActivityAsync(activity, cancellationToken)
-                :
+            async (turnContext, cancellationToken) =>
+            {
+                if (string.IsNullOrWhiteSpace(activity.Id))
+                {
+                    // item is new
+                    var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
+                    telemetry.TrackChannelNewMessage(teamName, channelName, newResult.Id);
+                }
+
+                var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
+                telemetry.TrackChannelUpdateMessage(teamName, channelName, updateResult.Id);
                 // item needs update
-                turnContext.UpdateActivityAsync(activity, cancellationToken),
+            },
             CancellationToken.None);
     }
 
