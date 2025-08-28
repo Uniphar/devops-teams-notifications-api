@@ -1,4 +1,3 @@
-using Teams.Notifications.Api.Telemetry;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 

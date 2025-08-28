@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Linq.Expressions;
-using Microsoft.ApplicationInsights;
 using KeyValuePair = System.Collections.Generic.KeyValuePair;
 
 namespace Teams.Notifications.Api.Telemetry;

@@ -1,6 +1,4 @@
-﻿using Microsoft.ApplicationInsights;
-
-namespace Teams.Notifications.Api.Telemetry;
+﻿namespace Teams.Notifications.Api.Telemetry;
 
 public static class NamedTelemetryExtensions
 {

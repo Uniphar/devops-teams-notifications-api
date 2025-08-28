@@ -1,6 +1,4 @@
-﻿using Microsoft.ApplicationInsights;
-using Teams.Notifications.Api.Telemetry;
-using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
