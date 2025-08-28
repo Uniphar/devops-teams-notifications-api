@@ -4,6 +4,18 @@ namespace Teams.Notifications.Api.Services;
 
 public static class PropertyHelper
 {
+    // Convert a string to a JSON-safe string, or null if the input is null
+    private static string? ToJsonString(this string? valueString)
+    {
+        if (valueString == null) return null;
+        if (string.IsNullOrWhiteSpace(valueString)) return valueString;
+        // Escape the value for JSON
+        var escapedValue = JsonSerializer.Serialize(valueString);
+        // Remove the surrounding quotes added by Serialize
+        escapedValue = escapedValue.Substring(1, escapedValue.Length - 2);
+        return escapedValue;
+    }
+
     public static string FindPropAndReplace<T>(this string jsonString, T model, string property, string type, string fileUrl)
     {
         var toReplace = "{{" + property + ":" + type + "}}";
@@ -11,7 +23,7 @@ public static class PropertyHelper
         {
             // optional string, will remove the block if empty
             case "string?":
-                var valueString = model.TryGetStringPropertyValue(property);
+                var valueString = model.TryGetStringPropertyValue(property).ToJsonString();
                 if (!string.IsNullOrEmpty(valueString)) return jsonString.Replace(toReplace, valueString);
                 // Parse JSON and remove objects from arrays where the property value matches the placeholder
                 var rootString = JsonNode.Parse(jsonString);
@@ -20,7 +32,7 @@ public static class PropertyHelper
 
             // required string
             case "string":
-                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(property) ?? string.Empty);
+                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(property).ToJsonString() ?? string.Empty);
             case "int":
                 return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
             case "file":
