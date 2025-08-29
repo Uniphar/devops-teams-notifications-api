@@ -28,4 +28,3 @@ public class CustomEventTelemetryClient(ILogger<CustomEventTelemetryClient> logg
         logger.LogCritical(ex, "{microsoft.custom_event.name}", "Exception");
     }
 }
-

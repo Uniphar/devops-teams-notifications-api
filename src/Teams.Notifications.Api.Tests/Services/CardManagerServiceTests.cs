@@ -2,7 +2,6 @@ using System.Reflection;
 using AdaptiveCards;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
-using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Moq;
@@ -149,7 +148,6 @@ public class CardManagerServiceTests
         // 5 items should be left since the rest should be removed
         Assert.HasCount(5, item.Body);
         foreach (var element in item.Body)
-        {
             switch (element)
             {
                 case AdaptiveTextBlock textBlock:
@@ -157,16 +155,15 @@ public class CardManagerServiceTests
                     Assert.DoesNotContain("}}", textBlock.Text, "No template string should be found!, found: {0}", textBlock.Text);
                     break;
                 case AdaptiveFactSet adaptiveSet:
+                {
+                    foreach (var fact in adaptiveSet.Facts)
                     {
-                        foreach (var fact in adaptiveSet.Facts)
-                        {
-                            Assert.DoesNotContain("{{", fact.Value, "No template string should be found!, found: {0}", fact.Value);
-                            Assert.DoesNotContain("}}", fact.Value, "No template string should be found!, found: {0}", fact.Value);
-                        }
-
-                        break;
+                        Assert.DoesNotContain("{{", fact.Value, "No template string should be found!, found: {0}", fact.Value);
+                        Assert.DoesNotContain("}}", fact.Value, "No template string should be found!, found: {0}", fact.Value);
                     }
+
+                    break;
+                }
             }
-        }
     }
 }

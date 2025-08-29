@@ -4,10 +4,8 @@ internal class ExceptionHandlingFilter : IExceptionFilter
 {
     private readonly ICustomEventTelemetryClient _telemetry;
 
-    public ExceptionHandlingFilter(ICustomEventTelemetryClient telemetry)
-    {
-        _telemetry = telemetry;
-    }
+    public ExceptionHandlingFilter(ICustomEventTelemetryClient telemetry) => _telemetry = telemetry;
+
     public void OnException(ExceptionContext context)
     {
         switch (context.Exception)

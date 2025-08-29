@@ -1,10 +1,6 @@
 ﻿using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq.Expressions;
-using System.Reflection;
 using Azure.Monitor.OpenTelemetry.Exporter;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -15,26 +11,21 @@ namespace Teams.Notifications.Api.Telemetry;
 
 internal static class TelemetryExtensions
 {
-    public static IServiceCollection AddAmbientTelemetryProperties(this IServiceCollection services)
-        => services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
+    public static IServiceCollection AddAmbientTelemetryProperties(this IServiceCollection services) => services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
 
-    public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, IEnumerable<KeyValuePair<string, string>> properties)
-        => AmbientTelemetryProperties.Initialize(properties);
+    public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, IEnumerable<KeyValuePair<string, string>> properties) => AmbientTelemetryProperties.Initialize(properties);
 
-    public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, object properties)
-         => AmbientTelemetryProperties.Initialize(properties.GrabProperties());
+    public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, object properties) => AmbientTelemetryProperties.Initialize(properties.GrabProperties());
 
-    public static AmbientTelemetryProperties WithProperty(this ICustomEventTelemetryClient telemetry, string name, string value)
-        => AmbientTelemetryProperties.Initialize([KeyValuePair.Create(name, value)]);
+    public static AmbientTelemetryProperties WithProperty(this ICustomEventTelemetryClient telemetry, string name, string value) => AmbientTelemetryProperties.Initialize([KeyValuePair.Create(name, value)]);
 
     /// <summary>Send an <see cref="EventTelemetry" /> for display in Diagnostic Search and in the Analytics Portal.</summary>
     /// <param name="telemetry">The telemetry client.</param>
     /// <param name="eventName">The name of the event.</param>
     /// <param name="properties">An anonymous object whose properties will be stringified and added to the event.</param>
-    public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName, object properties)
-        => telemetry.TrackEvent(eventName, properties.GrabProperties());
-    public static void TrackError(this ICustomEventTelemetryClient telemetry, string error, object properties)
-        => telemetry.TrackException(new Exception(error), properties.GrabProperties());
+    public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName, object properties) => telemetry.TrackEvent(eventName, properties.GrabProperties());
+
+    public static void TrackError(this ICustomEventTelemetryClient telemetry, string error, object properties) => telemetry.TrackException(new Exception(error), properties.GrabProperties());
 
     public static void RegisterOpenTelemetry(this WebApplicationBuilder builder, string appPathPrefix)
     {
@@ -43,7 +34,7 @@ internal static class TelemetryExtensions
             .AddAttributes(new Dictionary<string, object>
             {
                 ["service.name"] = appPathPrefix,
-                ["host.name"] = Environment.MachineName,
+                ["host.name"] = Environment.MachineName
             });
 
         builder.Logging.AddOpenTelemetry(options =>
@@ -56,7 +47,9 @@ internal static class TelemetryExtensions
 
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
         //builder.Services.AddSingleton(new ActivitySource(appPathPrefix));
-        builder.Services.AddOpenTelemetry()
+        builder
+            .Services
+            .AddOpenTelemetry()
             .WithTracing(tracerProviderBuilder =>
             {
                 tracerProviderBuilder
@@ -90,7 +83,8 @@ internal static class TelemetryExtensions
 
     public static Dictionary<string, object> ToDictionary(this object obj)
     {
-        return obj.GetType()
+        return obj
+            .GetType()
             .GetProperties()
             .ToDictionary(
                 prop => prop.Name,
@@ -101,6 +95,7 @@ internal static class TelemetryExtensions
 
 internal sealed class AmbientTelemetryProperties : IDisposable
 {
+    private AmbientTelemetryProperties(IEnumerable<KeyValuePair<string, string>>? propertiesToInject) => PropertiesToInject = propertiesToInject?.ToImmutableArray() ?? ImmutableArray<KeyValuePair<string, string>>.Empty;
     private static AsyncLocal<ImmutableList<AmbientTelemetryProperties>> AmbientPropertiesAsyncLocal { get; } = new();
 
     private static ImmutableList<AmbientTelemetryProperties> AmbientProperties
@@ -111,9 +106,9 @@ internal sealed class AmbientTelemetryProperties : IDisposable
 
     private ImmutableArray<KeyValuePair<string, string>> PropertiesToInject { get; }
 
-    private AmbientTelemetryProperties(IEnumerable<KeyValuePair<string, string>>? propertiesToInject)
+    public void Dispose()
     {
-        PropertiesToInject = propertiesToInject?.ToImmutableArray() ?? ImmutableArray<KeyValuePair<string, string>>.Empty;
+        AmbientProperties = AmbientProperties.Remove(this);
     }
 
     public static AmbientTelemetryProperties Initialize(IEnumerable<KeyValuePair<string, string>>? propertiesToInject)
@@ -126,10 +121,7 @@ internal sealed class AmbientTelemetryProperties : IDisposable
             {
                 // Inject custom properties (tags) into dependency
                 var activityTags = AmbientProperties.SelectMany(p => p.PropertiesToInject);
-                foreach (var (name, value) in activityTags)
-                {
-                    activity.SetTag(name, value);
-                }
+                foreach (var (name, value) in activityTags) activity.SetTag(name, value);
             },
             ActivityStopped = _ => { }
         };
@@ -143,11 +135,6 @@ internal sealed class AmbientTelemetryProperties : IDisposable
         return ambientProps;
     }
 
-    public void Dispose()
-    {
-        AmbientProperties = AmbientProperties.Remove(this);
-    }
-
     public sealed class Initializer : ITelemetryInitializer
     {
         public void Initialize(ITelemetry telemetry)
@@ -158,8 +145,8 @@ internal sealed class AmbientTelemetryProperties : IDisposable
             // Since we insert in reverse order, deeper/later calls to WithProperty take precedence,
             // but manually specifying any key at each tracking event always overrides any ambient value
             foreach (var propertiesToInject in AmbientProperties)
-                foreach (var (name, value) in propertiesToInject.PropertiesToInject)
-                    telemetryProperties.TryAdd(name, value);
+            foreach (var (name, value) in propertiesToInject.PropertiesToInject)
+                telemetryProperties.TryAdd(name, value);
         }
     }
 }
@@ -168,47 +155,51 @@ file static class AnonymousObjectSerializer
 {
     private static ConcurrentDictionary<Type, Func<object, Dictionary<string, string>>> PropertyGrabbers { get; } = new();
 
-    public static Dictionary<string, string>? GrabProperties(this object obj) => obj switch
-    {
-        null => null,
-        IEnumerable<KeyValuePair<string, string>> dict => dict.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-        _ => GetPropertyGrabber(obj.GetType())(obj)
-    };
+    private static MethodInfo AddConditionalMethod { get; } = ReflectionExtensions.GetMethod(AddConditional);
+
+    public static Dictionary<string, string>? GrabProperties(this object obj) =>
+        obj switch
+        {
+            null => null,
+            IEnumerable<KeyValuePair<string, string>> dict => dict.ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+            _ => GetPropertyGrabber(obj.GetType())(obj)
+        };
 
     private static Func<object, Dictionary<string, string>> GetPropertyGrabber(Type type)
     {
-        return PropertyGrabbers.GetOrAdd(type, static type =>
-        {
-            var objParam = Expression.Parameter(typeof(object), "obj");
-
-            // var typedObj = (T)obj;
-            var typedObj = Expression.Variable(type, "typedObj");
-            var typedObjAssign = Expression.Assign(typedObj, Expression.Convert(objParam, type));
-
-            // Dictionary<string, string> dictionary = new();
-            var dictionary = Expression.Variable(typeof(Dictionary<string, string>), "dictionary");
-            var instantiateDictionary = Expression.Assign(dictionary, Expression.New(typeof(Dictionary<string, string>)));
-
-            var propertyDictionaryAddExpressions = type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(prop =>
+        return PropertyGrabbers.GetOrAdd(type,
+            static type =>
             {
-                // dictionary.AddCondition("Property", typedObj.Property);
-                var getProperty = Expression.Property(typedObj, prop);
-                return Expression.Call(AddConditionalMethod, dictionary, Expression.Constant(prop.Name), Expression.Convert(getProperty, typeof(object)));
+                var objParam = Expression.Parameter(typeof(object), "obj");
+
+                // var typedObj = (T)obj;
+                var typedObj = Expression.Variable(type, "typedObj");
+                var typedObjAssign = Expression.Assign(typedObj, Expression.Convert(objParam, type));
+
+                // Dictionary<string, string> dictionary = new();
+                var dictionary = Expression.Variable(typeof(Dictionary<string, string>), "dictionary");
+                var instantiateDictionary = Expression.Assign(dictionary, Expression.New(typeof(Dictionary<string, string>)));
+
+                var propertyDictionaryAddExpressions = type
+                    .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                    .Select(prop =>
+                    {
+                        // dictionary.AddCondition("Property", typedObj.Property);
+                        var getProperty = Expression.Property(typedObj, prop);
+                        return Expression.Call(AddConditionalMethod, dictionary, Expression.Constant(prop.Name), Expression.Convert(getProperty, typeof(object)));
+                    });
+
+                var block = Expression.Block([typedObj, dictionary],
+                [
+                    typedObjAssign,
+                    instantiateDictionary,
+                    ..propertyDictionaryAddExpressions,
+                    dictionary
+                ]);
+
+                return Expression.Lambda<Func<object, Dictionary<string, string>>>(block, objParam).Compile();
             });
-
-            var block = Expression.Block(variables: [typedObj, dictionary],
-            [
-                typedObjAssign,
-                instantiateDictionary,
-                ..propertyDictionaryAddExpressions,
-                dictionary
-            ]);
-
-            return Expression.Lambda<Func<object, Dictionary<string, string>>>(block, objParam).Compile();
-        });
     }
-
-    private static MethodInfo AddConditionalMethod { get; } = ReflectionExtensions.GetMethod(AddConditional);
 
     private static void AddConditional(this Dictionary<string, string> dict, string key, object value)
     {
