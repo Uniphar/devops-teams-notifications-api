@@ -2,12 +2,10 @@ using System.Reflection;
 using AdaptiveCards;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Teams.Notifications.Api.Services.Interfaces;
 using Teams.Notifications.Api.Telemetry;
-using Teams.Notifications.Api.Tests.Helpers;
 
 namespace Teams.Notifications.Api.Tests.Services;
 
@@ -27,9 +25,6 @@ public class CardManagerServiceTests
         _configMock = new Mock<IConfiguration>();
         _configMock.Setup(c => c["AZURE_CLIENT_ID"]).Returns("client-id");
         _configMock.Setup(c => c["AZURE_TENANT_ID"]).Returns("tenant-id");
-        var testTelemetryChannel = new TestTelemetryChannel();
-        var config = TelemetryConfiguration.CreateDefault();
-        config.TelemetryChannel = testTelemetryChannel;
         _telemetryMock = new Mock<ICustomEventTelemetryClient>();
     }
 

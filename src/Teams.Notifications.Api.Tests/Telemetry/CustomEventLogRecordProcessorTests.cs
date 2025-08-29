@@ -36,7 +36,7 @@ public class CustomEventLogRecordProcessorTests
 
         // Assert
         mockTelemetryClient.Verify(x => x.TrackEvent("LockedFile",
-                It.Is<object>(logRecord => logRecord.ToString().Contains(exception.Message))),
+                It.Is<object>(logRecord => logRecord.ToString()!.Contains(exception.Message))),
             Times.Once);
 
         Assert.IsFalse(logRecordExporter.ExportedLogs.Any(log => log.LogLevel >= LogLevel.Error));

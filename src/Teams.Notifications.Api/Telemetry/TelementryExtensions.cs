@@ -23,9 +23,9 @@ internal static class TelemetryExtensions
     /// <param name="telemetry">The telemetry client.</param>
     /// <param name="eventName">The name of the event.</param>
     /// <param name="properties">An anonymous object whose properties will be stringified and added to the event.</param>
-    public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName, object properties) => telemetry.TrackEvent(eventName, properties.GrabProperties());
+    public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName, object properties) => telemetry.TrackEvent(eventName, properties.GrabProperties()!);
 
-    public static void TrackError(this ICustomEventTelemetryClient telemetry, string error, object properties) => telemetry.TrackException(new Exception(error), properties.GrabProperties());
+    public static void TrackError(this ICustomEventTelemetryClient telemetry, string error, object properties) => telemetry.TrackException(new Exception(error), properties.GrabProperties()!);
 
     public static void RegisterOpenTelemetry(this WebApplicationBuilder builder, string appPathPrefix)
     {
