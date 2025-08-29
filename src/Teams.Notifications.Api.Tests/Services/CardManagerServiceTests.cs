@@ -5,6 +5,7 @@ using Microsoft.Agents.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Moq;
 using Teams.Notifications.Api.Services.Interfaces;
+using Teams.Notifications.Api.Telemetry;
 
 namespace Teams.Notifications.Api.Tests.Services;
 
@@ -15,6 +16,7 @@ public class CardManagerServiceTests
     private readonly Mock<IChannelAdapter> _adapterMock;
     private readonly Mock<IConfiguration> _configMock;
     private readonly Mock<ITeamsManagerService> _teamsManagerServiceMock;
+    private readonly Mock<ICustomEventTelemetryClient> _telemetryMock;
 
     public CardManagerServiceTests()
     {
@@ -23,9 +25,10 @@ public class CardManagerServiceTests
         _configMock = new Mock<IConfiguration>();
         _configMock.Setup(c => c["AZURE_CLIENT_ID"]).Returns("client-id");
         _configMock.Setup(c => c["AZURE_TENANT_ID"]).Returns("tenant-id");
+        _telemetryMock = new Mock<ICustomEventTelemetryClient>();
     }
 
-    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object);
+    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object, _telemetryMock.Object);
 
     [TestMethod]
     public async Task DeleteCard_DeletesCard_WhenIdIsFound()
@@ -45,7 +48,7 @@ public class CardManagerServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await service.DeleteCard("file.json", "uid", "team", "channel");
+        await service.DeleteCardAsync("file.json", "uid", "team", "channel");
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
@@ -67,7 +70,7 @@ public class CardManagerServiceTests
         _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string?)null);
 
         // Act & Assert
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCard("file.json", "uid", "team", "channel"));
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCardAsync("file.json", "uid", "team", "channel"));
     }
 
     [TestMethod]
@@ -90,7 +93,7 @@ public class CardManagerServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await service.CreateOrUpdate("WelcomeCard.json", model, "team", "channel");
+        await service.CreateOrUpdateAsync("WelcomeCard.json", model, "team", "channel");
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
@@ -128,7 +131,7 @@ public class CardManagerServiceTests
         {
             TimeStamp = "01-01-1960",
             ObjectType = "test",
-            ErrorMessage = "SomeErrorMessage",
+            ErrorMessage = "This request is not authorized to perform this operation using this permission.\\nRequestId:e4669c49-a002-0049-449a-17061a000000\\nTime:2025-08-27T21:34:16.5796961Z\",\"This request is not authorized to perform this operation using this permission.\\nRequestId:77c89d5a-9002-0042-359a-17fd71000000\\nTime:2025-08-27T21:34:18.5359065Z",
             UniqueId = "unique"
         };
         // Arrange
@@ -138,12 +141,24 @@ public class CardManagerServiceTests
         var item = AdaptiveCard.FromJson(result).Card;
         Assert.IsNotNull(item.Body);
         // 5 items should be left since the rest should be removed
-        Assert.AreEqual(5, item.Body.Count);
+        Assert.HasCount(5, item.Body);
         foreach (var element in item.Body)
-            if (element is AdaptiveTextBlock textBlock)
+            switch (element)
             {
-                Assert.IsFalse(textBlock.Text.Contains("{{"), "No template string should be found!");
-                Assert.IsFalse(textBlock.Text.Contains("}}"), "No template string should be found!");
+                case AdaptiveTextBlock textBlock:
+                    Assert.DoesNotContain("{{", textBlock.Text, "No template string should be found!, found: {0}", textBlock.Text);
+                    Assert.DoesNotContain("}}", textBlock.Text, "No template string should be found!, found: {0}", textBlock.Text);
+                    break;
+                case AdaptiveFactSet adaptiveSet:
+                {
+                    foreach (var fact in adaptiveSet.Facts)
+                    {
+                        Assert.DoesNotContain("{{", fact.Value, "No template string should be found!, found: {0}", fact.Value);
+                        Assert.DoesNotContain("}}", fact.Value, "No template string should be found!, found: {0}", fact.Value);
+                    }
+
+                    break;
+                }
             }
     }
 }

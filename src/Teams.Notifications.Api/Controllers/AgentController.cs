@@ -7,13 +7,7 @@
 [ApiController]
 public class AgentController : ControllerBase
 {
-    [HttpPost("")] 
-    [Authorize(AuthenticationSchemes = "AgentScheme")] 
-    [ApiExplorerSettings(IgnoreApi = true)] 
-    public Task PostMessages([FromServices] IAgentHttpAdapter adapter, [FromServices] IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(Request, Response, agent, cancellationToken);
-    
-    [HttpGet("")]
-    [Authorize(AuthenticationSchemes = "AgentScheme")]
-    [ApiExplorerSettings(IgnoreApi = true)]
-    public Task GetMessages([FromServices] IAgentHttpAdapter adapter, [FromServices] IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(Request, Response, agent, cancellationToken);
+    [HttpPost("")] [Authorize(AuthenticationSchemes = "AgentScheme")] [ApiExplorerSettings(IgnoreApi = true)] public Task PostMessages([FromServices] IAgentHttpAdapter adapter, [FromServices] IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(Request, Response, agent, cancellationToken);
+
+    [HttpGet("")] [Authorize(AuthenticationSchemes = "AgentScheme")] [ApiExplorerSettings(IgnoreApi = true)] public Task GetMessages([FromServices] IAgentHttpAdapter adapter, [FromServices] IAgent agent, CancellationToken cancellationToken) => adapter.ProcessAsync(Request, Response, agent, cancellationToken);
 }

@@ -13,9 +13,11 @@ public class {{controllerName}} : ControllerBase
 {
     private const string jsonFileName = "{{filename}}";
     private readonly ICardManagerService _cardManagerService;
-    public {{controllerName}}(ICardManagerService cardManagerService)
+    private readonly ICustomEventTelemetryClient _telemetry;
+    public {{controllerName}}(ICardManagerService cardManagerService, ICustomEventTelemetryClient telemetry)
     {
         _cardManagerService = cardManagerService;
+        _telemetry = telemetry;
     }
 
     /// <summary>
@@ -32,8 +34,9 @@ public class {{controllerName}} : ControllerBase
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
     public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
-        await _cardManagerService.CreateOrUpdate(jsonFileName, model, teamName, channelName);
-        return Ok();
+        using (_telemetry.WithProperties(new { CreateOrUpdateCardForModel = "{{modelName}}" }))
+            await _cardManagerService.CreateOrUpdateAsync(jsonFileName, model, teamName, channelName);
+            return Ok();
     }
 
     /// <summary>
@@ -51,8 +54,8 @@ public class {{controllerName}} : ControllerBase
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
     public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
     {
-       await _cardManagerService.DeleteCard(jsonFileName, uniqueId, teamName, channelName);
-
-       return Ok();
+       using (_telemetry.WithProperties(new { DeleteCardForModel = "{{modelName}}" }))
+           await _cardManagerService.DeleteCardAsync(jsonFileName, uniqueId, teamName, channelName);
+           return Ok();
     }
 }

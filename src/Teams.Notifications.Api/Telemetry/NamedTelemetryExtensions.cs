@@ -1,0 +1,31 @@
+﻿namespace Teams.Notifications.Api.Telemetry;
+
+public static class NamedTelemetryExtensions
+{
+    public static void TrackChannelUpdateMessage(this ICustomEventTelemetryClient telemetry, string teamName, string channelName, string id) =>
+        telemetry.TrackEvent("ChannelUpdateMessage",
+            new
+            {
+                Team = teamName,
+                Channel = channelName,
+                Id = id
+            });
+
+    public static void TrackChannelNewMessage(this ICustomEventTelemetryClient telemetry, string teamName, string channelName, string id) =>
+        telemetry.TrackEvent("ChannelNewMessage",
+            new
+            {
+                Team = teamName,
+                Channel = channelName,
+                Id = id
+            });
+
+    public static void TrackChannelDeleteMessage(this ICustomEventTelemetryClient telemetry, string teamName, string channelName, string id) =>
+        telemetry.TrackEvent("ChannelDeleteMessage",
+            new
+            {
+                Team = teamName,
+                Channel = channelName,
+                Id = id
+            });
+}

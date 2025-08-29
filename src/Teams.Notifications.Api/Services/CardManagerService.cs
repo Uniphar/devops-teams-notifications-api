@@ -3,12 +3,12 @@ using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
 
-public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config) : ICardManagerService
+public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config, ICustomEventTelemetryClient telemetry) : ICardManagerService
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_TENANT_ID");
 
-    public async Task DeleteCard(string jsonFileName, string uniqueId, string teamName, string channelName)
+    public async Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
         await teamsManagerService.CheckBotIsInTeam(teamId);
@@ -21,11 +21,15 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         // delete the item
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
-            (turnContext, cancellationToken) => adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken),
+            async (turnContext, cancellationToken) =>
+            {
+                await adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken);
+                telemetry.TrackChannelDeleteMessage(teamName, channelName, conversationReference.ActivityId);
+            },
             CancellationToken.None);
     }
 
-    public async Task CreateOrUpdate<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel
+    public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
         await teamsManagerService.CheckBotIsInTeam(teamId);
@@ -44,22 +48,30 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             }
         };
         var conversationReference = GetConversationReference(channelId);
-        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, model.UniqueId);
+        var idFromOldMessage = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, model.UniqueId);
         // found an existing card so update id
-        if (!string.IsNullOrWhiteSpace(id))
+        if (!string.IsNullOrWhiteSpace(idFromOldMessage))
         {
-            activity.Id = id;
-            conversationReference.ActivityId = id;
+            activity.Id = idFromOldMessage;
+            conversationReference.ActivityId = idFromOldMessage;
         }
 
         await adapter.ContinueConversationAsync(_clientId,
             conversationReference,
-            (turnContext, cancellationToken) => string.IsNullOrWhiteSpace(activity.Id)
-                // item is new
-                ? turnContext.SendActivityAsync(activity, cancellationToken)
-                :
+            async (turnContext, cancellationToken) =>
+            {
+                if (string.IsNullOrWhiteSpace(idFromOldMessage))
+                {
+                    // item is new
+                    var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
+                    telemetry.TrackChannelNewMessage(teamName, channelName, newResult.Id);
+                    return;
+                }
+
                 // item needs update
-                turnContext.UpdateActivityAsync(activity, cancellationToken),
+                var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
+                telemetry.TrackChannelUpdateMessage(teamName, channelName, updateResult.Id);
+            },
             CancellationToken.None);
     }
 
