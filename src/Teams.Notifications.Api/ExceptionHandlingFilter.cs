@@ -2,9 +2,9 @@
 
 internal class ExceptionHandlingFilter : IExceptionFilter
 {
-    private readonly TelemetryClient _telemetry;
+    private readonly ICustomEventTelemetryClient _telemetry;
 
-    public ExceptionHandlingFilter(TelemetryClient telemetry)
+    public ExceptionHandlingFilter(ICustomEventTelemetryClient telemetry)
     {
         _telemetry = telemetry;
     }

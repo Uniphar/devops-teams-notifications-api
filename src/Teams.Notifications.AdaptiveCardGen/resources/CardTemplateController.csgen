@@ -13,8 +13,8 @@ public class {{controllerName}} : ControllerBase
 {
     private const string jsonFileName = "{{filename}}";
     private readonly ICardManagerService _cardManagerService;
-    private readonly TelemetryClient _telemetry;
-    public {{controllerName}}(ICardManagerService cardManagerService, TelemetryClient telemetry)
+    private readonly ICustomEventTelemetryClient _telemetry;
+    public {{controllerName}}(ICardManagerService cardManagerService, ICustomEventTelemetryClient telemetry)
     {
         _cardManagerService = cardManagerService;
         _telemetry = telemetry;

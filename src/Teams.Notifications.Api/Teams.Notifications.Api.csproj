@@ -20,6 +20,12 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="AdaptiveCards" Version="*" />
+		<PackageReference Include="OpenTelemetry" Version="*" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="*" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="*" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="*" />
+		<PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="*" />
+		<PackageReference Include="OpenTelemetry.Exporter.Console" Version="*" />
 		<PackageReference Include="Microsoft.Identity.Web" Version="*" />
 		<PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
 		<PackageReference Include="Azure.Identity" Version="*" />

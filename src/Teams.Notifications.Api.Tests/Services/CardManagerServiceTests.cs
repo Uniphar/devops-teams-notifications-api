@@ -1,3 +1,4 @@
+using System.Reflection;
 using AdaptiveCards;
 using Microsoft.Agents.Builder;
 using Microsoft.Agents.Core.Models;
@@ -5,8 +6,8 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using System.Reflection;
 using Teams.Notifications.Api.Services.Interfaces;
+using Teams.Notifications.Api.Telemetry;
 using Teams.Notifications.Api.Tests.Helpers;
 
 namespace Teams.Notifications.Api.Tests.Services;
@@ -18,7 +19,7 @@ public class CardManagerServiceTests
     private readonly Mock<IChannelAdapter> _adapterMock;
     private readonly Mock<IConfiguration> _configMock;
     private readonly Mock<ITeamsManagerService> _teamsManagerServiceMock;
-    private readonly TelemetryClient _telemetry;
+    private readonly Mock<ICustomEventTelemetryClient> _telemetryMock;
 
     public CardManagerServiceTests()
     {
@@ -30,10 +31,10 @@ public class CardManagerServiceTests
         var testTelemetryChannel = new TestTelemetryChannel();
         var config = TelemetryConfiguration.CreateDefault();
         config.TelemetryChannel = testTelemetryChannel;
-        _telemetry= new TelemetryClient(config);
+        _telemetryMock = new Mock<ICustomEventTelemetryClient>();
     }
 
-    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object, _telemetry);
+    private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object, _telemetryMock.Object);
 
     [TestMethod]
     public async Task DeleteCard_DeletesCard_WhenIdIsFound()
@@ -156,15 +157,15 @@ public class CardManagerServiceTests
                     Assert.DoesNotContain("}}", textBlock.Text, "No template string should be found!, found: {0}", textBlock.Text);
                     break;
                 case AdaptiveFactSet adaptiveSet:
-                {
-                    foreach (var fact in adaptiveSet.Facts)
                     {
-                        Assert.DoesNotContain("{{", fact.Value, "No template string should be found!, found: {0}", fact.Value);
-                        Assert.DoesNotContain("}}", fact.Value, "No template string should be found!, found: {0}", fact.Value);
-                    }
+                        foreach (var fact in adaptiveSet.Facts)
+                        {
+                            Assert.DoesNotContain("{{", fact.Value, "No template string should be found!, found: {0}", fact.Value);
+                            Assert.DoesNotContain("}}", fact.Value, "No template string should be found!, found: {0}", fact.Value);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
             }
         }
     }

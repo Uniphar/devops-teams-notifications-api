@@ -91,14 +91,21 @@ builder
     });
 if (environment != "local")
 {
-// key vault is required for ApplicationInsights, since it needs the connection string
+    // key vault is required for ApplicationInsights, since it needs the connection string
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 
-    builder.Logging.ClearProviders();
-    builder.Logging.AddApplicationInsights();
-    builder.Services.AddApplicationInsightsTelemetry(options => options.EnableAdaptiveSampling = false);
-    builder.Services.AddApplicationInsightsTelemetryWorkerService(options => options.EnableAdaptiveSampling = false);
-    builder.Services.AddApplicationInsightsKubernetesEnricher();
+
+    builder.Services.AddApplicationInsightsTelemetry(options =>
+    {
+        options.EnableAdaptiveSampling = false;
+        options.EnableDependencyTrackingTelemetryModule = false;
+        options.EnableRequestTrackingTelemetryModule = false;
+    });
+    builder.Services.AddApplicationInsightsTelemetryWorkerService(options =>
+    {
+        options.EnableAdaptiveSampling = false;
+        options.EnableDependencyTrackingTelemetryModule = false;
+    });
     builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
 }
 
@@ -151,7 +158,10 @@ builder.Services.AddSwaggerGen(c =>
 // that state survives Agent restarts, and operate correctly
 // in a cluster of Agent instances.
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
+builder.Services.AddSingleton<ICustomEventTelemetryClient, CustomEventTelemetryClient>();
 
+// Configure OpenTelemetry
+builder.RegisterOpenTelemetry(appPathPrefix);
 
 var app = builder.Build();
 app.MapHealthChecks("/health");
