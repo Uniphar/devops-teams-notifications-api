@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Linq.Expressions;
 using Azure.Monitor.OpenTelemetry.Exporter;
+using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -25,15 +26,23 @@ internal static class TelemetryExtensions
     /// <param name="properties">An anonymous object whose properties will be stringified and added to the event.</param>
     public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName, object properties) => telemetry.TrackEvent(eventName, properties.GrabProperties()!);
 
+    public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName) => telemetry.TrackEvent(eventName);
+
     public static void TrackError(this ICustomEventTelemetryClient telemetry, string error, object properties) => telemetry.TrackException(new Exception(error), properties.GrabProperties()!);
 
-    public static void RegisterOpenTelemetry(this WebApplicationBuilder builder, string appPathPrefix)
+    public static void TrackError(this ICustomEventTelemetryClient telemetry, Exception ex, string eventName, object properties)
+    {
+        telemetry.TrackEvent(eventName);
+        telemetry.TrackException(ex, properties.GrabProperties()!);
+    }
+
+    public static void RegisterOpenTelemetry(this IHostApplicationBuilder builder, string serviceName)
     {
         var resourceBuilder = ResourceBuilder
             .CreateDefault()
             .AddAttributes(new Dictionary<string, object>
             {
-                ["service.name"] = appPathPrefix,
+                ["service.name"] = serviceName,
                 ["host.name"] = Environment.MachineName
             });
 
@@ -46,7 +55,6 @@ internal static class TelemetryExtensions
         });
 
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
-        //builder.Services.AddSingleton(new ActivitySource(appPathPrefix));
         builder
             .Services
             .AddOpenTelemetry()
@@ -56,7 +64,7 @@ internal static class TelemetryExtensions
                     .SetResourceBuilder(resourceBuilder)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
-                    .AddSource(appPathPrefix)
+                    .AddSource(serviceName)
                     .AddSource("Azure.*")
                     .AddAzureMonitorTraceExporter(x => x.ConnectionString = appInsightsConnectionString);
 
@@ -74,7 +82,7 @@ internal static class TelemetryExtensions
             {
                 metricsBuilder
                     .SetResourceBuilder(resourceBuilder)
-                    .AddMeter(appPathPrefix)
+                    .AddMeter(serviceName)
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
                     .AddAzureMonitorMetricExporter(x => x.ConnectionString = appInsightsConnectionString);
