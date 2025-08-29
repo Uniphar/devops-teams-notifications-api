@@ -4,6 +4,12 @@ namespace Teams.Notifications.Api.Services;
 
 public static class PropertyHelper
 {
+    private static string? ToJsonString(this string? value)
+    {
+        if (value == null || string.IsNullOrWhiteSpace(value)) return value;
+        return JsonEncodedText.Encode(value).Value;
+    }
+
     public static string FindPropAndReplace<T>(this string jsonString, T model, string property, string type, string fileUrl)
     {
         var toReplace = "{{" + property + ":" + type + "}}";
@@ -11,7 +17,7 @@ public static class PropertyHelper
         {
             // optional string, will remove the block if empty
             case "string?":
-                var valueString = JsonEncodedText.Encode(model.TryGetStringPropertyValue(property) ?? string.Empty).Value;
+                var valueString = model.TryGetStringPropertyValue(property).ToJsonString() ;
                 if (!string.IsNullOrEmpty(valueString)) return jsonString.Replace(toReplace, valueString);
                 // Parse JSON and remove objects from arrays where the property value matches the placeholder
                 var rootString = JsonNode.Parse(jsonString);
@@ -20,7 +26,7 @@ public static class PropertyHelper
 
             // required string
             case "string":
-                return jsonString.Replace(toReplace, JsonEncodedText.Encode(model.TryGetStringPropertyValue(property) ?? string.Empty).Value);
+                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(property).ToJsonString() );
             case "int":
                 return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
             case "file":
