@@ -99,10 +99,11 @@ internal static class TelemetryExtensions
         return obj
             .GetType()
             .GetProperties()
-            .ToDictionary(
-                prop => prop.Name,
-                prop => prop.GetValue(obj) ?? string.Empty
-            );
+            // make sure you can read
+            .Where(prop => prop.CanRead)
+            // prevent TargetParameterCountException 
+            .Where(prop => prop.GetIndexParameters().Length == 0)
+            .ToDictionary(prop => prop.Name, prop => prop.GetValue(obj) ?? string.Empty);
     }
 }
 
