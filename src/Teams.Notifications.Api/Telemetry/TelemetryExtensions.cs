@@ -62,7 +62,11 @@ internal static class TelemetryExtensions
             {
                 tracerProviderBuilder
                     .SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation()
+                    .AddAspNetCoreInstrumentation(options => options.Filter = httpContext =>
+                    {
+                        // remove health checks, k8s already does them
+                        return !httpContext.Request.Path.Value?.Contains("health") ?? true;
+                    })
                     .AddHttpClientInstrumentation()
                     .AddSource(serviceName)
                     .AddSource("Azure.*")
