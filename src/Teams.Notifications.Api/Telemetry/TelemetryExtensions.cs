@@ -12,15 +12,16 @@ namespace Teams.Notifications.Api.Telemetry;
 
 internal static class TelemetryExtensions
 {
-    public static IServiceCollection AddAmbientTelemetryProperties(this IServiceCollection services) => services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
-
     public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, IEnumerable<KeyValuePair<string, string>> properties) => AmbientTelemetryProperties.Initialize(properties);
 
     public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, object properties) => AmbientTelemetryProperties.Initialize(properties.GrabProperties());
 
     public static AmbientTelemetryProperties WithProperty(this ICustomEventTelemetryClient telemetry, string name, string value) => AmbientTelemetryProperties.Initialize([KeyValuePair.Create(name, value)]);
 
-    /// <summary>Send an <see cref="EventTelemetry" /> for display in Diagnostic Search and in the Analytics Portal.</summary>
+    /// <summary>
+    ///     Send an <see cref="ICustomEventTelemetryClient" /> for display in Diagnostic Search and in the Analytics
+    ///     Portal.
+    /// </summary>
     /// <param name="telemetry">The telemetry client.</param>
     /// <param name="eventName">The name of the event.</param>
     /// <param name="properties">An anonymous object whose properties will be stringified and added to the event.</param>
@@ -145,21 +146,6 @@ internal sealed class AmbientTelemetryProperties : IDisposable
         // Insert at the beginning of the list so that these props take precedence over existing ambient props
         AmbientProperties = AmbientProperties.Insert(0, ambientProps);
         return ambientProps;
-    }
-
-    public sealed class Initializer : ITelemetryInitializer
-    {
-        public void Initialize(ITelemetry telemetry)
-        {
-            if (telemetry is not ISupportProperties { Properties: var telemetryProperties })
-                return;
-
-            // Since we insert in reverse order, deeper/later calls to WithProperty take precedence,
-            // but manually specifying any key at each tracking event always overrides any ambient value
-            foreach (var propertiesToInject in AmbientProperties)
-            foreach (var (name, value) in propertiesToInject.PropertiesToInject)
-                telemetryProperties.TryAdd(name, value);
-        }
     }
 }
 
