@@ -21,10 +21,15 @@
   <ItemGroup>
     <PackageReference Include="AdaptiveCards" Version="*" />
     <PackageReference Include="OpenTelemetry" Version="*" />
+    <!--for aspnet core api, to filter /health, AddAspNetCoreInstrumentation-->
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="*" />
+    <!--for http traffic, AddHttpClientInstrumentation-->
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="*" />
+    <!--for the runtime itself , AddRuntimeInstrumentation-->
     <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="*" />
+    <!--to sent it to app insights-->
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="*" />
+    <!--local debug, to sent it to console-->
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="*" />
     <PackageReference Include="Microsoft.Identity.Web" Version="*" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
