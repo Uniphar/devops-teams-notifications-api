@@ -93,19 +93,6 @@ if (environment != "local")
 {
     // key vault is required for ApplicationInsights, since it needs the connection string
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
-
-
-    builder.Services.AddApplicationInsightsTelemetry(options =>
-    {
-        options.EnableAdaptiveSampling = false;
-        options.EnableDependencyTrackingTelemetryModule = false;
-        options.EnableRequestTrackingTelemetryModule = false;
-    });
-    builder.Services.AddApplicationInsightsTelemetryWorkerService(options =>
-    {
-        options.EnableAdaptiveSampling = false;
-        options.EnableDependencyTrackingTelemetryModule = false;
-    });
     builder.Services.AddSingleton<ITelemetryInitializer, AmbientTelemetryProperties.Initializer>();
 }
 
