@@ -2,6 +2,8 @@
 using System.Linq.Expressions;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry;
+using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -18,10 +20,7 @@ internal static class TelemetryExtensions
 
     public static AmbientTelemetryProperties WithProperty(this ICustomEventTelemetryClient telemetry, string name, string value) => AmbientTelemetryProperties.Initialize([KeyValuePair.Create(name, value)]);
 
-    /// <summary>
-    ///     Send an <see cref="ICustomEventTelemetryClient" /> for display in Diagnostic Search and in the Analytics
-    ///     Portal.
-    /// </summary>
+    /// <summary>Send an <see cref="ICustomEventTelemetryClient" /> for display in Diagnostic Search and in the Analytics Portal.</summary>
     /// <param name="telemetry">The telemetry client.</param>
     /// <param name="eventName">The name of the event.</param>
     /// <param name="properties">An anonymous object whose properties will be stringified and added to the event.</param>
@@ -46,7 +45,12 @@ internal static class TelemetryExtensions
                 ["service.name"] = serviceName,
                 ["host.name"] = Environment.MachineName
             });
-
+        builder.Services.Configure<AspNetCoreTraceInstrumentationOptions>(options =>
+        {
+            // Filter out health checks
+            options.Filter = httpContext => !httpContext.Request.Path.Value?.Contains("health") ?? true;
+            options.RecordException = true;
+        });
         builder.Logging.AddOpenTelemetry(options =>
         {
             options.SetResourceBuilder(resourceBuilder);
@@ -59,19 +63,15 @@ internal static class TelemetryExtensions
         builder
             .Services
             .AddOpenTelemetry()
+            .UseAzureMonitorExporter(x => x.ConnectionString = appInsightsConnectionString)
             .WithTracing(tracerProviderBuilder =>
             {
                 tracerProviderBuilder
                     .SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation(options => options.Filter = httpContext =>
-                    {
-                        // remove health checks, k8s already does them
-                        return !httpContext.Request.Path.Value?.Contains("health") ?? true;
-                    })
+                    .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddSource(serviceName)
-                    .AddSource("Azure.*")
-                    .AddAzureMonitorTraceExporter(x => x.ConnectionString = appInsightsConnectionString);
+                    .AddSource("Azure.*");
 
 #if LOCAL || DEBUG
                 tracerProviderBuilder.AddConsoleExporter();
@@ -80,8 +80,7 @@ internal static class TelemetryExtensions
             .WithLogging(loggerBuilder =>
             {
                 loggerBuilder
-                    .AddProcessor<CustomEventLogRecordProcessor>()
-                    .AddAzureMonitorLogExporter(x => { x.ConnectionString = appInsightsConnectionString; });
+                    .AddProcessor<CustomEventLogRecordProcessor>();
             })
             .WithMetrics(metricsBuilder =>
             {
@@ -89,8 +88,7 @@ internal static class TelemetryExtensions
                     .SetResourceBuilder(resourceBuilder)
                     .AddMeter(serviceName)
                     .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation()
-                    .AddAzureMonitorMetricExporter(x => x.ConnectionString = appInsightsConnectionString);
+                    .AddRuntimeInstrumentation();
             });
     }
 
@@ -148,6 +146,7 @@ internal sealed class AmbientTelemetryProperties : IDisposable
         AmbientProperties = AmbientProperties.Insert(0, ambientProps);
         return ambientProps;
     }
+
 }
 
 file static class AnonymousObjectSerializer
