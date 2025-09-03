@@ -90,7 +90,11 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         var file = await GetFile(teamId, channelId, fileUrl);
         var content = file.Content;
         await content.PutAsync(fileStream);
-        return (await file.GetAsync())?.WebUrl ?? string.Empty;
+        var fileFound = await file.GetAsync();
+        if (fileFound is { WebUrl: not null })
+            // add web=1 to open in web view, this will make it possible to edit it in browser
+            return fileFound.WebUrl + "?web=1";
+        return string.Empty;
     }
 
     public async Task<string> GetFileUrl(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.WebUrl ?? string.Empty;
