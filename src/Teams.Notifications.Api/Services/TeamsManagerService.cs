@@ -46,6 +46,30 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return channelId ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
     }
 
+    public async Task<string> GetChannelNameAsync(string teamId, string channelId)
+    {
+        var channel = await graphClient
+            .Teams[teamId]
+            .Channels[channelId]
+            .GetAsync();
+        if (channel != null && channel.Id != channelId)
+            throw new InvalidOperationException($"Channel with id {channelId} does not exist");
+        var channelName = channel?.DisplayName;
+        return channelName ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
+    }
+
+    public async Task<string> GetGroupNameUniqueName(string teamId)
+    {
+        var group = await graphClient
+            .Teams[teamId]
+            .Group
+            .GetAsync();
+        if (group != null)
+            throw new InvalidOperationException($" No group found for team {teamId}");
+        return group?.UniqueName ?? throw new InvalidOperationException($"Team: {teamId} parent groups unique name could not be found");
+    }
+
+
     public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
@@ -98,6 +122,9 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     }
 
     public async Task<string> GetFileUrl(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.WebUrl ?? string.Empty;
+
+    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.Name ?? string.Empty;
+
 
     public async Task<KeyValuePair<string, Stream>> GetFileStreamAsync(string teamId, string channelId, string fileUrl)
     {

@@ -146,7 +146,6 @@ internal sealed class AmbientTelemetryProperties : IDisposable
         AmbientProperties = AmbientProperties.Insert(0, ambientProps);
         return ambientProps;
     }
-
 }
 
 file static class AnonymousObjectSerializer

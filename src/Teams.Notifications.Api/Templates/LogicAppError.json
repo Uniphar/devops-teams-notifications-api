@@ -54,6 +54,7 @@
       "type": "Action.Execute",
       "id": "process",
       "data": {
+        "PostOriginalBlobUri": "{{OriginalBlobUri:string?}}",
         "PostFileStream": "{{FileUrl:file?}}",
         "PostSuccessMessage": "Sent the file to frontgate for reprocessing!"
       },
