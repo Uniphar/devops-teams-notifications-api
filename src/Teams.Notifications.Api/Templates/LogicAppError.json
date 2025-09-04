@@ -23,7 +23,7 @@
     },
     {
       "type": "TextBlock",
-      "text": "**FailedFileMovedToBlobUri:** {{FailedFileMovedToBlobUri:string?}}",
+      "text": "**FailedFile:** {{FileName:file?}}",
       "wrap": true,
       "spacing": "none"
     },
@@ -47,6 +47,23 @@
       "text": "{{ErrorMessage:string}}",
       "wrap": true,
       "spacing": "none"
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Execute",
+      "id": "process",
+      "data": {
+        "PostFileStream": "{{FileUrl:file?}}",
+        "PostSuccessMessage": "Sent the file to frontgate for reprocessing!"
+      },
+      "verb": "process",
+      "title": "🔁 Reprocess File"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "url": "{{FileUrl:file?}}",
+      "title": "📂 Download file"
     }
   ]
 }

@@ -2,6 +2,6 @@
 
 // ReSharper disable once CheckNamespace
 
-namespace Teams.Notifications.Api.Models;
+namespace Teams.Notifications.Api.ControllerTemplate;
 
 public class CardTemplateModel : BaseTemplateModel { }

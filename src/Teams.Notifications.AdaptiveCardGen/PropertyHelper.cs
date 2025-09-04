@@ -41,7 +41,6 @@ public static class PropertyHelper
         return properties.ToDictionary(m => m.name, m => m.type);
     }
 
-  
 
     /// <summary>
     ///     checks if the types are valid, atm int, string or file
