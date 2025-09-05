@@ -9,4 +9,7 @@ public interface ITeamsManagerService
     Task<string> GetFileUrl(string teamId, string channelId, string fileErrorFileName);
     Task CheckBotIsInTeam(string teamId);
     Task<KeyValuePair<string, Stream>> GetFileStreamAsync(string teamId, string channelId, string fileUrl);
+    Task<string> GetChannelNameAsync(string teamId, string channelId);
+    Task<string> GetGroupNameUniqueName(string teamId);
+    Task<string> GetFileNameAsync(string teamId, string channelId, string modelPostFileStream);
 }

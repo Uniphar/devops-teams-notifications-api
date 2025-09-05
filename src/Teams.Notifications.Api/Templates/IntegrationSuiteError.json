@@ -29,7 +29,7 @@
     },
     {
       "type": "TextBlock",
-      "text": "**Intermediary:** {{Intermediary:string}}",
+      "text": "**Intermediary:** {{Intermediary:string?}}",
       "wrap": true,
       "spacing": "none"
     },
@@ -42,7 +42,7 @@
     },
     {
       "type": "TextBlock",
-      "text": "**Purchase Order By Customer:** {{PurchaseOrderByCustomer:string}}",
+      "text": "**Purchase Order By Customer:** {{PurchaseOrderByCustomer:string?}}",
       "wrap": true,
       "spacing": "medium"
     },
@@ -56,7 +56,7 @@
     {
       "type": "TextBlock",
       "color": "attention",
-      "text": "{{Error:string}}",
+      "text": "{{Error:string?}}",
       "wrap": true,
       "spacing": "none"
     }

@@ -40,23 +40,30 @@ public class CardActionAgent : AgentApplication
         CancellationToken cancellationToken
     )
     {
-        var model = ProtocolJsonSerializer.ToObject<FileErrorprocessActionModel>(data);
-
-        var teamId = turnContext.Activity.TeamsGetTeamInfo().Id;
+        var model = ProtocolJsonSerializer.ToObject<LogicAppErrorprocessActionModel>(data);
+        var team = turnContext.Activity.TeamsGetTeamInfo();
+        var teamId = team.Id;
         var channelId = turnContext.Activity.TeamsGetChannelId();
 
         if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelId))
             throw new InvalidOperationException("Team or Channel ID is missing from the context.");
 
-        var nameAndStream = await _teamsManagerService.GetFileStreamAsync(teamId, channelId, model.PostFileStream);
-        await using var stream = nameAndStream.Value;
-        var fileName = nameAndStream.Key;
+        var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileStream ?? string.Empty);
+        var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId);
+        var channelName = await _teamsManagerService.GetChannelNameAsync(teamId, channelId);
+        var fileInfo = new LogicAppFrontgateFileInformation
+        {
+            file_name = fileName,
+            storage_reference = groupUniqueName,
+            initial_display_name = team.Name,
+            storage_folder = $"/{channelName}/error/"
+        };
         // Upload the file to the external API
-        var uploadResponse = await _frontgateApiService.UploadFileAsync(model.PostToUrl, stream, fileName);
+        var uploadResponse = await _frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo);
 
         var message = uploadResponse.IsSuccessStatusCode
             ? model.PostSuccessMessage
-            : $"Failed to upload file: {uploadResponse.ReasonPhrase}";
+            : $"Failed to sent file: {uploadResponse.ReasonPhrase}";
 
         var attachment = new Attachment
         {
