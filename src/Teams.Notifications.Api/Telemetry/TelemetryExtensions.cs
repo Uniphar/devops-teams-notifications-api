@@ -54,7 +54,7 @@ internal static class TelemetryExtensions
             .AddService(serviceName)
             .AddAttributes(new Dictionary<string, object>
             {
-                ["service.names"] = serviceName,
+                ["service.name"] = serviceName,
                 ["host.name"] = Environment.MachineName,
                 ["os.description"] = RuntimeInformation.OSDescription,
                 ["environment"] = builder.Configuration["ASPNETCORE_ENVIRONMENT"] ?? "dev",
