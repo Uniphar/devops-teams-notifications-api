@@ -55,7 +55,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         if (channel != null && channel.Id != channelId)
             throw new InvalidOperationException($"Channel with id {channelId} does not exist");
         var channelName = channel?.DisplayName;
-        return channelName ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
+        return channelName ?? throw new InvalidOperationException($"Channel with id {channelId} does not exist");
     }
 
     public async Task<string> GetGroupNameUniqueName(string teamId)
