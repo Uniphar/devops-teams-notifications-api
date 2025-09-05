@@ -4,7 +4,7 @@ public sealed record LogicAppFrontgateFileInformation
 {
     public required string file_name { get; init; }
 
-    public const string storage_type = "SharePoint";
+    public string storage_type => "SharePoint";
 
     public required string storage_reference { get; init; }
 
