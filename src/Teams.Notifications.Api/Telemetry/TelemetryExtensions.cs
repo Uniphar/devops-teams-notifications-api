@@ -1,8 +1,8 @@
 ﻿using System.Collections.Immutable;
 using System.Linq.Expressions;
-using Azure.Monitor.OpenTelemetry.Exporter;
+using System.Runtime.InteropServices;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -20,7 +20,10 @@ internal static class TelemetryExtensions
 
     public static AmbientTelemetryProperties WithProperty(this ICustomEventTelemetryClient telemetry, string name, string value) => AmbientTelemetryProperties.Initialize([KeyValuePair.Create(name, value)]);
 
-    /// <summary>Send an <see cref="ICustomEventTelemetryClient" /> for display in Diagnostic Search and in the Analytics Portal.</summary>
+    /// <summary>
+    ///     Send an <see cref="ICustomEventTelemetryClient" /> for display in Diagnostic Search and in the Analytics
+    ///     Portal.
+    /// </summary>
     /// <param name="telemetry">The telemetry client.</param>
     /// <param name="eventName">The name of the event.</param>
     /// <param name="properties">An anonymous object whose properties will be stringified and added to the event.</param>
@@ -38,19 +41,26 @@ internal static class TelemetryExtensions
 
     public static void RegisterOpenTelemetry(this IHostApplicationBuilder builder, string serviceName)
     {
-        var resourceBuilder = ResourceBuilder
-            .CreateDefault()
-            .AddAttributes(new Dictionary<string, object>
-            {
-                ["service.name"] = serviceName,
-                ["host.name"] = Environment.MachineName
-            });
         builder.Services.Configure<AspNetCoreTraceInstrumentationOptions>(options =>
         {
             // Filter out health checks
             options.Filter = httpContext => !httpContext.Request.Path.Value?.Contains("health") ?? true;
             options.RecordException = true;
         });
+        builder.Services.AddSingleton<ICustomEventTelemetryClient, CustomEventTelemetryClient>();
+        var resourceBuilder = ResourceBuilder
+            .CreateDefault()
+            .AddTelemetrySdk()
+            .AddService(serviceName)
+            .AddAttributes(new Dictionary<string, object>
+            {
+                ["service.names"] = serviceName,
+                ["host.name"] = Environment.MachineName,
+                ["os.description"] = RuntimeInformation.OSDescription,
+                ["environment"] = builder.Configuration["ASPNETCORE_ENVIRONMENT"] ?? "dev",
+                ["deployment.environment"] = builder.Configuration["DEPLOYMENT_ENVIRONMENT"] ?? "dev"
+            });
+
         builder.Logging.AddOpenTelemetry(options =>
         {
             options.SetResourceBuilder(resourceBuilder);
@@ -63,33 +73,38 @@ internal static class TelemetryExtensions
         builder
             .Services
             .AddOpenTelemetry()
-            .UseAzureMonitorExporter(x => x.ConnectionString = appInsightsConnectionString)
-            .WithTracing(tracerProviderBuilder =>
+            .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; })
+            .WithTracing(x =>
             {
-                tracerProviderBuilder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddSource(serviceName)
-                    .AddSource("Azure.*");
+                x.AddSource(serviceName);
 
 #if LOCAL || DEBUG
-                tracerProviderBuilder.AddConsoleExporter();
+                x.AddConsoleExporter();
+                //no sampling in local environment
+                x.SetSampler(new AlwaysOnSampler());
 #endif
             })
-            .WithLogging(loggerBuilder =>
+            .WithLogging(x => x.AddProcessor<CustomEventLogRecordProcessor>())
+            .WithMetrics(x => x
+                .SetResourceBuilder(resourceBuilder)
+                .AddMeter(serviceName)
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+            );
+
+        var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = activity =>
             {
-                loggerBuilder
-                    .AddProcessor<CustomEventLogRecordProcessor>();
-            })
-            .WithMetrics(metricsBuilder =>
-            {
-                metricsBuilder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddMeter(serviceName)
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
-            });
+                // Inject custom properties specified from within actors (_telemetry.WithProperties)
+                var activityTags = AmbientTelemetryProperties.AmbientProperties.SelectMany(p => p.PropertiesToInject);
+                foreach (var (name, value) in activityTags) activity.SetTag(name, value);
+            }
+        };
+
+        ActivitySource.AddActivityListener(listener);
     }
 
     public static Dictionary<string, object> ToDictionary(this object obj)
@@ -110,13 +125,13 @@ internal sealed class AmbientTelemetryProperties : IDisposable
     private AmbientTelemetryProperties(IEnumerable<KeyValuePair<string, string>>? propertiesToInject) => PropertiesToInject = propertiesToInject?.ToImmutableArray() ?? ImmutableArray<KeyValuePair<string, string>>.Empty;
     private static AsyncLocal<ImmutableList<AmbientTelemetryProperties>> AmbientPropertiesAsyncLocal { get; } = new();
 
-    private static ImmutableList<AmbientTelemetryProperties> AmbientProperties
+    internal static ImmutableList<AmbientTelemetryProperties> AmbientProperties
     {
         get => AmbientPropertiesAsyncLocal.Value ?? ImmutableList<AmbientTelemetryProperties>.Empty;
         set => AmbientPropertiesAsyncLocal.Value = value;
     }
 
-    private ImmutableArray<KeyValuePair<string, string>> PropertiesToInject { get; }
+    internal ImmutableArray<KeyValuePair<string, string>> PropertiesToInject { get; }
 
     public void Dispose()
     {
@@ -207,6 +222,7 @@ file static class AnonymousObjectSerializer
             TimeSpan ts => ts.ToString("c"),
             DateTime dt => dt.ToUniversalTime().ToString("O"),
             DateTimeOffset dto => dto.ToUniversalTime().ToString("O"),
+            null => null,
             _ => value.ToString()
         };
 

@@ -31,6 +31,8 @@
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="*" />
     <!--local debug, to sent it to console-->
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="*" />
+    <!--azure app insight-->
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="*" />
     <PackageReference Include="Microsoft.Identity.Web" Version="*" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
     <PackageReference Include="Azure.Identity" Version="*" />
