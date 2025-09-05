@@ -144,7 +144,6 @@ builder.Services.AddSwaggerGen(c =>
 // that state survives Agent restarts, and operate correctly
 // in a cluster of Agent instances.
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
-builder.Services.AddSingleton<ICustomEventTelemetryClient, CustomEventTelemetryClient>();
 
 // Configure OpenTelemetry
 builder.RegisterOpenTelemetry(appPathPrefix);
