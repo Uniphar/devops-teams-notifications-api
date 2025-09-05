@@ -11,7 +11,7 @@
     },
     {
       "type": "TextBlock",
-      "text": "**Timestamp:** {{TimeStamp:string}}",
+      "text": "**Timestamp:** {{TimeStamp:string?}}",
       "wrap": true,
       "spacing": "none"
     },
@@ -31,7 +31,7 @@
       "type": "TextBlock",
       "weight": "bolder",
       "color": "attention",
-      "text": "**Type of error:** {{ObjectType:string}}",
+      "text": "**Type of error:** {{ObjectType:string?}}",
       "wrap": true
     },
     {
@@ -44,7 +44,7 @@
     {
       "type": "TextBlock",
       "color": "attention",
-      "text": "{{ErrorMessage:string}}",
+      "text": "{{ErrorMessage:string?}}",
       "wrap": true,
       "spacing": "none"
     }
