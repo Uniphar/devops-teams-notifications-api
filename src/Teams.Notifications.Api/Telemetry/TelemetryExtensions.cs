@@ -55,6 +55,7 @@ internal static class TelemetryExtensions
             .AddAttributes(new Dictionary<string, object>
             {
                 ["service.name"] = serviceName,
+                ["service.instance.id"] = Environment.MachineName,
                 ["host.name"] = Environment.MachineName,
                 ["os.description"] = RuntimeInformation.OSDescription,
                 ["environment"] = builder.Configuration["ASPNETCORE_ENVIRONMENT"] ?? "dev",
@@ -84,7 +85,10 @@ internal static class TelemetryExtensions
                 x.SetSampler(new AlwaysOnSampler());
 #endif
             })
-            .WithLogging(x => x.AddProcessor<CustomEventLogRecordProcessor>())
+            .WithLogging(x => x
+                .AddProcessor<LogRecordAmbientPropertiesProcessor>()
+                .AddProcessor<CustomEventLogRecordProcessor>()
+            )
             .WithMetrics(x => x
                 .SetResourceBuilder(resourceBuilder)
                 .AddMeter(serviceName)
