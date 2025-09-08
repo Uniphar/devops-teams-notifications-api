@@ -13,7 +13,8 @@ public class LogRecordAmbientPropertiesProcessor : BaseProcessor<LogRecord>
         //inject properties into CustomEvent (events sent by OpenTelemetry include microsoft.custom_event.name attribute)
         if (logRecord.Body?.Contains(CustomEventTelemetryClient.CustomEventAttribute) is true)
         {
-            var activityTags = AmbientTelemetryProperties.AmbientProperties
+            var activityTags = AmbientTelemetryProperties
+                .AmbientProperties
                 .SelectMany(x => x.PropertiesToInject)
                 .ToArray();
 

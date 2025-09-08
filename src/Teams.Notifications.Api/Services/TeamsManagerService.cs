@@ -66,7 +66,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .GetAsync();
         if (group == null)
             throw new InvalidOperationException($" No group found for team {teamId}");
-        return group?.UniqueName ?? throw new InvalidOperationException($"Team: {teamId} parent groups unique name could not be found");
+        return group.UniqueName ?? throw new InvalidOperationException($"Team: {teamId} parent groups unique name could not be found");
     }
 
 

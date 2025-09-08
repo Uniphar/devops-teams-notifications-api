@@ -77,7 +77,9 @@ internal static class TelemetryExtensions
             .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; })
             .WithTracing(x =>
             {
-                x.AddSource(serviceName);
+                x
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddSource(serviceName);
 
 #if LOCAL || DEBUG
                 x.AddConsoleExporter();
@@ -86,6 +88,7 @@ internal static class TelemetryExtensions
 #endif
             })
             .WithLogging(x => x
+                .SetResourceBuilder(resourceBuilder)
                 .AddProcessor<LogRecordAmbientPropertiesProcessor>()
                 .AddProcessor<CustomEventLogRecordProcessor>()
             )

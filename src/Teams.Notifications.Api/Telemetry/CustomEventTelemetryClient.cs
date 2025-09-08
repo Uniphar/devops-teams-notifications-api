@@ -3,6 +3,7 @@
 public class CustomEventTelemetryClient(ILogger<CustomEventTelemetryClient> logger) : ICustomEventTelemetryClient
 {
     public const string CustomEventAttribute = "{microsoft.custom_event.name}";
+
     public void TrackEvent(string eventName, object state)
     {
         using (logger.BeginScope(state.ToDictionary()))
