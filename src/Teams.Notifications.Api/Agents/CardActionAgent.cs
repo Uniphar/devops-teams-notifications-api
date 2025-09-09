@@ -65,7 +65,11 @@ public class CardActionAgent : AgentApplication
                 var channelName = channelData.Channel.Name;
 
                 if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelName))
+                {
+                    _logger.LogError("Empty fields: {teamId} , {channelName}", teamId, channelName);
                     throw new InvalidOperationException("Team or channelName is missing from the context.");
+                }
+
                 var channelId = await _teamsManagerService.GetChannelIdAsync(teamId, channelName);
                 _logger.LogInformation("Temp info: {teamId} , {channelId}", teamId, channelId);
                 var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileStream ?? string.Empty);
