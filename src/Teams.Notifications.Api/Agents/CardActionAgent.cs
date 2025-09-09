@@ -1,4 +1,5 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Microsoft.Agents.Extensions.Teams.Models;
+using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 
@@ -7,14 +8,21 @@ namespace Teams.Notifications.Api.Agents;
 public class CardActionAgent : AgentApplication
 {
     private readonly IFrontgateApiService _frontgateApiService;
+    private readonly ILogger<CardActionAgent> _logger;
     private readonly ITeamsManagerService _teamsManagerService;
+    private readonly ICustomEventTelemetryClient _telemetry;
+
 
     public CardActionAgent(
         AgentApplicationOptions options,
         ITeamsManagerService teamsManagerService,
-        IFrontgateApiService frontgateApiService
+        IFrontgateApiService frontgateApiService,
+        ICustomEventTelemetryClient telemetry,
+        ILogger<CardActionAgent> logger
     ) : base(options)
     {
+        _telemetry = telemetry;
+        _logger = logger;
         _teamsManagerService = teamsManagerService;
         _frontgateApiService = frontgateApiService;
         AdaptiveCards.OnActionExecute(new Regex(".*?"), ProcessCardActionAsync);
@@ -40,43 +48,63 @@ public class CardActionAgent : AgentApplication
         CancellationToken cancellationToken
     )
     {
-        var model = ProtocolJsonSerializer.ToObject<LogicAppErrorprocessActionModel>(data);
-        var team = turnContext.Activity.TeamsGetTeamInfo();
-        var teamId = team.Id;
-        var channelId = turnContext.Activity.TeamsGetChannelId();
+        using (_telemetry.WithProperties(new { ActionExecute = "LogicAppErrorProcessActionModel" }))
+            try
+            {
+                var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);
+                var channelData = turnContext.Activity.GetChannelData<TeamsChannelData>();
+                if (channelData is null)
+                {
+                    _logger.LogWarning("No channel data found for this file");
+                    return new AdaptiveCardInvokeResponse();
+                }
 
-        if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelId))
-            throw new InvalidOperationException("Team or Channel ID is missing from the context.");
+                var teamId = channelData.Team.Id;
+                var teamName = channelData.Team.Name;
+                var channelId = channelData.Channel.Id;
 
-        var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileStream ?? string.Empty);
-        var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId);
-        var channelName = await _teamsManagerService.GetChannelNameAsync(teamId, channelId);
-        var fileInfo = new LogicAppFrontgateFileInformation
-        {
-            file_name = fileName,
-            storage_reference = groupUniqueName,
-            initial_display_name = team.Name,
-            storage_folder = $"/{channelName}/error/"
-        };
-        // Upload the file to the external API
-        var uploadResponse = await _frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo);
+                if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelId))
+                    throw new InvalidOperationException("Team or Channel ID is missing from the context.");
+                _logger.LogInformation("Temp info: {teamId} , {teamName} , {channelId}", teamId, teamName, channelId);
+                var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileStream ?? string.Empty);
+                var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId);
+                var channelName = await _teamsManagerService.GetChannelNameAsync(teamId, channelId);
+                _logger.LogInformation("Temp info: {groupUniqueName} , {channelName}", groupUniqueName, channelName);
+                var fileInfo = new LogicAppFrontgateFileInformation
+                {
+                    file_name = fileName,
+                    storage_reference = groupUniqueName,
+                    initial_display_name = teamName,
+                    storage_folder = $"/{channelName}/error/"
+                };
+                // Upload the file to the external API
+                var uploadResponse = await _frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo);
 
-        var message = uploadResponse.IsSuccessStatusCode
-            ? model.PostSuccessMessage
-            : $"Failed to sent file: {uploadResponse.ReasonPhrase}";
+                var message = uploadResponse.IsSuccessStatusCode
+                    ? model.PostSuccessMessage
+                    : $"Failed to sent file: {uploadResponse.ReasonPhrase}";
 
-        var attachment = new Attachment
-        {
-            ContentType = AdaptiveCard.ContentType,
-            Content = message
-        };
-        var pendingActivity = new Activity
-        {
-            Type = "message",
-            Id = turnContext.Activity.ReplyToId,
-            Attachments = new List<Attachment> { attachment }
-        };
-        await turnContext.UpdateActivityAsync(pendingActivity, cancellationToken);
-        return new AdaptiveCardInvokeResponse();
+                var attachment = new Attachment
+                {
+                    ContentType = AdaptiveCard.ContentType,
+                    Content = message
+                };
+                var pendingActivity = new Activity
+                {
+                    Type = "message",
+                    Id = turnContext.Activity.ReplyToId,
+                    Attachments = new List<Attachment> { attachment }
+                };
+                await turnContext.UpdateActivityAsync(pendingActivity, cancellationToken);
+
+
+                return new AdaptiveCardInvokeResponse();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing card action");
+                _telemetry.TrackException(ex, new { ActionExecute = "LogicAppErrorProcessActionModel" });
+                throw;
+            }
     }
 }

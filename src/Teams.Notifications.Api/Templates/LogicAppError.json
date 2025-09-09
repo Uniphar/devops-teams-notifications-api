@@ -58,7 +58,7 @@
         "PostFileStream": "{{FileUrl:file?}}",
         "PostSuccessMessage": "Sent the file to frontgate for reprocessing!"
       },
-      "verb": "process",
+      "verb": "Process",
       "title": "🔁 Reprocess File"
     },
     {

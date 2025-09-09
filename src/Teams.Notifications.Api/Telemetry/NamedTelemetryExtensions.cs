@@ -28,4 +28,10 @@ public static class NamedTelemetryExtensions
                 Channel = channelName,
                 Id = id
             });
+    public static void TrackChannelActionFired(this ICustomEventTelemetryClient telemetry) =>
+        telemetry.TrackEvent("ChannelActionFired",
+            new
+            {
+               
+            });
 }
