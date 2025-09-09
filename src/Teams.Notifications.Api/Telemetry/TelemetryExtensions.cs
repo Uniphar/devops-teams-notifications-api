@@ -90,7 +90,6 @@ internal static class TelemetryExtensions
             .WithLogging(x => x
                 .SetResourceBuilder(resourceBuilder)
                 .AddProcessor<LogRecordAmbientPropertiesProcessor>()
-                .AddProcessor<CustomEventLogRecordProcessor>()
             )
             .WithMetrics(x => x
                 .SetResourceBuilder(resourceBuilder)
