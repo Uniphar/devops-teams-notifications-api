@@ -1,6 +1,8 @@
-﻿using Microsoft.Agents.Extensions.Teams.Models;
+﻿using Microsoft.Agents.Extensions.Teams.Connector;
+using Microsoft.Agents.Extensions.Teams.Models;
 using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
+using TeamInfo = Microsoft.Agents.Extensions.Teams.Models.TeamInfo;
 
 
 namespace Teams.Notifications.Api.Agents;
@@ -53,19 +55,25 @@ public class CardActionAgent : AgentApplication
             {
                 var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);
                 var channelData = turnContext.Activity.GetChannelData<TeamsChannelData>();
+          
+                var teamDetails = await TeamsInfo.GetTeamDetailsAsync(turnContext, cancellationToken: cancellationToken);
                 // Guard against null channel data, which can occur when the json can't be deserialized
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-                if (channelData is null)
+                if (teamDetails is null)
                 {
                     _logger.LogWarning("No channel data found for this file");
                     return new AdaptiveCardInvokeResponse();
                 }
 
-                var teamId = channelData.Team.AadGroupId;
+                var teamId = teamDetails.AadGroupId;
                 var channelName = channelData.Channel.Name;
 
                 if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelName))
                 {
+                    _logger.LogInformation("Conversation id is {conver}", turnContext.Activity.Conversation.Id);
+                    _logger.LogInformation("ChannelId is {ChannelId}", turnContext.Activity.ChannelId.Channel);
+                    _logger.LogInformation("ChannelData id is {ChannelData}", turnContext.Activity.ChannelData);
+                    _logger.LogInformation("Conversation AadObjectId is {AadObjectId}", turnContext.Activity.Conversation.AadObjectId);
                     _logger.LogError("Empty fields: {teamId} , {channelName}", teamId, channelName);
                     throw new InvalidOperationException("Team or channelName is missing from the context.");
                 }
