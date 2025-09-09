@@ -2,7 +2,6 @@
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
-using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
@@ -49,32 +48,29 @@ internal static class TelemetryExtensions
             options.RecordException = true;
         });
         builder.Services.AddSingleton<ICustomEventTelemetryClient, CustomEventTelemetryClient>();
-        var resourceBuilder = ResourceBuilder
-            .CreateDefault()
-            .AddTelemetrySdk()
-            .AddService(serviceName)
-            .AddAttributes(new Dictionary<string, object>
-            {
-                ["service.name"] = serviceName,
-                ["service.instance.id"] = Environment.MachineName,
-                ["host.name"] = Environment.MachineName,
-                ["os.description"] = RuntimeInformation.OSDescription,
-                ["environment"] = builder.Configuration["ASPNETCORE_ENVIRONMENT"] ?? "dev",
-                ["deployment.environment"] = builder.Configuration["DEPLOYMENT_ENVIRONMENT"] ?? "dev"
-            });
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
         builder.Logging.ClearProviders();
 
         builder
             .Services
             .AddOpenTelemetry()
+            .ConfigureResource(r =>
+            {
+                r.AddService(serviceName);
+                r.AddTelemetrySdk();
+                r.AddAttributes(new Dictionary<string, object>
+                {
+                    ["service.name"] = serviceName,
+                    ["service.instance.id"] = Environment.MachineName,
+                    ["host.name"] = Environment.MachineName,
+                    ["os.description"] = RuntimeInformation.OSDescription,
+                    ["environment"] = builder.Configuration["ASPNETCORE_ENVIRONMENT"] ?? "dev",
+                    ["deployment.environment"] = builder.Configuration["DEPLOYMENT_ENVIRONMENT"] ?? "dev"
+                });
+            })
             .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; })
             .WithTracing(x =>
             {
-                x
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddSource(serviceName);
-
 #if LOCAL || DEBUG
                 x.AddConsoleExporter();
                 //no sampling in local environment
@@ -82,29 +78,13 @@ internal static class TelemetryExtensions
 #endif
             })
             .WithLogging(x => x
-                .SetResourceBuilder(resourceBuilder)
                 .AddProcessor<LogRecordAmbientPropertiesProcessor>()
             )
             .WithMetrics(x => x
-                .SetResourceBuilder(resourceBuilder)
                 .AddMeter(serviceName)
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
             );
-
-        var listener = new ActivityListener
-        {
-            ShouldListenTo = _ => true,
-            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
-            ActivityStarted = activity =>
-            {
-                // Inject custom properties specified from within actors (_telemetry.WithProperties)
-                var activityTags = AmbientTelemetryProperties.AmbientProperties.SelectMany(p => p.PropertiesToInject);
-                foreach (var (name, value) in activityTags) activity.SetTag(name, value);
-            }
-        };
-
-        ActivitySource.AddActivityListener(listener);
     }
 
     public static Dictionary<string, object> ToDictionary(this object obj)
