@@ -64,15 +64,6 @@ internal static class TelemetryExtensions
             });
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
         builder.Logging.ClearProviders();
-        builder.Logging.AddOpenTelemetry(options =>
-        {
-            options.SetResourceBuilder(resourceBuilder);
-            options.IncludeScopes = true;
-            options.IncludeFormattedMessage = true;
-            options.ParseStateValues = true;
-            options.AddAzureMonitorLogExporter(o => o.ConnectionString = appInsightsConnectionString);
-        });
-
 
         builder
             .Services
