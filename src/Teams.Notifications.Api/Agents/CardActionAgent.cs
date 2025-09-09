@@ -53,6 +53,8 @@ public class CardActionAgent : AgentApplication
             {
                 var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);
                 var channelData = turnContext.Activity.GetChannelData<TeamsChannelData>();
+                // Guard against null channel data, which can occur when the json can't be deserialized
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (channelData is null)
                 {
                     _logger.LogWarning("No channel data found for this file");
