@@ -46,18 +46,6 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return channelId ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
     }
 
-    public async Task<string> GetChannelNameAsync(string teamId, string channelId)
-    {
-        var channel = await graphClient
-            .Teams[teamId]
-            .Channels[channelId]
-            .GetAsync();
-        if (channel != null && channel.Id != channelId)
-            throw new InvalidOperationException($"Channel with id {channelId} does not exist");
-        var channelName = channel?.DisplayName;
-        return channelName ?? throw new InvalidOperationException($"Channel with id {channelId} does not exist");
-    }
-
     public async Task<string> GetGroupNameUniqueName(string teamId)
     {
         var group = await graphClient
@@ -131,20 +119,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return string.Empty;
     }
 
-    public async Task<string> GetFileUrl(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.WebUrl ?? string.Empty;
-
     public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.Name ?? string.Empty;
-
-
-    public async Task<KeyValuePair<string, Stream>> GetFileStreamAsync(string teamId, string channelId, string fileUrl)
-    {
-        var file = await GetFile(teamId, channelId, fileUrl);
-        var fileMeta = await file.GetAsync();
-        var content = await file.Content.GetAsync() ?? Stream.Null;
-        var fileName = fileMeta?.Name ?? Path.GetFileName(fileUrl);
-
-        return new KeyValuePair<string, Stream>(fileName, content);
-    }
 
     private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileUrl)
     {
