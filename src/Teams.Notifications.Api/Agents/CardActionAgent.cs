@@ -2,7 +2,6 @@
 using Microsoft.Agents.Extensions.Teams.Models;
 using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
-using TeamInfo = Microsoft.Agents.Extensions.Teams.Models.TeamInfo;
 
 
 namespace Teams.Notifications.Api.Agents;
@@ -54,9 +53,12 @@ public class CardActionAgent : AgentApplication
             try
             {
                 var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);
-                var channelData = turnContext.Activity.GetChannelData<TeamsChannelData>();
-          
+                var teamsChannelData = turnContext.Activity.GetChannelData<TeamsChannelData>();
+
                 var teamDetails = await TeamsInfo.GetTeamDetailsAsync(turnContext, cancellationToken: cancellationToken);
+                var channels = await TeamsInfo.GetTeamChannelsAsync(turnContext, cancellationToken: cancellationToken);
+                var channel = channels.FirstOrDefault(x => x.Id == teamsChannelData.Channel.Id);
+
                 // Guard against null channel data, which can occur when the json can't be deserialized
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (teamDetails is null)
@@ -65,15 +67,19 @@ public class CardActionAgent : AgentApplication
                     return new AdaptiveCardInvokeResponse();
                 }
 
+                if (channel?.Name == null)
+                {
+                    _logger.LogWarning("Could not load channel name");
+                    return new AdaptiveCardInvokeResponse();
+                }
+
                 var teamId = teamDetails.AadGroupId;
-                var channelName = channelData.Channel.Name;
+                var channelName = channel.Name;
 
                 if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelName))
                 {
-                    _logger.LogInformation("Conversation id is {conver}", turnContext.Activity.Conversation.Id);
-                    _logger.LogInformation("ChannelId is {ChannelId}", turnContext.Activity.ChannelId.Channel);
-                    _logger.LogInformation("ChannelData id is {ChannelData}", turnContext.Activity.ChannelData);
-                    _logger.LogInformation("Conversation AadObjectId is {AadObjectId}", turnContext.Activity.Conversation.AadObjectId);
+                    _logger.LogInformation("Conversation id is {conver}", turnContext.Activity.Conversation);
+                    _logger.LogInformation("channel is {channel}", channel);
                     _logger.LogError("Empty fields: {teamId} , {channelName}", teamId, channelName);
                     throw new InvalidOperationException("Team or channelName is missing from the context.");
                 }
