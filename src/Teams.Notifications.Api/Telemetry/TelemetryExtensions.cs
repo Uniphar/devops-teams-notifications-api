@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
@@ -61,7 +62,6 @@ internal static class TelemetryExtensions
                     ["deployment.environment"] = builder.Configuration["DEPLOYMENT_ENVIRONMENT"] ?? "dev"
                 });
             })
-            .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; })
             .WithTracing(x =>
             {
 #if LOCAL || DEBUG
@@ -69,15 +69,21 @@ internal static class TelemetryExtensions
                 //no sampling in local environment
                 x.SetSampler(new AlwaysOnSampler());
 #endif
+                x.AddAspNetCoreInstrumentation();
+                x.AddHttpClientInstrumentation();
+                x.AddAzureMonitorTraceExporter();
             })
             .WithLogging(x => x
                 .AddProcessor<LogRecordAmbientPropertiesProcessor>()
+                .AddAzureMonitorLogExporter()
             )
             .WithMetrics(x => x
                 .AddMeter(serviceName)
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
-            );
+                .AddAspNetCoreInstrumentation()
+                .AddAzureMonitorMetricExporter()
+            ).UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
     }
 
     public static Dictionary<string, object> ToDictionary(this object obj)
