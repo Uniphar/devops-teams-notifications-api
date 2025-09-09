@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
@@ -61,16 +62,18 @@ internal static class TelemetryExtensions
                 ["environment"] = builder.Configuration["ASPNETCORE_ENVIRONMENT"] ?? "dev",
                 ["deployment.environment"] = builder.Configuration["DEPLOYMENT_ENVIRONMENT"] ?? "dev"
             });
-
+        var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
+        builder.Logging.ClearProviders();
         builder.Logging.AddOpenTelemetry(options =>
         {
             options.SetResourceBuilder(resourceBuilder);
             options.IncludeScopes = true;
             options.IncludeFormattedMessage = true;
             options.ParseStateValues = true;
+            options.AddAzureMonitorLogExporter(o => o.ConnectionString = appInsightsConnectionString);
         });
 
-        var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
+
         builder
             .Services
             .AddOpenTelemetry()
