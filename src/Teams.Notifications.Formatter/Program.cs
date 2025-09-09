@@ -1,11 +1,15 @@
 using Teams.Notifications.Formatter;
 
-var builder = Host.CreateApplicationBuilder(args);
+var app = new CommandApp();
 
-builder.Logging.SetMinimumLevel(LogLevel.Critical);
+app.Configure(config =>
+{
+    config.AddCommand<FormatCommand>("format");
+    config.SetExceptionHandler((ex, resolver) =>
+    {
+        AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+        return -99;
+    });
+});
+return app.Run(args);
 
-builder.Services.AddCommand<FormatCommand>("format");
-
-builder.UseSpectreConsole(config => { config.SetExceptionHandler((ex, _) => AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything)); });
-
-await builder.Build().RunAsync();
