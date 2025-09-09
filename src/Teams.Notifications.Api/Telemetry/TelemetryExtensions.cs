@@ -31,13 +31,6 @@ internal static class TelemetryExtensions
 
     public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName) => telemetry.TrackEvent(eventName);
 
-    public static void TrackError(this ICustomEventTelemetryClient telemetry, string error, object properties) => telemetry.TrackException(new Exception(error), properties.GrabProperties()!);
-
-    public static void TrackError(this ICustomEventTelemetryClient telemetry, Exception ex, string eventName, object properties)
-    {
-        telemetry.TrackEvent(eventName);
-        telemetry.TrackException(ex, properties.GrabProperties()!);
-    }
 
     public static void RegisterOpenTelemetry(this IHostApplicationBuilder builder, string serviceName)
     {

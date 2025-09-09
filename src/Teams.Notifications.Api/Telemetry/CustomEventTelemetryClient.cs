@@ -20,21 +20,4 @@ public class CustomEventTelemetryClient(ILogger<CustomEventTelemetryClient> logg
         //Otherwise, if you use the LogInformation, but LogLevel is set to Error it will not appear in AppInsights.
         logger.LogCritical(CustomEventAttribute, eventName);
     }
-
-    public void TrackException(Exception ex, object state)
-    {
-        using (logger.BeginScope(state.ToDictionary()))
-            //this is how OpenTelemetry tracks custom events in AppInsights
-            //Note that it is logged as a critical event on purpose.
-            //Otherwise, if you use the LogInformation, but LogLevel is set to Error it will not appear in AppInsights.
-            logger.LogCritical(ex, CustomEventAttribute, "Exception");
-    }
-
-    public void TrackException(Exception ex)
-    {
-        //this is how OpenTelemetry tracks custom events in AppInsights
-        //Note that it is logged as a critical event on purpose.
-        //Otherwise, if you use the LogInformation, but LogLevel is set to Error it will not appear in AppInsights.
-        logger.LogCritical(ex, CustomEventAttribute, "Exception");
-    }
 }

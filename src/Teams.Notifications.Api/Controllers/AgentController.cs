@@ -29,7 +29,6 @@ public class AgentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing card action");
-            _telemetry.TrackException(ex);
             throw;
         }
     }
@@ -47,7 +46,6 @@ public class AgentController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing message");
-            _telemetry.TrackException(ex);
             throw;
         }
     }

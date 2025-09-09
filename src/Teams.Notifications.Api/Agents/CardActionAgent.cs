@@ -123,7 +123,6 @@ public class CardActionAgent : AgentApplication
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing card action");
-                _telemetry.TrackException(ex, new { ActionExecute = "LogicAppErrorProcessActionModel" });
                 throw;
             }
     }
