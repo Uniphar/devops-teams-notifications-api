@@ -69,6 +69,16 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return group.UniqueName ?? throw new InvalidOperationException($"Team: {teamId} parent groups unique name could not be found");
     }
 
+    public async Task<string> GetGroupName(string teamId)
+    {
+        var team = await graphClient
+            .Teams[teamId]
+            .GetAsync();
+        if (team == null)
+            throw new InvalidOperationException($" No team found for id {teamId}");
+        return team.DisplayName ?? throw new InvalidOperationException("Display name is empty");
+    }
+
 
     public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId)
     {

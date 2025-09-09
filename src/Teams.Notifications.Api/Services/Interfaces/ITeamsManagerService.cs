@@ -11,5 +11,7 @@ public interface ITeamsManagerService
     Task<KeyValuePair<string, Stream>> GetFileStreamAsync(string teamId, string channelId, string fileUrl);
     Task<string> GetChannelNameAsync(string teamId, string channelId);
     Task<string> GetGroupNameUniqueName(string teamId);
+    Task<string> GetGroupName(string teamId);
+    
     Task<string> GetFileNameAsync(string teamId, string channelId, string modelPostFileStream);
 }

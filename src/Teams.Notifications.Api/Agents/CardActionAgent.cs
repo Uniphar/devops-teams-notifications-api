@@ -61,16 +61,16 @@ public class CardActionAgent : AgentApplication
                     return new AdaptiveCardInvokeResponse();
                 }
 
-                var teamId = channelData.Team.Id;
-                var teamName = channelData.Team.Name;
-                var channelId = channelData.Channel.Id;
+                var teamId = channelData.Team.AadGroupId;
+                var channelName = channelData.Channel.Name;
 
-                if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelId))
-                    throw new InvalidOperationException("Team or Channel ID is missing from the context.");
-                _logger.LogInformation("Temp info: {teamId} , {teamName} , {channelId}", teamId, teamName, channelId);
+                if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelName))
+                    throw new InvalidOperationException("Team or channelName is missing from the context.");
+                var channelId = await _teamsManagerService.GetChannelIdAsync(teamId, channelName);
+                _logger.LogInformation("Temp info: {teamId} , {channelId}", teamId, channelId);
                 var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileStream ?? string.Empty);
                 var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId);
-                var channelName = await _teamsManagerService.GetChannelNameAsync(teamId, channelId);
+                var teamName = await _teamsManagerService.GetGroupName(teamId);
                 _logger.LogInformation("Temp info: {groupUniqueName} , {channelName}", groupUniqueName, channelName);
                 var fileInfo = new LogicAppFrontgateFileInformation
                 {
