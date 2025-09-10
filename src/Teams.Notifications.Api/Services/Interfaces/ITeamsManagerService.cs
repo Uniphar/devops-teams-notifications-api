@@ -9,5 +9,5 @@ public interface ITeamsManagerService
     Task CheckBotIsInTeam(string teamId);
     Task<string> GetGroupNameUniqueName(string teamId);
     Task<string> GetGroupName(string teamId);
-    Task<string> GetFileNameAsync(string teamId, string channelId, string modelPostFileStream);
+    Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation);
 }
