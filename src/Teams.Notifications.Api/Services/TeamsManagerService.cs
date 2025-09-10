@@ -119,18 +119,20 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return string.Empty;
     }
 
-    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileUrl)
+    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation)
     {
-        return (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.Name ?? string.Empty;
+        var item = await GetFile(teamId, channelId, fileLocation);
+        var content = await item.GetAsync();
+        return content?.Name ?? string.Empty;
     }
 
-    private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileUrl)
+    private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileLocation)
     {
         var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync();
         var driveId = filesFolder?.ParentReference?.DriveId;
 
         var item = graphClient.Drives[driveId].Items["root"];
-        var file = item.ItemWithPath(fileUrl);
+        var file = item.ItemWithPath(fileLocation);
         return file;
     }
 }
