@@ -2,7 +2,6 @@
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
-using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
@@ -50,6 +49,8 @@ internal static class TelemetryExtensions
             .AddOpenTelemetry()
             .ConfigureResource(r =>
             {
+                r.AddContainerDetector();
+                r.AddHostDetector();
                 r.AddService(serviceName);
                 r.AddTelemetrySdk();
                 r.AddAttributes(new Dictionary<string, object>
