@@ -10,7 +10,7 @@ public static class PropertyHelper
         return JsonEncodedText.Encode(value).Value;
     }
 
-    public static string FindPropAndReplace<T>(this string jsonString, T model, string property, string type, string fileUrl)
+    public static string FindPropAndReplace<T>(this string jsonString, T model, string property, string type, string fileUrl, string fileLocation)
     {
         var toReplace = "{{" + property + ":" + type + "}}";
         switch (type)
@@ -31,7 +31,7 @@ public static class PropertyHelper
                 return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
             case "file":
             case "file?":
-                return jsonString.ReplaceForFile(toReplace, model, fileUrl);
+                return jsonString.ReplaceForFile(toReplace, model, fileUrl, fileLocation);
             default:
                 return jsonString;
         }
@@ -88,7 +88,7 @@ public static class PropertyHelper
         return false;
     }
 
-    private static string ReplaceForFile<T>(this string content, string toReplace, T model, string fileUrl)
+    private static string ReplaceForFile<T>(this string content, string toReplace, T model, string fileUrl, string fileLocation)
     {
         var toReplaceWith = string.Empty;
         // if we don't have a file, we need to remove it anyway
@@ -103,6 +103,7 @@ public static class PropertyHelper
         toReplaceWith = toReplace switch
         {
             "{{FileUrl:file}}" or "{{FileUrl:file?}}" => fileUrl,
+            "{{FileLocation:file}}" or "{{FileLocation:file?}}" => fileLocation,
             "{{FileName:file}}" or "{{FileName:file?}}" => file.Name,
             _ => toReplaceWith
         };

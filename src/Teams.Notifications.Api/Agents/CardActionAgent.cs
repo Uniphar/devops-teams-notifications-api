@@ -86,7 +86,7 @@ public class CardActionAgent : AgentApplication
 
                 var channelId = await _teamsManagerService.GetChannelIdAsync(teamId, channelName);
                 _logger.LogInformation("Temp info: {teamId} , {channelId}", teamId, channelId);
-                var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileStream ?? string.Empty);
+                var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileLocation ?? string.Empty);
                 var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId);
                 var teamName = await _teamsManagerService.GetGroupName(teamId);
                 _logger.LogInformation("Temp info: {groupUniqueName} , {channelName}", groupUniqueName, channelName);

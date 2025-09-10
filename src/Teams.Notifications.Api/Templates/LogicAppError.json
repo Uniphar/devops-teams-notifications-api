@@ -55,7 +55,7 @@
       "id": "process",
       "data": {
         "PostOriginalBlobUri": "{{OriginalBlobUri:string?}}",
-        "PostFileStream": "{{FileUrl:file?}}",
+        "PostFileLocation": "{{FileLocation:file?}}",
         "PostSuccessMessage": "Sent the file to frontgate for reprocessing!"
       },
       "verb": "Process",

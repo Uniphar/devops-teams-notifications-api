@@ -119,7 +119,10 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return string.Empty;
     }
 
-    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.Name ?? string.Empty;
+    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileUrl)
+    {
+        return (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.Name ?? string.Empty;
+    }
 
     private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileUrl)
     {
