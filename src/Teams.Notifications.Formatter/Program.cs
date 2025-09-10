@@ -12,4 +12,3 @@ app.Configure(config =>
     });
 });
 return app.Run(args);
-

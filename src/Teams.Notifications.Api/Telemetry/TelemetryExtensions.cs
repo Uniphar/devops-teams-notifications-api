@@ -71,19 +71,17 @@ internal static class TelemetryExtensions
 #endif
                 x.AddAspNetCoreInstrumentation();
                 x.AddHttpClientInstrumentation();
-                x.AddAzureMonitorTraceExporter();
             })
             .WithLogging(x => x
                 .AddProcessor<LogRecordAmbientPropertiesProcessor>()
-                .AddAzureMonitorLogExporter()
             )
             .WithMetrics(x => x
                 .AddMeter(serviceName)
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
                 .AddAspNetCoreInstrumentation()
-                .AddAzureMonitorMetricExporter()
-            ).UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
+            )
+            .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
     }
 
     public static Dictionary<string, object> ToDictionary(this object obj)
