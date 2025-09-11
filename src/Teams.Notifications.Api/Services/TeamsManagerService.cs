@@ -10,11 +10,11 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .Teams[teamId]
             .InstalledApps
             .GetAsync(requestConfiguration =>
-            {
-                requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
-                requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
-            },
-            token);
+                {
+                    requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
+                    requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                },
+                token);
         if (result?.Value?.Count == 0) throw new InvalidOperationException("Please install the bot on the Team, it is not installed at the moment");
     }
 
