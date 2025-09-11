@@ -8,12 +8,10 @@
 public class AgentController : ControllerBase
 {
     private readonly ILogger<AgentController> _logger;
-    private readonly ICustomEventTelemetryClient _telemetry;
 
-    public AgentController(ILogger<AgentController> logger, ICustomEventTelemetryClient telemetry)
+    public AgentController(ILogger<AgentController> logger)
     {
         _logger = logger;
-        _telemetry = telemetry;
     }
 
     [HttpPost]

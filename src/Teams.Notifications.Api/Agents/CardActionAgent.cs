@@ -76,20 +76,13 @@ public class CardActionAgent : AgentApplication
                 var teamId = teamDetails.AadGroupId;
                 var channelName = channel.Name;
 
-                if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelName))
-                {
-                    _logger.LogInformation("Conversation id is {conver}", turnContext.Activity.Conversation);
-                    _logger.LogInformation("channel is {channel}", channel);
-                    _logger.LogError("Empty fields: {teamId} , {channelName}", teamId, channelName);
-                    throw new InvalidOperationException("Team or channelName is missing from the context.");
-                }
+                if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelName)) throw new InvalidOperationException("Team or channelName is missing from the context.");
 
                 var channelId = await _teamsManagerService.GetChannelIdAsync(teamId, channelName);
-                _logger.LogInformation("Temp info: {teamId} , {channelId}", teamId, channelId);
                 var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileLocation ?? string.Empty);
                 var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId);
                 var teamName = await _teamsManagerService.GetGroupName(teamId);
-                _logger.LogInformation("Temp info: {groupUniqueName} , {channelName}", groupUniqueName, channelName);
+
                 var fileInfo = new LogicAppFrontgateFileInformation
                 {
                     file_name = fileName,
