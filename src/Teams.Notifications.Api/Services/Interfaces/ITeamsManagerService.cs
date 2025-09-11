@@ -8,6 +8,6 @@ public interface ITeamsManagerService
     Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream);
     Task CheckBotIsInTeam(string teamId);
     Task<string> GetGroupNameUniqueName(string teamId);
-    Task<string> GetGroupName(string teamId);
+    Task<string> GetTeamName(string teamId);
     Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation);
 }

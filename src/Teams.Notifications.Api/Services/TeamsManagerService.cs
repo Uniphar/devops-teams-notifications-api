@@ -46,25 +46,21 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return channelId ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
     }
 
-    public async Task<string> GetGroupNameUniqueName(string teamId)
+    public async Task<string> GetGroupNameUniqueName(string groupId)
     {
+        // teamId and groupId is the same, but if you look up group from a team it won't work!
         var group = await graphClient
-            .Teams[teamId]
-            .Group
+            .Groups[groupId]
             .GetAsync();
-        if (group == null)
-            throw new InvalidOperationException($" No group found for team {teamId}");
-        return group.UniqueName ?? throw new InvalidOperationException($"Team: {teamId} parent groups unique name could not be found");
+        return group?.UniqueName ?? throw new InvalidOperationException($"No group found for team {groupId}");
     }
 
-    public async Task<string> GetGroupName(string teamId)
+    public async Task<string> GetTeamName(string teamId)
     {
         var team = await graphClient
             .Teams[teamId]
             .GetAsync();
-        if (team == null)
-            throw new InvalidOperationException($" No team found for id {teamId}");
-        return team.DisplayName ?? throw new InvalidOperationException("Display name is empty");
+        return team?.DisplayName ?? throw new InvalidOperationException($"No DisplayName found for team {teamId}");
     }
 
 
