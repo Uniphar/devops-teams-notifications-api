@@ -1,8 +1,6 @@
 ﻿using Microsoft.Agents.Builder.App.AdaptiveCards;
 using Microsoft.Agents.Extensions.Teams.Connector;
 using Microsoft.Agents.Extensions.Teams.Models;
-using Activity = Microsoft.Agents.Core.Models.Activity;
-using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 
 namespace Teams.Notifications.Api.Agents;
@@ -95,24 +93,8 @@ public class CardActionAgent : AgentApplication
                 var uploadResponse = await _frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo, cancellationToken);
 
                 return uploadResponse.IsSuccessStatusCode
-                    ? AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage?? "Succes")
+                    ? AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Succes")
                     : AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to sent file: {uploadResponse.ReasonPhrase}");
-
-                var attachment = new Attachment
-                {
-                    ContentType = AdaptiveCard.ContentType,
-                    Content = message
-                };
-                var pendingActivity = new Activity
-                {
-                    Type = "message",
-                    Id = turnContext.Activity.ReplyToId,
-                    Attachments = new List<Attachment> { attachment }
-                };
-                //await turnContext.UpdateActivityAsync(pendingActivity, cancellationToken);
-
-                
-                return new AdaptiveCardInvokeResponse();
             }
             catch (Exception ex)
             {
