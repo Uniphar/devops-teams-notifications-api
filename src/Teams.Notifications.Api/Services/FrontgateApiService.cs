@@ -15,9 +15,9 @@ public class FrontgateApiService(IHttpClientFactory factory, IConfiguration conf
     private readonly string frontgateApiScope = $"api://{Consts.FrontgateApiClient}/{configuration[Consts.FrontgateApiClientId]}/.default";
 
 
-    public async Task<HttpResponseMessage> UploadFileAsync(string originalBlobUrl, LogicAppFrontgateFileInformation fileInfo)
+    public async Task<HttpResponseMessage> UploadFileAsync(string originalBlobUrl, LogicAppFrontgateFileInformation fileInfo, CancellationToken cancellationTokentoken)
     {
-        var token = await credential.GetTokenAsync(new TokenRequestContext([frontgateApiScope]), CancellationToken.None);
+        var token = await credential.GetTokenAsync(new TokenRequestContext([frontgateApiScope]), cancellationTokentoken);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
         return await _httpClient.PostAsJsonAsync("/frontgate/Reprocess/reprocess-file-logic-app?originalBlobUrl=" + originalBlobUrl, fileInfo);
     }

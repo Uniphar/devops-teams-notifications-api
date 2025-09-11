@@ -11,10 +11,7 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
         var differ = new FilesDiffer(Directory.GetCurrentDirectory());
         differ.AddAllUnderPath("./../Teams.Notifications.Api/Templates", "*.json", FormatFile);
 
-        if (!settings.Check)
-        {
-            return !differ.Apply() ? throw new Exception("Failed to apply changes to config files.") : 0;
-        }
+        if (!settings.Check) return !differ.Apply() ? throw new Exception("Failed to apply changes to config files.") : 0;
 
         if (differ.Check("Formatting", "File differs after formatting"))
             return 0;

@@ -9,10 +9,7 @@ public class AgentController : ControllerBase
 {
     private readonly ILogger<AgentController> _logger;
 
-    public AgentController(ILogger<AgentController> logger)
-    {
-        _logger = logger;
-    }
+    public AgentController(ILogger<AgentController> logger) => _logger = logger;
 
     [HttpPost]
     [Authorize(AuthenticationSchemes = "AgentScheme")]

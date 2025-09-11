@@ -78,10 +78,10 @@ public class CardActionAgent : AgentApplication
 
                 if (string.IsNullOrWhiteSpace(teamId) || string.IsNullOrWhiteSpace(channelName)) throw new InvalidOperationException("Team or channelName is missing from the context.");
 
-                var channelId = await _teamsManagerService.GetChannelIdAsync(teamId, channelName);
-                var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileLocation ?? string.Empty);
-                var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId);
-                var teamName = await _teamsManagerService.GetGroupName(teamId);
+                var channelId = await _teamsManagerService.GetChannelIdAsync(teamId, channelName, cancellationToken);
+                var fileName = await _teamsManagerService.GetFileNameAsync(teamId, channelId, model.PostFileLocation ?? string.Empty, cancellationToken);
+                var groupUniqueName = await _teamsManagerService.GetGroupNameUniqueName(teamId, cancellationToken);
+                var teamName = await _teamsManagerService.GetTeamName(teamId, cancellationToken);
 
                 var fileInfo = new LogicAppFrontgateFileInformation
                 {
@@ -91,7 +91,7 @@ public class CardActionAgent : AgentApplication
                     storage_folder = $"/{channelName}/error/"
                 };
                 // Upload the file to the external API
-                var uploadResponse = await _frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo);
+                var uploadResponse = await _frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo, cancellationToken);
 
                 var message = uploadResponse.IsSuccessStatusCode
                     ? model.PostSuccessMessage

@@ -26,16 +26,17 @@ public class {{controllerName}} : ControllerBase
     /// <param name="model">Information that needs to be sent to teams</param>
     /// <param name="teamName">Teamname you want to sent the message into</param>
     /// <param name="channelName">Channel you want to sent the message into</param>
+    /// <param name="cancellationToken">CancellationToken for when the application stops, mostly used for the bot</param>
     [HttpPost]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
-    public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
+    public async Task<IActionResult> Post({{modelName}} model, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
     {
         using (_telemetry.WithProperties(new { CreateOrUpdateCardForModel = "{{modelName}}" }))
-            await _cardManagerService.CreateOrUpdateAsync(jsonFileName, model, teamName, channelName);
+            await _cardManagerService.CreateOrUpdateAsync(jsonFileName, model, teamName, channelName, cancellationToken);
             return Ok();
     }
 
@@ -45,6 +46,7 @@ public class {{controllerName}} : ControllerBase
     /// <param name="uniqueId">The id used to know what card to delete, required</param>
     /// <param name="teamName">Teamname you want to sent the message into</param>
     /// <param name="channelName">Channel you want to sent the message into</param>
+    /// <param name="cancellationToken">CancellationToken for when the application stops, mostly used for the bot</param>
     [HttpDelete]
     [Produces("application/json")]
     // with swagger response you can give it a description
@@ -52,10 +54,10 @@ public class {{controllerName}} : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
-    public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName = "Notifications Platform", [FromQuery(Name = "ChannelName")] string channelName= "File Errors")
+    public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
     {
        using (_telemetry.WithProperties(new { DeleteCardForModel = "{{modelName}}" }))
-           await _cardManagerService.DeleteCardAsync(jsonFileName, uniqueId, teamName, channelName);
+           await _cardManagerService.DeleteCardAsync(jsonFileName, uniqueId, teamName, channelName, cancellationToken);
            return Ok();
     }
 }
