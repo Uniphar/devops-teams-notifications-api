@@ -62,14 +62,14 @@ public class CardActionAgent : AgentApplication
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (teamDetails is null)
                 {
-                    _logger.LogWarning("No channel data found for this file");
-                    return new AdaptiveCardInvokeResponse();
+                    _logger.LogWarning("No team data for this file");
+                    return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong reprocessing the file");
                 }
 
                 if (channel?.Name == null)
                 {
                     _logger.LogWarning("Could not load channel name");
-                    return new AdaptiveCardInvokeResponse();
+                    return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong reprocessing the file");
                 }
 
                 var teamId = teamDetails.AadGroupId;

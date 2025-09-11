@@ -5,12 +5,8 @@
 /// </summary>
 [Microsoft.AspNetCore.Mvc.Route("api/messages")]
 [ApiController]
-public class AgentController : ControllerBase
+public class AgentController(ILogger<AgentController> logger) : ControllerBase
 {
-    private readonly ILogger<AgentController> _logger;
-
-    public AgentController(ILogger<AgentController> logger) => _logger = logger;
-
     [HttpPost]
     [Authorize(AuthenticationSchemes = "AgentScheme")]
     [ApiExplorerSettings(IgnoreApi = true)]
@@ -23,7 +19,7 @@ public class AgentController : ControllerBase
 
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing card action");
+            logger.LogError(ex, "Error processing card action");
             throw;
         }
     }
@@ -40,7 +36,7 @@ public class AgentController : ControllerBase
 
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing message");
+            logger.LogError(ex, "Error processing message");
             throw;
         }
     }
