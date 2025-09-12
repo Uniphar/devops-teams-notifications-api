@@ -4,20 +4,21 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
 
-    public async Task CheckBotIsInTeam(string teamId)
+    public async Task CheckBotIsInTeam(string teamId, CancellationToken token)
     {
         var result = await graphClient
             .Teams[teamId]
             .InstalledApps
             .GetAsync(requestConfiguration =>
-            {
-                requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
-                requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
-            });
+                {
+                    requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
+                    requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                },
+                token);
         if (result?.Value?.Count == 0) throw new InvalidOperationException("Please install the bot on the Team, it is not installed at the moment");
     }
 
-    public async Task<string> GetTeamIdAsync(string teamName)
+    public async Task<string> GetTeamIdAsync(string teamName, CancellationToken token)
     {
         var groups = await graphClient.Teams.GetAsync(request =>
         {
@@ -30,23 +31,42 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return teamId ?? throw new InvalidOperationException($"Team with name {teamName} does not exist");
     }
 
-    public async Task<string> GetChannelIdAsync(string teamId, string channelName)
+    public async Task<string> GetChannelIdAsync(string teamId, string channelName, CancellationToken token)
     {
         var channels = await graphClient
             .Teams[teamId]
             .Channels
             .GetAsync(request =>
-            {
-                request.QueryParameters.Filter = $"displayName eq '{channelName}'";
-                request.QueryParameters.Select = ["id"];
-            });
+                {
+                    request.QueryParameters.Filter = $"displayName eq '{channelName}'";
+                    request.QueryParameters.Select = ["id"];
+                },
+                token);
 
         if (channels is not { Value: [{ Id: var channelId }] })
             throw new InvalidOperationException($"Channel with name {channelName} does not exist");
         return channelId ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
     }
 
-    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId)
+    public async Task<string> GetGroupNameUniqueName(string groupId, CancellationToken token)
+    {
+        // teamId and groupId is the same, but if you look up group from a team it won't work!
+        var group = await graphClient
+            .Groups[groupId]
+            .GetAsync(cancellationToken: token);
+        return group?.UniqueName ?? throw new InvalidOperationException($"No group found for team {groupId}");
+    }
+
+    public async Task<string> GetTeamName(string teamId, CancellationToken token)
+    {
+        var team = await graphClient
+            .Teams[teamId]
+            .GetAsync(cancellationToken: token);
+        return team?.DisplayName ?? throw new InvalidOperationException($"No DisplayName found for team {teamId}");
+    }
+
+
+    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
         var response = await graphClient
@@ -74,7 +94,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                 URI = new Uri(response.OdataNextLink)
             };
 
-            response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse());
+            response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
             if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
             id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
             if (!string.IsNullOrWhiteSpace(id))
@@ -85,37 +105,32 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     }
 
 
-    public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream)
+    public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream, CancellationToken token)
     {
-        var file = await GetFile(teamId, channelId, fileUrl);
+        var file = await GetFile(teamId, channelId, fileUrl, token);
         var content = file.Content;
-        await content.PutAsync(fileStream);
-        var fileFound = await file.GetAsync();
+        await content.PutAsync(fileStream, cancellationToken: token);
+        var fileFound = await file.GetAsync(cancellationToken: token);
         if (fileFound is { WebUrl: not null })
             // add web=1 to open in web view, this will make it possible to edit it in browser
             return fileFound.WebUrl + "?web=1";
         return string.Empty;
     }
 
-    public async Task<string> GetFileUrl(string teamId, string channelId, string fileUrl) => (await (await GetFile(teamId, channelId, fileUrl)).GetAsync())?.WebUrl ?? string.Empty;
-
-    public async Task<KeyValuePair<string, Stream>> GetFileStreamAsync(string teamId, string channelId, string fileUrl)
+    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation, CancellationToken token)
     {
-        var file = await GetFile(teamId, channelId, fileUrl);
-        var fileMeta = await file.GetAsync();
-        var content = await file.Content.GetAsync() ?? Stream.Null;
-        var fileName = fileMeta?.Name ?? Path.GetFileName(fileUrl);
-
-        return new KeyValuePair<string, Stream>(fileName, content);
+        var item = await GetFile(teamId, channelId, fileLocation, token);
+        var content = await item.GetAsync(cancellationToken: token);
+        return content?.Name ?? string.Empty;
     }
 
-    private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileUrl)
+    private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileLocation, CancellationToken token)
     {
-        var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync();
+        var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
         var driveId = filesFolder?.ParentReference?.DriveId;
 
         var item = graphClient.Drives[driveId].Items["root"];
-        var file = item.ItemWithPath(fileUrl);
+        var file = item.ItemWithPath(fileLocation);
         return file;
     }
 }

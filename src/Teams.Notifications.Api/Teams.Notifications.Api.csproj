@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AdaptiveCards" Version="*" />
-    <PackageReference Include="OpenTelemetry" Version="*" />
+    <!-- START OpenTelemetry-->
     <!--for aspnet core api, to filter /health, AddAspNetCoreInstrumentation-->
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="*" />
     <!--for http traffic, AddHttpClientInstrumentation-->
@@ -31,6 +31,13 @@
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" Version="*" />
     <!--local debug, to sent it to console-->
     <PackageReference Include="OpenTelemetry.Exporter.Console" Version="*" />
+    <!--azure app insight-->
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="*" />
+    <!--AddContainerDetector-->
+    <packageReference Include="OpenTelemetry.Resources.Container" Version="*-*" />
+    <!-- AddHostDetector-->
+    <PackageReference Include="OpenTelemetry.Resources.Host" Version="*-*" />
+    <!-- END OpenTelemetry-->
     <PackageReference Include="Microsoft.Identity.Web" Version="*" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="*" />
     <PackageReference Include="Azure.Identity" Version="*" />
@@ -44,12 +51,12 @@
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="*" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="*" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.*" />
+
     <PackageReference Include="Swashbuckle.AspNetCore" Version="*" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="*" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="*" />
     <PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
-    <ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj"
-                      OutputItemType="Analyzer" />
+    <ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" OutputItemType="Analyzer" />
     <AdditionalFiles Include="Templates\**\*.json" />
   </ItemGroup>
 

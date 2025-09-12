@@ -77,7 +77,6 @@ builder
     .Services
     .AddControllers(o =>
     {
-        o.Filters.Add<ExceptionHandlingFilter>();
         o.Conventions.Add(new HideChannelApi());
         o.Conventions.Add(new GlobalRouteConvention(appPathPrefix));
     })
@@ -90,10 +89,8 @@ builder
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 if (environment != "local")
-{
     // key vault is required for ApplicationInsights, since it needs the connection string
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
-}
 
 builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
@@ -144,7 +141,6 @@ builder.Services.AddSwaggerGen(c =>
 // that state survives Agent restarts, and operate correctly
 // in a cluster of Agent instances.
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
-builder.Services.AddSingleton<ICustomEventTelemetryClient, CustomEventTelemetryClient>();
 
 // Configure OpenTelemetry
 builder.RegisterOpenTelemetry(appPathPrefix);

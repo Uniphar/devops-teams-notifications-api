@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -14,13 +15,10 @@ public class FrontgateApiService(IHttpClientFactory factory, IConfiguration conf
     private readonly string frontgateApiScope = $"api://{Consts.FrontgateApiClient}/{configuration[Consts.FrontgateApiClientId]}/.default";
 
 
-    public async Task<HttpResponseMessage> UploadFileAsync(string uploadUrl, Stream fileStream, string fileName)
+    public async Task<HttpResponseMessage> UploadFileAsync(string originalBlobUrl, LogicAppFrontgateFileInformation fileInfo, CancellationToken cancellationTokentoken)
     {
-        var token = await credential.GetTokenAsync(new TokenRequestContext([frontgateApiScope]), CancellationToken.None);
+        var token = await credential.GetTokenAsync(new TokenRequestContext([frontgateApiScope]), cancellationTokentoken);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
-        using var form = new MultipartFormDataContent();
-        var streamContent = new StreamContent(fileStream);
-        form.Add(streamContent, "file", fileName);
-        return await _httpClient.PostAsync(uploadUrl, form);
+        return await _httpClient.PostAsJsonAsync("/frontgate/Reprocess/reprocess-file-logic-app?originalBlobUrl=" + originalBlobUrl, fileInfo);
     }
 }

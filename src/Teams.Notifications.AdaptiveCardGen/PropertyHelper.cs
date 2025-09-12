@@ -68,18 +68,18 @@ public static class PropertyHelper
     /// <returns>true if the files props are correct</returns>
     public static bool IsValidFile(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
     {
-        wrongItems = nameAndType.Where(x => x is { Value: "file" or "file?", Key: not ("FileUrl" or "FileName") }).ToDictionary(x => x.Key, x => x.Value);
+        wrongItems = nameAndType.Where(x => x is { Value: "file" or "file?", Key: not ("FileUrl" or "FileName" or "FileLocation") }).ToDictionary(x => x.Key, x => x.Value);
         return !wrongItems.Any();
     }
 
     /// <summary>
-    ///     checks if the list has any file template, which is either FileUrl or FileName
+    ///     checks if the list has any file template, which is either FileUrl or FileName or FileLocation
     /// </summary>
     /// <param name="nameAndType"></param>
     /// <returns></returns>
     public static bool HasFileTemplate(this Dictionary<string, string> nameAndType)
     {
-        return nameAndType.Any(x => x is { Value: "file" or "file?", Key: "FileUrl" or "FileName" });
+        return nameAndType.Any(x => x is { Value: "file" or "file?", Key: "FileUrl" or "FileName" or "FileLocation" });
     }
 }
 

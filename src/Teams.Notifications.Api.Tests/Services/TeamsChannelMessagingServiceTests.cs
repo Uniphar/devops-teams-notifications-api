@@ -39,8 +39,8 @@ public sealed class TeamsChannelMessagingServiceTests
         const string teamName = "Notifications Platform";
         const string channelName = "File Errors";
 
-        var teamId = await _teamManager.GetTeamIdAsync(teamName);
-        var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName);
+        var teamId = await _teamManager.GetTeamIdAsync(teamName, CancellationToken.None);
+        var channelId = await _teamManager.GetChannelIdAsync(teamId, channelName, CancellationToken.None);
         Assert.IsNotEmpty(teamId);
         Assert.IsNotEmpty(channelId);
     }
