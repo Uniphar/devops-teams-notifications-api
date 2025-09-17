@@ -21,6 +21,8 @@ var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllow
 var clientSecret = builder.Configuration["ClientSecret"];
 
 var environmentSuffix = environment == "prod" ? string.Empty : $".{environment}";
+//locally 
+if (environment == "local") environmentSuffix = ".dev";
 
 var apiUrl = new Uri($"https://api{environmentSuffix}.uniphar.ie/");
 
@@ -89,7 +91,7 @@ builder
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 if (environment != "local")
-    // key vault is required for ApplicationInsights, since it needs the connection string
+    // key vault is required for ApplicationInsights, since it needs the connection string, but locally we will remove it
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 
 builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);

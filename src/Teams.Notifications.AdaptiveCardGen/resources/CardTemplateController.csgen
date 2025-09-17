@@ -45,7 +45,7 @@ public class {{controllerName}} : ControllerBase
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
-    public async Task<IActionResult> PostWithFile({{modelName}} model, [FromForm] IFormFile file, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
+    public async Task<IActionResult> PostWithFile({{modelName}} model, IFormFile file, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
     {
         using (_telemetry.WithProperties(new { CreateOrUpdateCardForModel = "{{modelName}}" }))
             await _cardManagerService.CreateOrUpdateAsync(jsonFileName, file, model, teamName, channelName, cancellationToken);
