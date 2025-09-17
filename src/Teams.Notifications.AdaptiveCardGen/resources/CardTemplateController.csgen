@@ -39,13 +39,13 @@ public class {{controllerName}} : ControllerBase
             await _cardManagerService.CreateOrUpdateAsync(jsonFileName, null, model, teamName, channelName, cancellationToken);
             return Ok();
     }
-    [HttpPut("WithFile")]
+    [HttpPost("WithFile")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
-    public async Task<IActionResult> PostWithFile({{modelName}} model, IFormFile file, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
+    public async Task<IActionResult> PostWithFile([FromQuery]{{modelName}} model, IFormFile file, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
     {
         using (_telemetry.WithProperties(new { CreateOrUpdateCardForModel = "{{modelName}}" }))
             await _cardManagerService.CreateOrUpdateAsync(jsonFileName, file, model, teamName, channelName, cancellationToken);
