@@ -29,7 +29,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             token);
     }
 
-    public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
+
+    public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
         await teamsManagerService.CheckBotIsInTeam(teamId, token);
@@ -43,7 +44,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 new()
                 {
                     ContentType = AdaptiveCard.ContentType,
-                    Content = await CreateCardFromTemplateAsync(jsonFileName, model, teamsManagerService, teamId, channelId, channelName, token)
+                    Content = await CreateCardFromTemplateAsync(jsonFileName, file, model, teamsManagerService, teamId, channelId, channelName, token)
                 }
             }
         };
@@ -75,20 +76,16 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             token);
     }
 
-    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName, CancellationToken token) where T : BaseTemplateModel
+    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, IFormFile? formFile, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}", token);
         var props = text.GetMustachePropertiesFromString();
         var fileUrl = string.Empty;
         var fileLocation = string.Empty;
-        if (props.HasFileTemplate())
+        if (props.HasFileTemplate() && formFile != null)
         {
-            var file = model.GetFileValue();
-            if (file != null)
-            {
-                fileLocation = channelName + "/error/" + file.FileName;
-                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + file.FileName, file.OpenReadStream(), token);
-            }
+            fileLocation = channelName + "/error/" + formFile.FileName;
+            fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + formFile.FileName, formFile.OpenReadStream(), token);
         }
 
         // replace all props with the values

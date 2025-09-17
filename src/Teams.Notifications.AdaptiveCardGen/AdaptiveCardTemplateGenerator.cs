@@ -39,18 +39,6 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
             if (action is not AdaptiveExecuteAction adaptiveExecute) continue;
             var data = Regex.Replace(adaptiveExecute.DataJson, @"\r\n?|\n", string.Empty);
             var props = data.ExtractPropertiesFromJson();
-
-            // to show warnings in the IDE, we need to use this, just an example
-            spc.ReportDiagnostic(Diagnostic.Create(
-                new DiagnosticDescriptor(
-                    "ACG001",
-                    "AdaptiveCard Property Names",
-                    "Properties: {0}",
-                    "AdaptiveCardGen",
-                    DiagnosticSeverity.Warning,
-                    true),
-                Location.None,
-                string.Join(",", props)));
             if (!props.Any()) continue;
             var actionModelName = $"{fileName}{adaptiveExecute.Verb}ActionModel";
             var actionSource = GenerateActionModel(actionModelName, props);
@@ -111,17 +99,12 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
     private static string GenerateModel(string modelName, Dictionary<string, string> props)
     {
-        if (props.Values.Any(x => x == "file"))
-        {
-            props = props.Where(x => x.Value != "file").ToDictionary(x => x.Key, x => x.Value);
-            props.Add("File", "required IFormFile");
-        }
+        // filter out all the Files, this is a separate controller
+        props = props
+            .Where(x => x.Value != "file")
+            .Where(x => x.Value != "file?")
+            .ToDictionary(x => x.Key, x => x.Value);
 
-        if (props.Values.Any(x => x == "file?"))
-        {
-            props = props.Where(x => x.Value != "file?").ToDictionary(x => x.Key, x => x.Value);
-            props.Add("File", "IFormFile?");
-        }
 
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
         var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {MakeRequiredIfNeeded(p.Value)} {p.Key} {{ get; set; }}"));
