@@ -48,11 +48,11 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         var modelProperties = content.GetMustachePropertiesFromString();
         var modelName = $"{fileName}Model";
         var controllerName = $"{fileName}Controller";
-        var filename = $"{fileName}.json";
+    
         var modelSource = GenerateModel(modelName, modelProperties);
         spc.AddSource($"{modelName}.g.cs", SourceText.From(modelSource, Encoding.UTF8));
 
-        var controllerSource = GenerateController(modelName, controllerName, filename, spc);
+        var controllerSource = GenerateController(modelName, controllerName, fileName, spc);
         spc.AddSource($"{controllerName}.g.cs", SourceText.From(controllerSource, Encoding.UTF8));
     }
 
@@ -121,12 +121,10 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
               """;
     }
 
-    private static string GenerateController(string modelName, string controllerName, string filename, SourceProductionContext spc)
+    private static string GenerateController(string modelName, string controllerName, string name, SourceProductionContext spc)
     {
         var text = ReadResource("CardTemplateController.csgen", spc)
-            .Replace("{{controllerName}}", controllerName)
-            .Replace("{{modelName}}", modelName)
-            .Replace("{{filename}}", filename);
+            .Replace("{{name}}", name);
         return text;
     }
 
