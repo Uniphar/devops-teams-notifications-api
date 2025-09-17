@@ -39,7 +39,7 @@ public class {{controllerName}} : ControllerBase
             await _cardManagerService.CreateOrUpdateAsync(jsonFileName, null, model, teamName, channelName, cancellationToken);
             return Ok();
     }
-    [HttpPut("/WithFile")]
+    [HttpPut("WithFile")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]

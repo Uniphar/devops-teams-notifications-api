@@ -1,33 +1,33 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
 
-		<StartWorkingDirectory>$(MSBuildThisFileDirectory)</StartWorkingDirectory>
-	</PropertyGroup>
+    <StartWorkingDirectory>$(MSBuildThisFileDirectory)</StartWorkingDirectory>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="AdaptiveCards" Version="*" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="9.*" />
-		<PackageReference Include="Spectre.Console.Cli" Version="*" />
-		<ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AdaptiveCards" Version="*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.*" />
+    <PackageReference Include="Spectre.Console.Cli" Version="*" />
+    <ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<Using Include="System.ComponentModel.DataAnnotations" />
-		<Using Include="System.Text.Encodings.Web" />
-		<Using Include="System.Text.Json" />
-		<Using Include="System.Text.Json.Serialization" />
-		<Using Include="Microsoft.Extensions.Configuration" />
-		<Using Include="Microsoft.Extensions.DependencyInjection" />
-		<Using Include="Microsoft.Extensions.Hosting" />
-		<Using Include="Microsoft.Extensions.Logging" />
-		<Using Include="Spectre.Console" />
-		<Using Include="Spectre.Console.Cli" />
-	</ItemGroup>
+  <ItemGroup>
+    <Using Include="System.ComponentModel.DataAnnotations" />
+    <Using Include="System.Text.Encodings.Web" />
+    <Using Include="System.Text.Json" />
+    <Using Include="System.Text.Json.Serialization" />
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Microsoft.Extensions.Hosting" />
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="Spectre.Console" />
+    <Using Include="Spectre.Console.Cli" />
+  </ItemGroup>
 
 </Project>
