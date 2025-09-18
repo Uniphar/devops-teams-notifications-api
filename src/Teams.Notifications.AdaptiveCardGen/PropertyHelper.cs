@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Teams.Notifications.AdaptiveCardGen;
 
-public static class PropertyHelper
+internal static class PropertyHelper
 {
     private static readonly Regex MustacheRegex = new("{{(?<name>.*?):(?<type>.*?)}}",
         RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -39,47 +39,6 @@ public static class PropertyHelper
             .Select(x => new { name = x.Groups["name"].Value, type = x.Groups["type"].Value })
             .DistinctByProps(x => x.name);
         return properties.ToDictionary(m => m.name, m => m.type);
-    }
-
-
-    /// <summary>
-    ///     checks if the types are valid, atm int, string or file
-    /// </summary>
-    /// <param name="nameAndType"> types you want to check</param>
-    /// <param name="wrongItems">Items that are invalid</param>
-    /// <returns>True if no mismatches were found</returns>
-    public static bool IsValidTypes(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
-    {
-        //name is key, type is value, due to dict
-        wrongItems = nameAndType
-            .Where(x => x.Value is not
-                ("int" or "string" or "string?" or "file" or "file?")
-            )
-            .ToDictionary(x => x.Key, x => x.Value);
-
-        return !wrongItems.Any();
-    }
-
-    /// <summary>
-    ///     Files are uniquely named, this checks that
-    /// </summary>
-    /// <param name="nameAndType">Full list of props</param>
-    /// <param name="wrongItems">Any wrong FILE prop </param>
-    /// <returns>true if the files props are correct</returns>
-    public static bool IsValidFile(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
-    {
-        wrongItems = nameAndType.Where(x => x is { Value: "file" or "file?", Key: not ("FileUrl" or "FileName" or "FileLocation") }).ToDictionary(x => x.Key, x => x.Value);
-        return !wrongItems.Any();
-    }
-
-    /// <summary>
-    ///     checks if the list has any file template, which is either FileUrl or FileName or FileLocation
-    /// </summary>
-    /// <param name="nameAndType"></param>
-    /// <returns></returns>
-    public static bool HasFileTemplate(this Dictionary<string, string> nameAndType)
-    {
-        return nameAndType.Any(x => x is { Value: "file" or "file?", Key: "FileUrl" or "FileName" or "FileLocation" });
     }
 }
 

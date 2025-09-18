@@ -14,7 +14,6 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.*" />
     <PackageReference Include="Spectre.Console.Cli" Version="*" />
-    <ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" />
   </ItemGroup>
 
   <ItemGroup>

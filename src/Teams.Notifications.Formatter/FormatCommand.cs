@@ -1,5 +1,4 @@
 ﻿using AdaptiveCards;
-using Teams.Notifications.AdaptiveCardGen;
 using Teams.Notifications.Formatter.Util;
 
 namespace Teams.Notifications.Formatter;
