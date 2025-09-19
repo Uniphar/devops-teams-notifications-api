@@ -74,7 +74,7 @@ public class {{name}}Controller : ControllerBase
     [Produces("application/json")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [SwaggerResponse(StatusCodes.Status200OK, "Gets a card", typeof(ChatMessage))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Gets a card", typeof(AdaptiveCard))]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
     public async Task<ObjectResult> Get(string uniqueId, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)

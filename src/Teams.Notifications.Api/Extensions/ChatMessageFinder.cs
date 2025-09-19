@@ -2,14 +2,14 @@
 
 public static class ChatMessageFinder
 {
-    public static bool GetMessageThatHas(this ChatMessage chatMessage, string jsonFileName, string uniqueId)
+    public static AdaptiveCard? GetCardThatHas(this ChatMessage chatMessage, string jsonFileName, string uniqueId)
     {
         // quick skip, we don't want to give back a removed item
-        if (chatMessage.DeletedDateTime != null) return false;
+        if (chatMessage.DeletedDateTime != null) return null;
         var attachments = chatMessage.Attachments;
-        if (attachments == null) return false;
-        if (attachments.Count == 0) return false;
-        if (attachments.Any(a => a.Content == null)) return false;
+        if (attachments == null) return null;
+        if (attachments.Count == 0) return null;
+        if (attachments.Any(a => a.Content == null)) return null;
         foreach (var attachment in attachments)
         {
             if (string.IsNullOrWhiteSpace(attachment.Content)) continue;
@@ -17,9 +17,9 @@ public static class ChatMessageFinder
             var itemWithUnique = card.Body.FirstOrDefault(x => x.Id == uniqueId);
             if (itemWithUnique is not AdaptiveTextBlock adaptiveTextBlock) continue;
             if (adaptiveTextBlock.Text == jsonFileName)
-                return true;
+                return card;
         }
 
-        return false;
+        return null;
     }
 }
