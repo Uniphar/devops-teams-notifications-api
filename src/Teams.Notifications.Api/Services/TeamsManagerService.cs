@@ -64,9 +64,12 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .GetAsync(cancellationToken: token);
         return team?.DisplayName ?? throw new InvalidOperationException($"No DisplayName found for team {teamId}");
     }
-
-
     public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
+    {
+        return (await GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token))?.Id;
+    }
+
+    public async Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
         var response = await graphClient
@@ -83,9 +86,9 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .ToList();
         // no need to do anything if there is no message
         if (responses == null) return null;
-        var id = responses.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
-        if (!string.IsNullOrWhiteSpace(id))
-            return id;
+        var foundMessage = responses.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId));
+        if (foundMessage != null)
+            return foundMessage;
         while (response?.OdataNextLink != null)
         {
             var configuration = new RequestInformation
@@ -96,13 +99,13 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
             response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
             if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
-            id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
-            if (!string.IsNullOrWhiteSpace(id))
-                return id;
+            foundMessage = response.Value.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId));
         }
 
-        return id;
+        return foundMessage;
     }
+
+
 
 
     public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream, CancellationToken token)

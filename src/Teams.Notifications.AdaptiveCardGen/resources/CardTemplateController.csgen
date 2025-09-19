@@ -27,7 +27,7 @@ public class {{name}}Controller : ControllerBase
     [HttpPost("{{name}}")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Creates a card or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
     public async Task<IActionResult> Post({{name}}Model model, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
@@ -39,10 +39,10 @@ public class {{name}}Controller : ControllerBase
     [HttpPost("{{name}}WithFile")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Creates a card with file or updates it")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
-    public async Task<IActionResult> PostWithFile([FromQuery]{{name}}Model model, IFormFile file, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
+    public async Task<IActionResult> PostWithFile([FromQuery] {{name}}Model model, IFormFile file, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
     {
         using (_telemetry.WithProperties(new { CreateOrUpdateCardForModel = "{{name}}Model" }))
             await _cardManagerService.CreateOrUpdateAsync(jsonFileName, file, model, teamName, channelName, cancellationToken);
@@ -60,7 +60,7 @@ public class {{name}}Controller : ControllerBase
     [Produces("application/json")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [SwaggerResponse(StatusCodes.Status200OK, "Creates a new file error or updates it")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Deletes a card")]
     [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
     [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
     public async Task<IActionResult> Delete(string uniqueId, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
@@ -68,5 +68,19 @@ public class {{name}}Controller : ControllerBase
        using (_telemetry.WithProperties(new { DeleteCardForModel = "{{name}}Model" }))
            await _cardManagerService.DeleteCardAsync(jsonFileName, uniqueId, teamName, channelName, cancellationToken);
            return Ok();
+    }
+
+    [HttpGet("{{name}}")]
+    [Produces("application/json")]
+    // with swagger response you can give it a description
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [SwaggerResponse(StatusCodes.Status200OK, "Gets a card", typeof(ChatMessage))]
+    [SwaggerResponse(StatusCodes.Status400BadRequest, "You are doing something wrong!")]
+    [Authorize(Policy = Const.AuthorizationPolicyWriter, AuthenticationSchemes = "NotificationScheme")]
+    public async Task<ObjectResult> Get(string uniqueId, [FromQuery(Name = "TeamName")] string teamName, [FromQuery(Name = "ChannelName")] string channelName, CancellationToken cancellationToken)
+    {
+       using (_telemetry.WithProperties(new { GetCardForModel = "{{name}}Model" }))
+          return await _cardManagerService.GetCardAsync(jsonFileName, uniqueId, teamName, channelName, cancellationToken);
+         
     }
 }
