@@ -38,7 +38,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
         // check that we found the item to delete
         if (string.IsNullOrWhiteSpace(chatMessage?.Id)) return new BadRequestObjectResult("Unique ID was not found");
-        return new OkObjectResult(chatMessage);
+        return new OkObjectResult(chatMessage.ToJson());
     }
 
 
