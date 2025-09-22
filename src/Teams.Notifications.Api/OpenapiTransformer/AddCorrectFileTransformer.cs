@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.OpenApi;
 
 namespace Teams.Notifications.Api.OpenapiTransformer;
 
-public sealed class AddExternalDocsTransformer() : IOpenApiDocumentTransformer, IOpenApiOperationTransformer
+public sealed class AddCorrectFileTransformer() : IOpenApiDocumentTransformer, IOpenApiOperationTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {

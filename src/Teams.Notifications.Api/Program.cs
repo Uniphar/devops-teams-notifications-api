@@ -97,8 +97,8 @@ builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {
-    options.AddDocumentTransformer<AddExternalDocsTransformer>();
-    options.AddOperationTransformer<AddExternalDocsTransformer>();
+    options.AddDocumentTransformer<AddAdaptiveCardDocsTransformer>();
+    options.AddOperationTransformer<AddCorrectFileTransformer>();
 
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
