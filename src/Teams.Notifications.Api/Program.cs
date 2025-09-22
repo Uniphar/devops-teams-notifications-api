@@ -98,6 +98,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<AddExternalDocsTransformer>();
+    options.AddOperationTransformer<AddExternalDocsTransformer>();
 
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 });
