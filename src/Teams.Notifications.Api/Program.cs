@@ -1,4 +1,3 @@
-using Sample.Transformers;
 using Teams.Notifications.Api.OpenapiTransformer;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
