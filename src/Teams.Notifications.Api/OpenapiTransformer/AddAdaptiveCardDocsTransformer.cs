@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.OpenApi;
 
 namespace Teams.Notifications.Api.OpenapiTransformer;
 
-public sealed class AddAdaptiveCardDocsTransformer() : IOpenApiDocumentTransformer
+public sealed class AddAdaptiveCardDocsTransformer : IOpenApiDocumentTransformer
 {
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
@@ -23,5 +23,4 @@ public sealed class AddAdaptiveCardDocsTransformer() : IOpenApiDocumentTransform
 
         return Task.CompletedTask;
     }
-
 }
