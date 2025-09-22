@@ -64,10 +64,8 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .GetAsync(cancellationToken: token);
         return team?.DisplayName ?? throw new InvalidOperationException($"No DisplayName found for team {teamId}");
     }
-    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
-    {
-        return (await GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token))?.Id;
-    }
+
+    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token) => (await GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token))?.Id;
 
     public async Task<AdaptiveCard?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
     {
@@ -104,8 +102,6 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
         return foundMessage;
     }
-
-
 
 
     public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream, CancellationToken token)

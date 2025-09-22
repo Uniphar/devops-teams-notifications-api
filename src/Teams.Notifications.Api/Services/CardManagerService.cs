@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
-using Activity = Microsoft.Agents.Core.Models.Activity;
+﻿using Activity = Microsoft.Agents.Core.Models.Activity;
 using Attachment = Microsoft.Agents.Core.Models.Attachment;
 
 namespace Teams.Notifications.Api.Services;
 
 public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerService teamsManagerService, IConfiguration config, ICustomEventTelemetryClient telemetry) : ICardManagerService
 {
+  
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_TENANT_ID");
 
@@ -29,16 +29,15 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             },
             token);
     }
-
-    public async Task<ObjectResult> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
+    public async Task<string?> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
         await teamsManagerService.CheckBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
         // check that we found the item to delete
-        if (chatMessage == null || string.IsNullOrWhiteSpace(chatMessage?.Id)) return new NotFoundObjectResult(chatMessage);
-        return new OkObjectResult(chatMessage.ToJson());
+        if (chatMessage == null || string.IsNullOrWhiteSpace(chatMessage?.Id)) return null;
+        return chatMessage.ToJson();
     }
 
 

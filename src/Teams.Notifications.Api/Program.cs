@@ -1,3 +1,5 @@
+using Sample.Transformers;
+using Teams.Notifications.Api.OpenapiTransformer;
 using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
@@ -94,7 +96,12 @@ if (environment != "local")
 
 builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<AddExternalDocsTransformer>();
+
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
 // Register IStorage.  For development, MemoryStorage is suitable.
 // For production Agents, persisted storage should be used so
@@ -108,7 +115,6 @@ builder.RegisterOpenTelemetry(appPathPrefix);
 var app = builder.Build();
 app.MapHealthChecks("/health");
 app.MapOpenApi(appPathPrefix + "/swagger/{documentName}/openapi.json");
-//app.UseSwagger(options => { options.RouteTemplate = $"{appPathPrefix}/swagger/{{documentname}}/swagger.json"; });
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("v1/openapi.json", "V1");

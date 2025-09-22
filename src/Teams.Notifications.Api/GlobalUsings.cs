@@ -48,7 +48,6 @@ global using Microsoft.IdentityModel.Validators;
 global using Microsoft.Kiota.Abstractions;
 global using Microsoft.OpenApi.Models;
 global using Polly;
-global using Swashbuckle.AspNetCore.Annotations;
 global using Teams.Notifications.Api;
 global using Teams.Notifications.Api.Action.Models;
 global using Teams.Notifications.Api.Agents;
