@@ -24,7 +24,8 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         {
             request.QueryParameters.Filter = $"displayName eq '{teamName}'";
             request.QueryParameters.Select = ["id"];
-        });
+        },
+        token);
 
         if (groups is not { Value: [{ Id: var teamId }] })
             throw new InvalidOperationException($"Team with name {teamName} does not exist");

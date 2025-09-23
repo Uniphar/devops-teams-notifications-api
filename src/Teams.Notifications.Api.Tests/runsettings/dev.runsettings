@@ -15,6 +15,7 @@
 	</DataCollectionRunSettings>
 	<TestRunParameters>
 		<Parameter name="Environment" value="dev" />
+		<Parameter name="ClientId" value="06c03a58-0e89-4100-b659-a8c5214afd11" />
 	</TestRunParameters>
 	<RunConfiguration>
 		<CollectSourceInformation>true</CollectSourceInformation>

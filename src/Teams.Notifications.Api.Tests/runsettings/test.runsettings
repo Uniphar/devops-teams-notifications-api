@@ -15,6 +15,7 @@
 	<TestRunParameters>
 		<CollectSourceInformation>true</CollectSourceInformation>
 		<Parameter name="Environment" value="test" />
+		<Parameter name="ClientId" value="7fcfe79f-21e8-4fbd-ae4d-48329d52870b" />
 	</TestRunParameters>
 	<RunConfiguration>
 		<MaxCpuCount>0</MaxCpuCount>
