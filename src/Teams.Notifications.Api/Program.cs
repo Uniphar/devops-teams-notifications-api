@@ -21,7 +21,7 @@ var tenantId = builder.Configuration["AZURE_TENANT_ID"] ?? throw new NoNullAllow
 var clientSecret = builder.Configuration["ClientSecret"];
 
 var environmentSuffix = environment == "prod" ? string.Empty : $".{environment}";
-//locally 
+
 if (environment == "local") environmentSuffix = ".dev";
 
 var apiUrl = new Uri($"https://api{environmentSuffix}.uniphar.ie/");
