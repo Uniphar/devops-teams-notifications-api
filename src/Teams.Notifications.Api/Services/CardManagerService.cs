@@ -36,8 +36,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
         // check that we found the item to delete
-        if (chatMessage == null || string.IsNullOrWhiteSpace(chatMessage?.Id)) return null;
-        return chatMessage.ToJson();
+        return chatMessage?.GetAdaptiveCardFromChatMessage();
     }
 
 
