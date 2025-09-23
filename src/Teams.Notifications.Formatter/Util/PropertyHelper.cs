@@ -34,29 +34,27 @@ internal static class PropertyHelper
     ///     checks if the types are valid, atm int, string or file
     /// </summary>
     /// <param name="nameAndType"> types you want to check</param>
-    /// <param name="wrongItems">Items that are invalid</param>
     /// <returns>True if no mismatches were found</returns>
-    public static bool IsValidTypes(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
+    public static Tuple<bool, Dictionary<string, string>> IsValidTypes(this Dictionary<string, string> nameAndType)
     {
         //name is key, type is value, due to dict
-        wrongItems = nameAndType
+        var wrongItems = nameAndType
             .Where(x => x.Value is not
                 ("int" or "string" or "string?" or "file" or "file?")
             )
             .ToDictionary(x => x.Key, x => x.Value);
 
-        return !wrongItems.Any();
+        return new Tuple<bool, Dictionary<string, string>>(!wrongItems.Any(), wrongItems);
     }
 
     /// <summary>
     ///     Files are uniquely named, this checks that
     /// </summary>
     /// <param name="nameAndType">Full list of props</param>
-    /// <param name="wrongItems">Any wrong FILE prop </param>
     /// <returns>true if the files props are correct</returns>
-    public static bool IsValidFile(this Dictionary<string, string> nameAndType, out Dictionary<string, string> wrongItems)
+    public static Tuple<bool, Dictionary<string, string>> IsValidFile(this Dictionary<string, string> nameAndType)
     {
-        wrongItems = nameAndType.Where(x => x is { Value: "file" or "file?", Key: not ("FileUrl" or "FileName" or "FileLocation") }).ToDictionary(x => x.Key, x => x.Value);
-        return !wrongItems.Any();
+        var wrongItems = nameAndType.Where(x => x is { Value: "file" or "file?", Key: not ("FileUrl" or "FileName" or "FileLocation") }).ToDictionary(x => x.Key, x => x.Value);
+        return new Tuple<bool, Dictionary<string, string>>(!wrongItems.Any(), wrongItems);
     }
 }
