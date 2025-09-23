@@ -107,6 +107,7 @@ jobs:
             }
 
       - name: Run integration tests
+        id: integration_tests
         working-directory: ./src/${{ inputs.applicationFolder }}.Tests
         continue-on-error: true
         run: dotnet test -v:q --nologo -s ./runsettings/${{ inputs.environment }}.runsettings --filter TestCategory=${{ inputs.testCategory }} --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
@@ -124,3 +125,6 @@ jobs:
       - name: Publish coverage in build summary # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
         run: cat coverage-results/SummaryGithub.md >> $GITHUB_STEP_SUMMARY # Adjust path and filename if necessary
         shell: bash
+      - name: Fail if tests failed
+        if: steps.integration_tests.outcome == 'failure'
+        run: exit 1
