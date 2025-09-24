@@ -8,7 +8,7 @@ internal sealed class GlobalRouteConvention : IApplicationModelConvention
 
     public GlobalRouteConvention(string appPathPrefix)
     {
-        ArgumentNullException.ThrowIfNull(appPathPrefix, nameof(appPathPrefix));
+        ArgumentNullException.ThrowIfNull(appPathPrefix);
         routePrefix = new AttributeRouteModel(new RouteAttribute(appPathPrefix));
     }
 

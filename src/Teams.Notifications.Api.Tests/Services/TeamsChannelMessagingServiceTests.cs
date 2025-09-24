@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Moq;
 using KeyValuePair = System.Collections.Generic.KeyValuePair;
 
 namespace Teams.Notifications.Api.Tests.Services;

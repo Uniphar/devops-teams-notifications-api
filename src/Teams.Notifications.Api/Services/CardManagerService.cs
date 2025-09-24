@@ -92,8 +92,10 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var props = text.GetMustachePropertiesFromString();
         var fileUrl = string.Empty;
         var fileLocation = string.Empty;
+        var fileName = string.Empty;
         if (props.HasFileTemplate() && formFile != null)
         {
+            fileName = formFile.FileName;
             fileLocation = channelName + "/error/" + formFile.FileName;
             await using var stream = formFile.OpenReadStream();
             await teamsManagerService.UploadFile(teamId, channelId, fileLocation, stream, token);
@@ -103,7 +105,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
         // replace all props with the values
 
-        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl, fileLocation);
+        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl, fileLocation, fileName);
         var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
         // some solution to be able to track a unique id across the channel
