@@ -126,8 +126,9 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         if (item is { WebUrl: not null })
             // add web=1 to open in web view, this will make it possible to edit it in browser
             return item.WebUrl + "?web=1";
-         throw new InvalidOperationException("No web url found at the location, but should be here now");
+        throw new InvalidOperationException("No web url found at the location, but should be here now");
     }
+
     public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation, CancellationToken token)
     {
         var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
@@ -145,5 +146,4 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         var driveItems = (await children.GetAsync(cancellationToken: cancellationToken))?.Value;
         return driveItems?.FirstOrDefault(x => x.Name == Path.GetFileName(fileUrl));
     }
-  
 }
