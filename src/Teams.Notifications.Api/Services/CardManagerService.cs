@@ -95,7 +95,10 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         if (props.HasFileTemplate() && formFile != null)
         {
             fileLocation = channelName + "/error/" + formFile.FileName;
-            fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + formFile.FileName, formFile.OpenReadStream(), token);
+            await using var stream = formFile.OpenReadStream();
+            await teamsManagerService.UploadFile(teamId, channelId, fileLocation, stream, token);
+            stream.Close();
+            fileUrl = await teamsManagerService.GetFileUrl(teamId, channelId, fileLocation, token);
         }
 
         // replace all props with the values

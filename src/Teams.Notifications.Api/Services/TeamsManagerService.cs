@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Services;
+﻿using System.Threading;
+
+namespace Teams.Notifications.Api.Services;
 
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
@@ -105,32 +107,43 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     }
 
 
-    public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream, CancellationToken token)
-    {
-        var file = await GetFile(teamId, channelId, fileUrl, token);
-        var content = file.Content;
-        await content.PutAsync(fileStream, cancellationToken: token);
-        var fileFound = await file.GetAsync(cancellationToken: token);
-        if (fileFound is { WebUrl: not null })
-            // add web=1 to open in web view, this will make it possible to edit it in browser
-            return fileFound.WebUrl + "?web=1";
-        return string.Empty;
-    }
-
-    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation, CancellationToken token)
-    {
-        var item = await GetFile(teamId, channelId, fileLocation, token);
-        var content = await item.GetAsync(cancellationToken: token);
-        return content?.Name ?? string.Empty;
-    }
-
-    private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileLocation, CancellationToken token)
+    public async Task UploadFile(string teamId, string channelId, string fileLocation, Stream fileStream, CancellationToken token)
     {
         var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
         var driveId = filesFolder?.ParentReference?.DriveId;
-
         var item = graphClient.Drives[driveId].Items["root"];
-        var file = item.ItemWithPath(fileLocation);
-        return file;
+        // same as the list, we need to make sure you don't just drop it in the sharepoint site folder
+        var content = item.ItemWithPath(fileLocation).Content;
+        await content.PutAsync(fileStream, cancellationToken: token);
     }
+
+    public async Task<string> GetFileUrl(string teamId, string channelId, string fileLocation, CancellationToken token)
+    {
+        var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
+        var driveId = filesFolder?.ParentReference?.DriveId;
+        if (driveId == null) return string.Empty;
+        var item = await GetDriveItem(driveId, fileLocation, token);
+        if (item is { WebUrl: not null })
+            // add web=1 to open in web view, this will make it possible to edit it in browser
+            return item.WebUrl + "?web=1";
+        return string.Empty;
+    }
+    public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation, CancellationToken token)
+    {
+        var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
+        var driveId = filesFolder?.ParentReference?.DriveId;
+        if (driveId == null) return string.Empty;
+        var item = await GetDriveItem(driveId, fileLocation, token);
+        return item?.Name ?? string.Empty;
+    }
+
+    private async Task<DriveItem?> GetDriveItem(string driveId, string fileUrl, CancellationToken cancellationToken = default)
+    {
+        var path = Path.GetDirectoryName(fileUrl);
+        var rootRequest = graphClient.Drives[driveId].Root;
+        var children = rootRequest.ItemWithPath(path).Children;
+        var driveItems = (await children.GetAsync(cancellationToken: cancellationToken))?.Value;
+        return driveItems?.FirstOrDefault(x => x.Name == Path.GetFileName(fileUrl));
+    }
+  
 }
