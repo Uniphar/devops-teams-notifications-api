@@ -121,20 +121,20 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     {
         var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
         var driveId = filesFolder?.ParentReference?.DriveId;
-        if (driveId == null) return string.Empty;
+        if (driveId == null) throw new InvalidOperationException("No drive found for the channel");
         var item = await GetDriveItem(driveId, fileLocation, token);
         if (item is { WebUrl: not null })
             // add web=1 to open in web view, this will make it possible to edit it in browser
             return item.WebUrl + "?web=1";
-        return string.Empty;
+         throw new InvalidOperationException("No web url found at the location, but should be here now");
     }
     public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation, CancellationToken token)
     {
         var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
         var driveId = filesFolder?.ParentReference?.DriveId;
-        if (driveId == null) return string.Empty;
+        if (driveId == null) throw new InvalidOperationException("No drive found for the channel");
         var item = await GetDriveItem(driveId, fileLocation, token);
-        return item?.Name ?? string.Empty;
+        return item?.Name ?? throw new InvalidOperationException("Name not found");
     }
 
     private async Task<DriveItem?> GetDriveItem(string driveId, string fileUrl, CancellationToken cancellationToken = default)
