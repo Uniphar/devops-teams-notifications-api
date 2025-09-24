@@ -67,7 +67,7 @@ public static class PropertyHelper
                 return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
             case "file":
             case "file?":
-                return jsonString.ReplaceForFile(toReplace,  fileUrl, fileLocation, fileName);
+                return jsonString.ReplaceForFile(toReplace, fileUrl, fileLocation, fileName);
             default:
                 return jsonString;
         }

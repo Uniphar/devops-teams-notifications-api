@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Services;
 
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
@@ -23,11 +21,11 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     public async Task<string> GetTeamIdAsync(string teamName, CancellationToken token)
     {
         var groups = await graphClient.Teams.GetAsync(request =>
-        {
-            request.QueryParameters.Filter = $"displayName eq '{teamName}'";
-            request.QueryParameters.Select = ["id"];
-        },
-        token);
+            {
+                request.QueryParameters.Filter = $"displayName eq '{teamName}'";
+                request.QueryParameters.Select = ["id"];
+            },
+            token);
 
         if (groups is not { Value: [{ Id: var teamId }] })
             throw new InvalidOperationException($"Team with name {teamName} does not exist");
