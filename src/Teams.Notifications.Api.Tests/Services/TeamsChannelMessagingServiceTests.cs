@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using KeyValuePair = System.Collections.Generic.KeyValuePair;
-
-namespace Teams.Notifications.Api.Tests.Services;
+﻿namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]
 [TestCategory("Integration")]

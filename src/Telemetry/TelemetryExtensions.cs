@@ -1,8 +1,14 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -10,9 +16,9 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using KeyValuePair = System.Collections.Generic.KeyValuePair;
 
-namespace Teams.Notifications.Api.Telemetry;
+namespace Telemetry;
 
-internal static class TelemetryExtensions
+public static class TelemetryExtensions
 {
     public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, IEnumerable<KeyValuePair<string, string>> properties) => AmbientTelemetryProperties.Initialize(properties);
 
@@ -44,7 +50,7 @@ internal static class TelemetryExtensions
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
         builder.Logging.ClearProviders();
 
-        var openTelemetryBuilder = builder
+        builder
             .Services
             .AddOpenTelemetry()
             .ConfigureResource(r =>
@@ -81,9 +87,8 @@ internal static class TelemetryExtensions
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
                 .AddAspNetCoreInstrumentation()
-            );
-        if (builder.Environment.EnvironmentName != "local")
-            openTelemetryBuilder.UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
+            )
+            .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
     }
 
     public static Dictionary<string, object> ToDictionary(this object obj)
@@ -99,7 +104,7 @@ internal static class TelemetryExtensions
     }
 }
 
-internal sealed class AmbientTelemetryProperties : IDisposable
+public sealed class AmbientTelemetryProperties : IDisposable
 {
     private AmbientTelemetryProperties(IEnumerable<KeyValuePair<string, string>>? propertiesToInject) => PropertiesToInject = propertiesToInject?.ToImmutableArray() ?? ImmutableArray<KeyValuePair<string, string>>.Empty;
     private static AsyncLocal<ImmutableList<AmbientTelemetryProperties>> AmbientPropertiesAsyncLocal { get; } = new();

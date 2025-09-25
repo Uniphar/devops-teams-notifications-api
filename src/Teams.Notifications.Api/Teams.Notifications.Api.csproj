@@ -56,6 +56,7 @@
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="*" />
     <PackageReference Include="Microsoft.Graph.Beta" Version="5.*-*" />
     <ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\Telemetry\Telemetry.csproj" />
     <AdditionalFiles Include="Templates\**\*.json" />
   </ItemGroup>
 

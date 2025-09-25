@@ -1,12 +1,3 @@
-using System.Reflection;
-using AdaptiveCards;
-using Microsoft.Agents.Builder;
-using Microsoft.Agents.Core.Models;
-using Microsoft.Extensions.Configuration;
-using Moq;
-using Teams.Notifications.Api.Services.Interfaces;
-using Teams.Notifications.Api.Telemetry;
-
 namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]

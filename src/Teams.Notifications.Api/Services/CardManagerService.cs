@@ -24,7 +24,13 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             async (turnContext, cancellationToken) =>
             {
                 await adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken);
-                telemetry.TrackChannelDeleteMessage(teamName, channelName, conversationReference.ActivityId);
+                telemetry.TrackEvent("ChannelDeleteMessage",
+                    new
+                    {
+                        Team = teamName,
+                        Channel = channelName,
+                        Id = id
+                    });
             },
             token);
     }
@@ -75,13 +81,25 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 {
                     // item is new
                     var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
-                    telemetry.TrackChannelNewMessage(teamName, channelName, newResult.Id);
+                    telemetry.TrackEvent("ChannelNewMessage",
+                        new
+                        {
+                            Team = teamName,
+                            Channel = channelName,
+                            Id = newResult.Id
+                        });
                     return;
                 }
 
                 // item needs update
                 var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
-                telemetry.TrackChannelUpdateMessage(teamName, channelName, updateResult.Id);
+                telemetry.TrackEvent("ChannelUpdateMessage",
+                    new
+                    {
+                        Team = teamName,
+                        Channel = channelName,
+                        Id = updateResult.Id
+                    });
             },
             token);
     }

@@ -1,5 +1,3 @@
-using AdaptiveCards;
-
 namespace Teams.Notifications.Api.Tests.Extensions;
 
 [TestClass]

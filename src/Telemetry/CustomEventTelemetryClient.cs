@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Telemetry;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Telemetry;
 
 public class CustomEventTelemetryClient(ILogger<CustomEventTelemetryClient> logger) : ICustomEventTelemetryClient
 {
@@ -19,5 +21,10 @@ public class CustomEventTelemetryClient(ILogger<CustomEventTelemetryClient> logg
         //Note that it is logged as a critical event on purpose.
         //Otherwise, if you use the LogInformation, but LogLevel is set to Error it will not appear in AppInsights.
         logger.LogCritical(CustomEventAttribute, eventName);
+    }
+
+    public void TrackMessageError(object? message)
+    {
+        throw new NotImplementedException();
     }
 }

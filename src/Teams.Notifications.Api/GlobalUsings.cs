@@ -57,5 +57,5 @@ global using Teams.Notifications.Api.Middlewares;
 global using Teams.Notifications.Api.Models;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
-global using Teams.Notifications.Api.Telemetry;
+global using Telemetry;
 global using AdaptiveCard = AdaptiveCards.AdaptiveCard;
