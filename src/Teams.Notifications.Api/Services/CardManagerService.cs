@@ -116,7 +116,6 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             fileLocation = channelName + "/error/" + formFile.FileName;
             await using var stream = formFile.OpenReadStream();
             await teamsManagerService.UploadFile(teamId, channelId, fileLocation, stream, token);
-            stream.Close();
             fileUrl = await teamsManagerService.GetFileUrl(teamId, channelId, fileLocation, token);
         }
 
