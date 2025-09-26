@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.OpenApi;
 
-namespace Teams.Notifications.Api.OpenapiTransformer;
+namespace Teams.Notifications.Api.OpenApiTransformer;
 
 public sealed class AddAdaptiveCardDocsTransformer : IOpenApiDocumentTransformer
 {

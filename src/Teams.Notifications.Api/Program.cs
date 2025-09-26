@@ -1,10 +1,67 @@
-using Teams.Notifications.Api.OpenapiTransformer;
-using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
-using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
+global using Teams.Notifications.Api.OpenApiTransformer;
+global using System;
+global using System.Collections;
+global using System.Collections.Concurrent;
+global using System.Collections.Generic;
+global using System.Data;
+global using System.Diagnostics;
+global using System.Globalization;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.IO;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Reflection;
+global using System.Text.Json;
+global using System.Text.Json.Serialization;
+global using System.Text.RegularExpressions;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using AdaptiveCards;
+global using Azure.Core;
+global using Azure.Identity;
+global using Microsoft.Agents.Authentication;
+global using Microsoft.Agents.Builder;
+global using Microsoft.Agents.Builder.App;
+global using Microsoft.Agents.Builder.State;
+global using Microsoft.Agents.Core.Models;
+global using Microsoft.Agents.Core.Serialization;
+global using Microsoft.Agents.Hosting.AspNetCore;
+global using Microsoft.Agents.Storage;
+global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.ApplicationModels;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Microsoft.Graph.Beta;
+global using Microsoft.Graph.Beta.Models;
+global using Microsoft.Identity.Client;
+global using Microsoft.Identity.Web;
+global using Microsoft.IdentityModel.Protocols;
+global using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+global using Microsoft.IdentityModel.Tokens;
+global using Microsoft.IdentityModel.Validators;
+global using Microsoft.Kiota.Abstractions;
+global using Microsoft.OpenApi.Models;
+global using Polly;
+global using Teams.Notifications.Api;
+global using Teams.Notifications.Api.Action.Models;
+global using Teams.Notifications.Api.Agents;
+global using Teams.Notifications.Api.DelegatingHandlers;
+global using Teams.Notifications.Api.Extensions;
+global using Teams.Notifications.Api.Middlewares;
+global using Teams.Notifications.Api.Models;
+global using Teams.Notifications.Api.Services;
+global using Teams.Notifications.Api.Services.Interfaces;
+global using Telemetry;
+
 
 const string appPathPrefix = "devops-teams-notification-api";
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
 
 var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
 
@@ -93,7 +150,7 @@ if (environment != "local")
     // key vault is required for ApplicationInsights, since it needs the connection string, but locally we will remove it
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 
-builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
+builder.Services.AddSingleton<Microsoft.Agents.Builder.IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {

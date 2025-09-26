@@ -86,7 +86,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                         {
                             Team = teamName,
                             Channel = channelName,
-                            Id = newResult.Id
+                            newResult.Id
                         });
                     return;
                 }
@@ -98,7 +98,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     {
                         Team = teamName,
                         Channel = channelName,
-                        Id = updateResult.Id
+                        updateResult.Id
                     });
             },
             token);
