@@ -3,7 +3,7 @@
 /// <summary>
 ///     DO NOT CHANGE THIS, this is used by the Teams Agent to communicate with the API
 /// </summary>
-[Microsoft.AspNetCore.Mvc.Route("api/messages")]
+[Route("api/messages")]
 [ApiController]
 public class AgentController(ILogger<AgentController> logger) : ControllerBase
 {
