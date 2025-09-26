@@ -22,9 +22,4 @@ public class CustomEventTelemetryClient(ILogger<CustomEventTelemetryClient> logg
         //Otherwise, if you use the LogInformation, but LogLevel is set to Error it will not appear in AppInsights.
         logger.LogCritical(CustomEventAttribute, eventName);
     }
-
-    public void TrackMessageError(object? message)
-    {
-        throw new NotImplementedException();
-    }
 }
