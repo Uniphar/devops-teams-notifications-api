@@ -85,7 +85,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .ToList();
         // no need to do anything if there is no message
         if (responses == null) return null;
-        var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+        var foundMessage = responses.FirstOrDefault(s => s.GetCardThatHas(jsonFileName, uniqueId) != null)?.GetCardThatHas(jsonFileName, uniqueId);
         if (foundMessage != null)
             return foundMessage;
         while (response?.OdataNextLink != null)
@@ -98,7 +98,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
             response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
             if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
-            foundMessage = response.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+            foundMessage = response.Value.FirstOrDefault(s => s.GetCardThatHas(jsonFileName, uniqueId) != null)?.GetCardThatHas(jsonFileName, uniqueId)
         }
 
         return foundMessage;
