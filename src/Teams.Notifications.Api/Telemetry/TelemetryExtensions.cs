@@ -44,7 +44,7 @@ internal static class TelemetryExtensions
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
         builder.Logging.ClearProviders();
 
-        builder
+        var openTelemetryBuilder = builder
             .Services
             .AddOpenTelemetry()
             .ConfigureResource(r =>
@@ -81,8 +81,9 @@ internal static class TelemetryExtensions
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
                 .AddAspNetCoreInstrumentation()
-            )
-            .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
+            );
+        if (builder.Environment.EnvironmentName != "local")
+            openTelemetryBuilder.UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
     }
 
     public static Dictionary<string, object> ToDictionary(this object obj)

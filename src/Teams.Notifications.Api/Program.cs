@@ -22,6 +22,8 @@ var clientSecret = builder.Configuration["ClientSecret"];
 
 var environmentSuffix = environment == "prod" ? string.Empty : $".{environment}";
 
+if (environment == "local") environmentSuffix = ".dev";
+
 var apiUrl = new Uri($"https://api{environmentSuffix}.uniphar.ie/");
 
 
@@ -82,14 +84,12 @@ builder
     })
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 if (environment != "local")
-    // key vault is required for ApplicationInsights, since it needs the connection string
+    // key vault is required for ApplicationInsights, since it needs the connection string, but locally we will remove it
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 
 builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);

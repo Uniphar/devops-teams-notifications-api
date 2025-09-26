@@ -93,7 +93,7 @@ public class CardManagerServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await service.CreateOrUpdateAsync("WelcomeCard.json", model, "team", "channel", CancellationToken.None);
+        await service.CreateOrUpdateAsync("WelcomeCard.json", null, model, "team", "channel", CancellationToken.None);
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
@@ -135,7 +135,7 @@ public class CardManagerServiceTests
             UniqueId = "unique"
         };
         // Arrange
-        var result = await CardManagerService.CreateCardFromTemplateAsync("LogicAppError.json", model, _teamsManagerServiceMock.Object, string.Empty, string.Empty, string.Empty, CancellationToken.None);
+        var result = await CardManagerService.CreateCardFromTemplateAsync("LogicAppError.json", null, model, _teamsManagerServiceMock.Object, string.Empty, string.Empty, string.Empty, CancellationToken.None);
         // Assert
         Assert.IsNotEmpty(result);
         var item = AdaptiveCard.FromJson(result).Card;

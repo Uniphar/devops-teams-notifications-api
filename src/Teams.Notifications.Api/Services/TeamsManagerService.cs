@@ -73,7 +73,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .Teams[teamId]
             .Channels[channelId]
             .Messages
-            .GetAsync(x => { x.QueryParameters.Top = 100; });
+            .GetAsync(x => { x.QueryParameters.Top = 100; }, token);
         var responses = response
             ?.Value
             ?.Where(x => x.DeletedDateTime == null &&

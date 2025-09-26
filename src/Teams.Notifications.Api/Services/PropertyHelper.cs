@@ -4,6 +4,42 @@ namespace Teams.Notifications.Api.Services;
 
 public static class PropertyHelper
 {
+    private static readonly Regex MustacheRegex = new("{{(?<name>.*?):(?<type>.*?)}}",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    /// <summary>
+    ///     Very simple regex to go from {{name:type}} to a list of properties with their types
+    /// </summary>
+    /// <param name="content"></param>
+    /// <returns>Distinct list of all properties in the string</returns>
+    public static Dictionary<string, string> GetMustachePropertiesFromString(this string content)
+    {
+        // 
+        var matches = MustacheRegex.Matches(content);
+        var properties = matches
+            .Select(x => new { name = x.Groups["name"].Value, type = x.Groups["type"].Value })
+            .DistinctByProps(x => x.name);
+        return properties.ToDictionary(m => m.name, m => m.type);
+    }
+
+    private static IEnumerable<TSource> DistinctByProps<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+    {
+        HashSet<TKey> seenKeys = [];
+        foreach (var element in source)
+            if (seenKeys.Add(keySelector(element)))
+                yield return element;
+    }
+
+    /// <summary>
+    ///     checks if the list has any file template, which is either FileUrl or FileName or FileLocation
+    /// </summary>
+    /// <param name="nameAndType"></param>
+    /// <returns></returns>
+    public static bool HasFileTemplate(this Dictionary<string, string> nameAndType)
+    {
+        return nameAndType.Any(x => x is { Value: "file" or "file?", Key: "FileUrl" or "FileName" or "FileLocation" });
+    }
+
     private static string? ToJsonString(this string? value)
     {
         if (value == null || string.IsNullOrWhiteSpace(value)) return value;
