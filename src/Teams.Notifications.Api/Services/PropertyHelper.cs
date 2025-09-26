@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Nodes;
-
-namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Services;
 
 public static class PropertyHelper
 {

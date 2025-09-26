@@ -1,5 +1,3 @@
-using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
-
 namespace Teams.Notifications.Api;
 
 internal sealed class GlobalRouteConvention : IApplicationModelConvention

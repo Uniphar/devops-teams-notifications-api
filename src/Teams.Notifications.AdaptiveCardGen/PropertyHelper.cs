@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-using System.Text.RegularExpressions;
-
-namespace Teams.Notifications.AdaptiveCardGen;
+﻿namespace Teams.Notifications.AdaptiveCardGen;
 
 internal static class PropertyHelper
 {

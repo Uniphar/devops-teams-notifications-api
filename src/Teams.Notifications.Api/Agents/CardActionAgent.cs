@@ -1,8 +1,4 @@
-﻿using Microsoft.Agents.Builder.App.AdaptiveCards;
-using Microsoft.Agents.Extensions.Teams.Connector;
-using Microsoft.Agents.Extensions.Teams.Models;
-
-namespace Teams.Notifications.Api.Agents;
+﻿namespace Teams.Notifications.Api.Agents;
 
 public class CardActionAgent : AgentApplication
 {

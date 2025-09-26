@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Teams.Notifications.AdaptiveCardGen;
+﻿namespace Teams.Notifications.AdaptiveCardGen;
 
 public static class IEnumerableExtensions
 {

@@ -10,8 +10,11 @@ global using System.IdentityModel.Tokens.Jwt;
 global using System.IO;
 global using System.Linq;
 global using System.Net.Http;
+global using System.Net.Http.Headers;
+global using System.Net.Http.Json;
 global using System.Reflection;
 global using System.Text.Json;
+global using System.Text.Json.Nodes;
 global using System.Text.Json.Serialization;
 global using System.Text.RegularExpressions;
 global using System.Threading;
@@ -22,17 +25,22 @@ global using Azure.Identity;
 global using Microsoft.Agents.Authentication;
 global using Microsoft.Agents.Builder;
 global using Microsoft.Agents.Builder.App;
+global using Microsoft.Agents.Builder.App.AdaptiveCards;
 global using Microsoft.Agents.Builder.State;
 global using Microsoft.Agents.Core.Models;
 global using Microsoft.Agents.Core.Serialization;
+global using Microsoft.Agents.Extensions.Teams.Connector;
+global using Microsoft.Agents.Extensions.Teams.Models;
 global using Microsoft.Agents.Hosting.AspNetCore;
 global using Microsoft.Agents.Storage;
+global using Microsoft.AspNetCore.Authentication;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.Mvc.ApplicationModels;
+global using Microsoft.AspNetCore.OpenApi;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
@@ -57,11 +65,16 @@ global using Teams.Notifications.Api.Models;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
 global using Telemetry;
+global using Activity = Microsoft.Agents.Core.Models.Activity;
+global using Attachment = Microsoft.Agents.Core.Models.Attachment;
+global using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
+global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
+global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
 
 const string appPathPrefix = "devops-teams-notification-api";
 
-var builder = Microsoft.AspNetCore.Builder.WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 var environment = builder.Environment.EnvironmentName ?? throw new NoNullAllowedException("ASPNETCORE_ENVIRONMENT environment variable has to be set.");
 
@@ -89,7 +102,7 @@ var jitterRandomizer = new Random();
 builder.Services.AddHttpClient();
 builder
     .Services
-    .AddHttpClient(Consts.FrontgateApiClient, client => client.BaseAddress = apiUrl)
+    .AddHttpClient("frontgate-api", client => client.BaseAddress = apiUrl)
     .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) + TimeSpan.FromMilliseconds(jitterRandomizer.Next(0, 100))))
     .AddTransientHttpErrorPolicy(policyBuilder => policyBuilder.CircuitBreakerAsync(
         5,
@@ -150,7 +163,7 @@ if (environment != "local")
     // key vault is required for ApplicationInsights, since it needs the connection string, but locally we will remove it
     builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 
-builder.Services.AddSingleton<Microsoft.Agents.Builder.IMiddleware[]>(_ => [new CaptureMiddleware()]);
+builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {

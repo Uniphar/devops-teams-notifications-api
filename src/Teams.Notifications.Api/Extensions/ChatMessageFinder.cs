@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Extensions;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+
+namespace Teams.Notifications.Api.Extensions;
 
 public static class ChatMessageFinder
 {

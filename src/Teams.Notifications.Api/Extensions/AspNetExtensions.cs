@@ -47,10 +47,10 @@ internal static class AspNetExtensions
         // authorization policies for the API
         services
             .AddAuthorizationBuilder()
-            .AddPolicy(Const.AuthorizationPolicyWriter,
+            .AddPolicy("Teams.Notifications.Api.Writer",
                 policy =>
                 {
-                    policy.RequireRole(Const.AuthorizationPolicyWriter.ToLower());
+                    policy.RequireRole("teams.notifications.api.writer");
                     policy.AuthenticationSchemes.Add("NotificationScheme");
                 });
         // authentication for the BOT

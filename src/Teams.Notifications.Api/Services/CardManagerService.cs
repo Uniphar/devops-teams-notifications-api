@@ -1,5 +1,4 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
-using Attachment = Microsoft.Agents.Core.Models.Attachment;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
