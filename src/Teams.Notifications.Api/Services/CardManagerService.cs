@@ -121,7 +121,17 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
         // replace all props with the values
 
-        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl, fileLocation, fileName);
+        foreach (var (propertyName, type) in props)
+            text = text.FindPropAndReplace(model,
+                new PropHelperItem
+                {
+                    Property = propertyName,
+                    Type = type,
+                    FileUrl = fileUrl,
+                    FileLocation = fileLocation,
+                    FileName = fileName
+                });
+
         var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
         // some solution to be able to track a unique id across the channel

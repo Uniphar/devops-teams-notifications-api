@@ -1,5 +1,13 @@
 ﻿namespace Teams.Notifications.Api.Services;
 
+public record PropHelperItem
+{
+    public required string Property;
+    public required string Type;
+    public required string FileUrl;
+    public required string FileLocation;
+    public required string FileName;
+}
 public static class PropertyHelper
 {
     private static readonly Regex MustacheRegex = new("{{(?<name>.*?):(?<type>.*?)}}",
@@ -44,14 +52,14 @@ public static class PropertyHelper
         return JsonEncodedText.Encode(value).Value;
     }
 
-    public static string FindPropAndReplace<T>(this string jsonString, T model, string property, string type, string fileUrl, string fileLocation, string fileName)
+    public static string FindPropAndReplace<T>(this string jsonString, T model, PropHelperItem item )
     {
-        var toReplace = "{{" + property + ":" + type + "}}";
-        switch (type)
+        var toReplace = "{{" + item.Property + ":" + item.Type + "}}";
+        switch (item.Type)
         {
             // optional string, will remove the block if empty
             case "string?":
-                var valueString = model.TryGetStringPropertyValue(property).ToJsonString();
+                var valueString = model.TryGetStringPropertyValue(item.Property).ToJsonString();
                 if (!string.IsNullOrEmpty(valueString)) return jsonString.Replace(toReplace, valueString);
                 // Parse JSON and remove objects from arrays where the property value matches the placeholder
                 var rootString = JsonNode.Parse(jsonString);
@@ -60,12 +68,12 @@ public static class PropertyHelper
 
             // required string
             case "string":
-                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(property).ToJsonString());
+                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(item.Property).ToJsonString());
             case "int":
-                return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
+                return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(item.Property)?.ToString() ?? string.Empty);
             case "file":
             case "file?":
-                return jsonString.ReplaceForFile(toReplace, fileUrl, fileLocation, fileName);
+                return jsonString.ReplaceForFile(toReplace, item.FileUrl, item.FileLocation, item.FileName);
             default:
                 return jsonString;
         }
