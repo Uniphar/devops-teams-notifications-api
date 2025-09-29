@@ -127,7 +127,7 @@ public sealed class AmbientTelemetryProperties : IDisposable
         var listener = new ActivityListener
         {
             ShouldListenTo = _ => true,
-            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = Sample,
             ActivityStarted = activity =>
             {
                 // Inject custom properties (tags) into dependency
@@ -144,6 +144,11 @@ public sealed class AmbientTelemetryProperties : IDisposable
         // Insert at the beginning of the list so that these props take precedence over existing ambient props
         AmbientProperties = AmbientProperties.Insert(0, ambientProps);
         return ambientProps;
+    }
+
+    private static ActivitySamplingResult Sample(ref ActivityCreationOptions<ActivityContext> _)
+    {
+        return ActivitySamplingResult.AllDataAndRecorded;
     }
 }
 
