@@ -127,9 +127,12 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 {
                     Property = propertyName,
                     Type = type,
-                    FileUrl = fileUrl,
-                    FileLocation = fileLocation,
-                    FileName = fileName
+                    File = new PropHelperItemFile
+                    {
+                        Url = fileUrl,
+                        Location = fileLocation,
+                        Name = fileName
+                    }
                 });
 
         var item = AdaptiveCard.FromJson(text).Card;

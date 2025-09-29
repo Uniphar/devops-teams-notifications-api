@@ -4,10 +4,16 @@ public record PropHelperItem
 {
     public required string Property;
     public required string Type;
-    public required string FileUrl;
-    public required string FileLocation;
-    public required string FileName;
+    public required PropHelperItemFile File;
 }
+
+public record PropHelperItemFile
+{
+    public required string Url;
+    public required string Location;
+    public required string Name;
+}
+
 public static class PropertyHelper
 {
     private static readonly Regex MustacheRegex = new("{{(?<name>.*?):(?<type>.*?)}}",
@@ -73,7 +79,7 @@ public static class PropertyHelper
                 return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(item.Property)?.ToString() ?? string.Empty);
             case "file":
             case "file?":
-                return jsonString.ReplaceForFile(toReplace, item.FileUrl, item.FileLocation, item.FileName);
+                return jsonString.ReplaceForFile(toReplace, item.File);
             default:
                 return jsonString;
         }
@@ -130,10 +136,10 @@ public static class PropertyHelper
         return false;
     }
 
-    private static string ReplaceForFile(this string content, string toReplace, string fileUrl, string fileLocation, string fileName)
+    private static string ReplaceForFile(this string content, string toReplace, PropHelperItemFile file)
     {
         // if we don't have a file, we need to remove it anyway
-        if (string.IsNullOrWhiteSpace(fileUrl) || string.IsNullOrWhiteSpace(fileLocation) || string.IsNullOrWhiteSpace(fileName))
+        if (string.IsNullOrWhiteSpace(file.Url) || string.IsNullOrWhiteSpace(file.Location) || string.IsNullOrWhiteSpace(file.Name))
         {
             var root = JsonNode.Parse(content);
             root = RemoveObjectsWithPlaceholder(root, toReplace);
@@ -142,9 +148,9 @@ public static class PropertyHelper
 
         var toReplaceWith = toReplace switch
         {
-            "{{FileUrl:file}}" or "{{FileUrl:file?}}" => fileUrl,
-            "{{FileLocation:file}}" or "{{FileLocation:file?}}" => fileLocation,
-            "{{FileName:file}}" or "{{FileName:file?}}" => fileName,
+            "{{FileUrl:file}}" or "{{FileUrl:file?}}" => file.Url,
+            "{{FileLocation:file}}" or "{{FileLocation:file?}}" => file.Location,
+            "{{FileName:file}}" or "{{FileName:file?}}" => file.Name,
             _ => string.Empty
         };
         content = content.Replace(toReplace, toReplaceWith);
