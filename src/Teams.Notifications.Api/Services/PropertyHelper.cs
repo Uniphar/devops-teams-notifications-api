@@ -2,16 +2,16 @@
 
 public record PropHelperItem
 {
+    public required PropHelperItemFile File;
     public required string Property;
     public required string Type;
-    public required PropHelperItemFile File;
 }
 
 public record PropHelperItemFile
 {
-    public required string Url;
     public required string Location;
     public required string Name;
+    public required string Url;
 }
 
 public static class PropertyHelper
@@ -58,7 +58,7 @@ public static class PropertyHelper
         return JsonEncodedText.Encode(value).Value;
     }
 
-    public static string FindPropAndReplace<T>(this string jsonString, T model, PropHelperItem item )
+    public static string FindPropAndReplace<T>(this string jsonString, T model, PropHelperItem item)
     {
         var toReplace = "{{" + item.Property + ":" + item.Type + "}}";
         switch (item.Type)

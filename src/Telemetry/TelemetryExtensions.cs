@@ -146,10 +146,7 @@ public sealed class AmbientTelemetryProperties : IDisposable
         return ambientProps;
     }
 
-    private static ActivitySamplingResult Sample(ref ActivityCreationOptions<ActivityContext> _)
-    {
-        return ActivitySamplingResult.AllDataAndRecorded;
-    }
+    private static ActivitySamplingResult Sample(ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded;
 }
 
 file static class AnonymousObjectSerializer

@@ -70,6 +70,10 @@ global using Attachment = Microsoft.Agents.Core.Models.Attachment;
 global using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
+using Microsoft.Agents.Hosting.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Teams.Notifications.Api.Extensions;
 
 
 const string appPathPrefix = "devops-teams-notification-api";
