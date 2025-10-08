@@ -1,26 +1,21 @@
-using System.Net.Http.Headers;
-
 namespace Teams.Notifications.Api.Services;
 
 public class FrontgateApiService(IHttpClientFactory factory, IConfiguration configuration) : IFrontgateApiService
 {
-    private readonly HttpClient _httpClient = factory.CreateClient(Consts.FrontgateApiClient);
+    private readonly HttpClient _httpClient = factory.CreateClient("frontgate-api");
 
     private readonly TokenCredential credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
     {
-        TenantId = Environment.GetEnvironmentVariable(Consts.ExternalTenantIdEnvironmentVariableName)
+        TenantId = Environment.GetEnvironmentVariable("AZURE_ENTRA_EXTERNAL_TENANT_ID")
     });
 
-    private readonly string frontgateApiScope = $"api://{Consts.FrontgateApiClient}/{configuration[Consts.FrontgateApiClientId]}/.default";
+    private readonly string frontgateApiScope = $"api://frontgate-api/{configuration["frontgate-api-client-id"]}/.default";
 
 
-    public async Task<HttpResponseMessage> UploadFileAsync(string uploadUrl, Stream fileStream, string fileName)
+    public async Task<HttpResponseMessage> UploadFileAsync(string originalBlobUrl, LogicAppFrontgateFileInformation fileInfo, CancellationToken cancellationTokentoken)
     {
-        var token = await credential.GetTokenAsync(new TokenRequestContext([frontgateApiScope]), CancellationToken.None);
+        var token = await credential.GetTokenAsync(new TokenRequestContext([frontgateApiScope]), cancellationTokentoken);
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
-        using var form = new MultipartFormDataContent();
-        var streamContent = new StreamContent(fileStream);
-        form.Add(streamContent, "file", fileName);
-        return await _httpClient.PostAsync(uploadUrl, form);
+        return await _httpClient.PostAsJsonAsync("/frontgate/Reprocess/reprocess-file-logic-app?originalBlobUrl=" + originalBlobUrl, fileInfo);
     }
 }

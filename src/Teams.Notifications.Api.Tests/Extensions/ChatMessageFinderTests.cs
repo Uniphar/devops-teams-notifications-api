@@ -1,5 +1,3 @@
-using AdaptiveCards;
-
 namespace Teams.Notifications.Api.Tests.Extensions;
 
 [TestClass]
@@ -10,16 +8,16 @@ public class ChatMessageFinderTests
     public void GetMessageThatHas_ReturnsFalse_WhenDeleted()
     {
         var msg = new ChatMessage { DeletedDateTime = DateTimeOffset.UtcNow };
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 
     [TestMethod]
     public void GetMessageThatHas_ReturnsFalse_WhenAttachmentsNull()
     {
         var msg = new ChatMessage { Attachments = null };
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -29,8 +27,8 @@ public class ChatMessageFinderTests
         {
             Attachments = []
         };
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -40,8 +38,8 @@ public class ChatMessageFinderTests
         {
             Attachments = [new ChatMessageAttachment { Content = null }]
         };
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -56,8 +54,8 @@ public class ChatMessageFinderTests
             Attachments = [new ChatMessageAttachment { Content = card.ToJson() }]
         };
 
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -71,8 +69,8 @@ public class ChatMessageFinderTests
         {
             Attachments = [new ChatMessageAttachment { Content = card.ToJson() }]
         };
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsTrue(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNotNull(result);
     }
 
     [TestMethod]
@@ -86,8 +84,8 @@ public class ChatMessageFinderTests
         {
             Attachments = [new ChatMessageAttachment { Content = card.ToJson() }]
         };
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -98,8 +96,8 @@ public class ChatMessageFinderTests
             Attachments = [new ChatMessageAttachment { Content = "  " }]
         };
 
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 
     [TestMethod]
@@ -109,7 +107,7 @@ public class ChatMessageFinderTests
         {
             Attachments = [new ChatMessageAttachment { Content = " " }]
         };
-        var result = msg.GetMessageThatHas("file.json", "uid");
-        Assert.IsFalse(result);
+        var result = msg.GetCardThatHas("file.json", "uid");
+        Assert.IsNull(result);
     }
 }

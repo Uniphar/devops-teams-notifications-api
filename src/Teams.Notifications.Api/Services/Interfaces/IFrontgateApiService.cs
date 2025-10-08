@@ -2,5 +2,5 @@ namespace Teams.Notifications.Api.Services.Interfaces;
 
 public interface IFrontgateApiService
 {
-    Task<HttpResponseMessage> UploadFileAsync(string uploadUrl, Stream fileStream, string fileName);
+    Task<HttpResponseMessage> UploadFileAsync(string originalBlobUrl, LogicAppFrontgateFileInformation fileInfo, CancellationToken cancellationToken);
 }

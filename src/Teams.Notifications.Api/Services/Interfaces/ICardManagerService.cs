@@ -2,6 +2,7 @@
 
 public interface ICardManagerService
 {
-    Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel;
-    Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName);
+    Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? formFile, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel;
+    Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token);
+    Task<string?> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token);
 }

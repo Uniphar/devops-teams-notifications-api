@@ -1,12 +1,3 @@
-using System.Reflection;
-using AdaptiveCards;
-using Microsoft.Agents.Builder;
-using Microsoft.Agents.Core.Models;
-using Microsoft.Extensions.Configuration;
-using Moq;
-using Teams.Notifications.Api.Services.Interfaces;
-using Teams.Notifications.Api.Telemetry;
-
 namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]
@@ -35,10 +26,10 @@ public class CardManagerServiceTests
     {
         // Arrange
         var service = CreateService();
-        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync("team")).ReturnsAsync("teamId");
-        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam("teamId")).Returns(Task.CompletedTask);
-        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync("teamId", "channel")).ReturnsAsync("channelId");
-        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId("teamId", "channelId", "file.json", "uid")).ReturnsAsync("msgId");
+        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync("team", CancellationToken.None)).ReturnsAsync("teamId");
+        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam("teamId", CancellationToken.None)).Returns(Task.CompletedTask);
+        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync("teamId", "channel", CancellationToken.None)).ReturnsAsync("channelId");
+        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId("teamId", "channelId", "file.json", "uid", CancellationToken.None)).ReturnsAsync("msgId");
         _adapterMock
             .Setup(x => x.ContinueConversationAsync(
                 It.IsAny<string>(),
@@ -48,7 +39,7 @@ public class CardManagerServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await service.DeleteCardAsync("file.json", "uid", "team", "channel");
+        await service.DeleteCardAsync("file.json", "uid", "team", "channel", CancellationToken.None);
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
@@ -64,13 +55,13 @@ public class CardManagerServiceTests
     {
         // Arrange
         var service = CreateService();
-        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync(It.IsAny<string>())).ReturnsAsync("teamId");
-        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam(It.IsAny<string>())).Returns(Task.CompletedTask);
-        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync("channelId");
-        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((string?)null);
+        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync("teamId");
+        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam(It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync("channelId");
+        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((string?)null);
 
         // Act & Assert
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCardAsync("file.json", "uid", "team", "channel"));
+        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCardAsync("file.json", "uid", "team", "channel", CancellationToken.None));
     }
 
     [TestMethod]
@@ -79,10 +70,10 @@ public class CardManagerServiceTests
         // Arrange
         var service = CreateService();
         var model = new BaseTemplateModel { UniqueId = "uid" };
-        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync("team")).ReturnsAsync("teamId");
-        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam("teamId")).Returns(Task.CompletedTask);
-        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync("teamId", "channel")).ReturnsAsync("channelId");
-        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId("teamId", "channelId", "file.json", "uid")).ReturnsAsync((string?)null);
+        _teamsManagerServiceMock.Setup(x => x.GetTeamIdAsync("team", CancellationToken.None)).ReturnsAsync("teamId");
+        _teamsManagerServiceMock.Setup(x => x.CheckBotIsInTeam("teamId", CancellationToken.None)).Returns(Task.CompletedTask);
+        _teamsManagerServiceMock.Setup(x => x.GetChannelIdAsync("teamId", "channel", CancellationToken.None)).ReturnsAsync("channelId");
+        _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId("teamId", "channelId", "file.json", "uid", CancellationToken.None)).ReturnsAsync((string?)null);
 
         _adapterMock
             .Setup(x => x.ContinueConversationAsync(
@@ -93,7 +84,7 @@ public class CardManagerServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await service.CreateOrUpdateAsync("WelcomeCard.json", model, "team", "channel");
+        await service.CreateOrUpdateAsync("WelcomeCard.json", null, model, "team", "channel", CancellationToken.None);
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
@@ -135,7 +126,7 @@ public class CardManagerServiceTests
             UniqueId = "unique"
         };
         // Arrange
-        var result = await CardManagerService.CreateCardFromTemplateAsync("LogicAppError.json", model, _teamsManagerServiceMock.Object, string.Empty, string.Empty, string.Empty);
+        var result = await CardManagerService.CreateCardFromTemplateAsync("LogicAppError.json", null, model, _teamsManagerServiceMock.Object, string.Empty, string.Empty, string.Empty, CancellationToken.None);
         // Assert
         Assert.IsNotEmpty(result);
         var item = AdaptiveCard.FromJson(result).Card;

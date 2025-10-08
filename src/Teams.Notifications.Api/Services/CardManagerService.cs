@@ -1,5 +1,4 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
-using Attachment = Microsoft.Agents.Core.Models.Attachment;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -8,13 +7,13 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
     private readonly string _tenantId = config["AZURE_TENANT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_TENANT_ID");
 
-    public async Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName)
+    public async Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
-        var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
-        await teamsManagerService.CheckBotIsInTeam(teamId);
-        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
+        var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
+        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var conversationReference = GetConversationReference(channelId);
-        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId);
+        var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
         // check that we found the item to delete
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(uniqueId));
         conversationReference.ActivityId = id;
@@ -24,16 +23,33 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             async (turnContext, cancellationToken) =>
             {
                 await adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken);
-                telemetry.TrackChannelDeleteMessage(teamName, channelName, conversationReference.ActivityId);
+                telemetry.TrackEvent("ChannelDeleteMessage",
+                    new
+                    {
+                        Team = teamName,
+                        Channel = channelName,
+                        Id = id
+                    });
             },
-            CancellationToken.None);
+            token);
     }
 
-    public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string teamName, string channelName) where T : BaseTemplateModel
+    public async Task<string?> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
-        var teamId = await teamsManagerService.GetTeamIdAsync(teamName);
-        await teamsManagerService.CheckBotIsInTeam(teamId);
-        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName);
+        var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
+        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
+        var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
+        // check that we found the item to delete
+        return chatMessage?.GetAdaptiveCardFromChatMessage();
+    }
+
+
+    public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
+    {
+        var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
+        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
 
         var activity = new Activity
         {
@@ -43,12 +59,12 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 new()
                 {
                     ContentType = AdaptiveCard.ContentType,
-                    Content = await CreateCardFromTemplateAsync(jsonFileName, model, teamsManagerService, teamId, channelId, channelName)
+                    Content = await CreateCardFromTemplateAsync(jsonFileName, file, model, teamsManagerService, teamId, channelId, channelName, token)
                 }
             }
         };
         var conversationReference = GetConversationReference(channelId);
-        var idFromOldMessage = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, model.UniqueId);
+        var idFromOldMessage = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, model.UniqueId, token);
         // found an existing card so update id
         if (!string.IsNullOrWhiteSpace(idFromOldMessage))
         {
@@ -64,32 +80,61 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 {
                     // item is new
                     var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
-                    telemetry.TrackChannelNewMessage(teamName, channelName, newResult.Id);
+                    telemetry.TrackEvent("ChannelNewMessage",
+                        new
+                        {
+                            Team = teamName,
+                            Channel = channelName,
+                            newResult.Id
+                        });
                     return;
                 }
 
                 // item needs update
                 var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
-                telemetry.TrackChannelUpdateMessage(teamName, channelName, updateResult.Id);
+                telemetry.TrackEvent("ChannelUpdateMessage",
+                    new
+                    {
+                        Team = teamName,
+                        Channel = channelName,
+                        updateResult.Id
+                    });
             },
-            CancellationToken.None);
+            token);
     }
 
-    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName) where T : BaseTemplateModel
+    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, IFormFile? formFile, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
-        var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}");
+        var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}", token);
         var props = text.GetMustachePropertiesFromString();
         var fileUrl = string.Empty;
-        if (props.HasFileTemplate())
+        var fileLocation = string.Empty;
+        var fileName = string.Empty;
+        if (props.HasFileTemplate() && formFile != null)
         {
-            var file = model.GetFileValue();
-            if (file != null)
-                fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + file.FileName, file.OpenReadStream());
+            fileName = formFile.FileName;
+            fileLocation = channelName + "/error/" + formFile.FileName;
+            await using var stream = formFile.OpenReadStream();
+            await teamsManagerService.UploadFile(teamId, channelId, fileLocation, stream, token);
+            fileUrl = await teamsManagerService.GetFileUrl(teamId, channelId, fileLocation, token);
         }
 
         // replace all props with the values
 
-        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl);
+        foreach (var (propertyName, type) in props)
+            text = text.FindPropAndReplace(model,
+                new PropHelperItem
+                {
+                    Property = propertyName,
+                    Type = type,
+                    File = new PropHelperItemFile
+                    {
+                        Url = fileUrl,
+                        Location = fileLocation,
+                        Name = fileName
+                    }
+                });
+
         var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
         // some solution to be able to track a unique id across the channel

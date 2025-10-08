@@ -42,7 +42,7 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 9.x
 
@@ -107,11 +107,12 @@ jobs:
             }
 
       - name: Run integration tests
+        id: integration_tests
         working-directory: ./src/${{ inputs.applicationFolder }}.Tests
         continue-on-error: true
         run: dotnet test -v:q --nologo -s ./runsettings/${{ inputs.environment }}.runsettings --filter TestCategory=${{ inputs.testCategory }} --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
       - name: Generate coverage report
-        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        uses: danielpalme/ReportGenerator-GitHub-Action@v5
         with:
           reports: "./tests/*/coverage.cobertura.xml" # REQUIRED # The coverage reports that should be parsed (separated by semicolon). Globbing is supported.
           targetdir: "coverage-results" # REQUIRED # The directory where the generated report should be saved.
@@ -124,3 +125,6 @@ jobs:
       - name: Publish coverage in build summary # Only applicable if 'MarkdownSummaryGithub' or one of the other Markdown report types is generated
         run: cat coverage-results/SummaryGithub.md >> $GITHUB_STEP_SUMMARY # Adjust path and filename if necessary
         shell: bash
+      - name: Fail if tests failed
+        if: steps.integration_tests.outcome == 'failure'
+        run: exit 1

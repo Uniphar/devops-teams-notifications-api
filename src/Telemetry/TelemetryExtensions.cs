@@ -1,8 +1,14 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq.Expressions;
-using Azure.Monitor.OpenTelemetry.Exporter;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Instrumentation.AspNetCore;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -10,9 +16,9 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using KeyValuePair = System.Collections.Generic.KeyValuePair;
 
-namespace Teams.Notifications.Api.Telemetry;
+namespace Telemetry;
 
-internal static class TelemetryExtensions
+public static class TelemetryExtensions
 {
     public static AmbientTelemetryProperties WithProperties(this ICustomEventTelemetryClient telemetry, IEnumerable<KeyValuePair<string, string>> properties) => AmbientTelemetryProperties.Initialize(properties);
 
@@ -20,7 +26,10 @@ internal static class TelemetryExtensions
 
     public static AmbientTelemetryProperties WithProperty(this ICustomEventTelemetryClient telemetry, string name, string value) => AmbientTelemetryProperties.Initialize([KeyValuePair.Create(name, value)]);
 
-    /// <summary>Send an <see cref="ICustomEventTelemetryClient" /> for display in Diagnostic Search and in the Analytics Portal.</summary>
+    /// <summary>
+    ///     Send an <see cref="ICustomEventTelemetryClient" /> for display in Diagnostic Search and in the Analytics
+    ///     Portal.
+    /// </summary>
     /// <param name="telemetry">The telemetry client.</param>
     /// <param name="eventName">The name of the event.</param>
     /// <param name="properties">An anonymous object whose properties will be stringified and added to the event.</param>
@@ -28,68 +37,58 @@ internal static class TelemetryExtensions
 
     public static void TrackEvent(this ICustomEventTelemetryClient telemetry, string eventName) => telemetry.TrackEvent(eventName);
 
-    public static void TrackError(this ICustomEventTelemetryClient telemetry, string error, object properties) => telemetry.TrackException(new Exception(error), properties.GrabProperties()!);
-
-    public static void TrackError(this ICustomEventTelemetryClient telemetry, Exception ex, string eventName, object properties)
-    {
-        telemetry.TrackEvent(eventName);
-        telemetry.TrackException(ex, properties.GrabProperties()!);
-    }
 
     public static void RegisterOpenTelemetry(this IHostApplicationBuilder builder, string serviceName)
     {
-        var resourceBuilder = ResourceBuilder
-            .CreateDefault()
-            .AddAttributes(new Dictionary<string, object>
-            {
-                ["service.name"] = serviceName,
-                ["host.name"] = Environment.MachineName
-            });
         builder.Services.Configure<AspNetCoreTraceInstrumentationOptions>(options =>
         {
             // Filter out health checks
             options.Filter = httpContext => !httpContext.Request.Path.Value?.Contains("health") ?? true;
             options.RecordException = true;
         });
-        builder.Logging.AddOpenTelemetry(options =>
-        {
-            options.SetResourceBuilder(resourceBuilder);
-            options.IncludeScopes = true;
-            options.IncludeFormattedMessage = true;
-            options.ParseStateValues = true;
-        });
-
+        builder.Services.AddSingleton<ICustomEventTelemetryClient, CustomEventTelemetryClient>();
         var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS:CONNECTIONSTRING"];
+        builder.Logging.ClearProviders();
+
         builder
             .Services
             .AddOpenTelemetry()
-            .UseAzureMonitorExporter(x => x.ConnectionString = appInsightsConnectionString)
-            .WithTracing(tracerProviderBuilder =>
+            .ConfigureResource(r =>
             {
-                tracerProviderBuilder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddSource(serviceName)
-                    .AddSource("Azure.*");
-
+                r.AddContainerDetector();
+                r.AddHostDetector();
+                r.AddService(serviceName);
+                r.AddTelemetrySdk();
+                r.AddAttributes(new Dictionary<string, object>
+                {
+                    ["service.name"] = serviceName,
+                    ["service.instance.id"] = Environment.MachineName,
+                    ["host.name"] = Environment.MachineName,
+                    ["os.description"] = RuntimeInformation.OSDescription,
+                    ["environment"] = builder.Configuration["ASPNETCORE_ENVIRONMENT"] ?? "dev",
+                    ["deployment.environment"] = builder.Configuration["DEPLOYMENT_ENVIRONMENT"] ?? "dev"
+                });
+            })
+            .WithTracing(x =>
+            {
 #if LOCAL || DEBUG
-                tracerProviderBuilder.AddConsoleExporter();
+                x.AddConsoleExporter();
+                //no sampling in local environment
+                x.SetSampler(new AlwaysOnSampler());
 #endif
+                x.AddAspNetCoreInstrumentation();
+                x.AddHttpClientInstrumentation();
             })
-            .WithLogging(loggerBuilder =>
-            {
-                loggerBuilder
-                    .AddProcessor<CustomEventLogRecordProcessor>();
-            })
-            .WithMetrics(metricsBuilder =>
-            {
-                metricsBuilder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddMeter(serviceName)
-                    .AddHttpClientInstrumentation()
-                    .AddRuntimeInstrumentation();
-            });
+            .WithLogging(x => x
+                .AddProcessor<LogRecordAmbientPropertiesProcessor>()
+            )
+            .WithMetrics(x => x
+                .AddMeter(serviceName)
+                .AddHttpClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddAspNetCoreInstrumentation()
+            )
+            .UseAzureMonitor(options => { options.ConnectionString = appInsightsConnectionString; });
     }
 
     public static Dictionary<string, object> ToDictionary(this object obj)
@@ -105,18 +104,18 @@ internal static class TelemetryExtensions
     }
 }
 
-internal sealed class AmbientTelemetryProperties : IDisposable
+public sealed class AmbientTelemetryProperties : IDisposable
 {
     private AmbientTelemetryProperties(IEnumerable<KeyValuePair<string, string>>? propertiesToInject) => PropertiesToInject = propertiesToInject?.ToImmutableArray() ?? ImmutableArray<KeyValuePair<string, string>>.Empty;
     private static AsyncLocal<ImmutableList<AmbientTelemetryProperties>> AmbientPropertiesAsyncLocal { get; } = new();
 
-    private static ImmutableList<AmbientTelemetryProperties> AmbientProperties
+    internal static ImmutableList<AmbientTelemetryProperties> AmbientProperties
     {
         get => AmbientPropertiesAsyncLocal.Value ?? ImmutableList<AmbientTelemetryProperties>.Empty;
         set => AmbientPropertiesAsyncLocal.Value = value;
     }
 
-    private ImmutableArray<KeyValuePair<string, string>> PropertiesToInject { get; }
+    internal ImmutableArray<KeyValuePair<string, string>> PropertiesToInject { get; }
 
     public void Dispose()
     {
@@ -128,7 +127,7 @@ internal sealed class AmbientTelemetryProperties : IDisposable
         var listener = new ActivityListener
         {
             ShouldListenTo = _ => true,
-            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            Sample = Sample,
             ActivityStarted = activity =>
             {
                 // Inject custom properties (tags) into dependency
@@ -147,6 +146,7 @@ internal sealed class AmbientTelemetryProperties : IDisposable
         return ambientProps;
     }
 
+    private static ActivitySamplingResult Sample(ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded;
 }
 
 file static class AnonymousObjectSerializer
@@ -208,6 +208,7 @@ file static class AnonymousObjectSerializer
             TimeSpan ts => ts.ToString("c"),
             DateTime dt => dt.ToUniversalTime().ToString("O"),
             DateTimeOffset dto => dto.ToUniversalTime().ToString("O"),
+            null => null,
             _ => value.ToString()
         };
 
