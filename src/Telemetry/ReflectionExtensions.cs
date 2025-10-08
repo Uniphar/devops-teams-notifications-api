@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Telemetry;
+﻿using System.Reflection;
+
+namespace Telemetry;
 
 public static class ReflectionExtensions
 {

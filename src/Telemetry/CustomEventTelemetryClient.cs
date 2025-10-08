@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Telemetry;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Telemetry;
 
 public class CustomEventTelemetryClient(ILogger<CustomEventTelemetryClient> logger) : ICustomEventTelemetryClient
 {

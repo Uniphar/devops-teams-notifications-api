@@ -1,7 +1,7 @@
 ﻿using OpenTelemetry;
 using OpenTelemetry.Logs;
 
-namespace Teams.Notifications.Api.Telemetry;
+namespace Telemetry;
 
 /// <summary>
 ///     Service to inject ambient telemetry properties into LogRecord

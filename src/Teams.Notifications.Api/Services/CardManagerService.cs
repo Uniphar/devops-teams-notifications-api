@@ -1,5 +1,4 @@
-﻿using Activity = Microsoft.Agents.Core.Models.Activity;
-using Attachment = Microsoft.Agents.Core.Models.Attachment;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -24,9 +23,25 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             async (turnContext, cancellationToken) =>
             {
                 await adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken);
-                telemetry.TrackChannelDeleteMessage(teamName, channelName, conversationReference.ActivityId);
+                telemetry.TrackEvent("ChannelDeleteMessage",
+                    new
+                    {
+                        Team = teamName,
+                        Channel = channelName,
+                        Id = id
+                    });
             },
             token);
+    }
+
+    public async Task<string?> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
+    {
+        var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
+        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
+        var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
+        // check that we found the item to delete
+        return chatMessage?.GetAdaptiveCardFromChatMessage();
     }
 
 
@@ -65,13 +80,25 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 {
                     // item is new
                     var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
-                    telemetry.TrackChannelNewMessage(teamName, channelName, newResult.Id);
+                    telemetry.TrackEvent("ChannelNewMessage",
+                        new
+                        {
+                            Team = teamName,
+                            Channel = channelName,
+                            newResult.Id
+                        });
                     return;
                 }
 
                 // item needs update
                 var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
-                telemetry.TrackChannelUpdateMessage(teamName, channelName, updateResult.Id);
+                telemetry.TrackEvent("ChannelUpdateMessage",
+                    new
+                    {
+                        Team = teamName,
+                        Channel = channelName,
+                        updateResult.Id
+                    });
             },
             token);
     }
@@ -82,15 +109,32 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var props = text.GetMustachePropertiesFromString();
         var fileUrl = string.Empty;
         var fileLocation = string.Empty;
+        var fileName = string.Empty;
         if (props.HasFileTemplate() && formFile != null)
         {
+            fileName = formFile.FileName;
             fileLocation = channelName + "/error/" + formFile.FileName;
-            fileUrl = await teamsManagerService.UploadFile(teamId, channelId, channelName + "/error/" + formFile.FileName, formFile.OpenReadStream(), token);
+            await using var stream = formFile.OpenReadStream();
+            await teamsManagerService.UploadFile(teamId, channelId, fileLocation, stream, token);
+            fileUrl = await teamsManagerService.GetFileUrl(teamId, channelId, fileLocation, token);
         }
 
         // replace all props with the values
 
-        foreach (var (propertyName, type) in props) text = text.FindPropAndReplace(model, propertyName, type, fileUrl, fileLocation);
+        foreach (var (propertyName, type) in props)
+            text = text.FindPropAndReplace(model,
+                new PropHelperItem
+                {
+                    Property = propertyName,
+                    Type = type,
+                    File = new PropHelperItemFile
+                    {
+                        Url = fileUrl,
+                        Location = fileLocation,
+                        Name = fileName
+                    }
+                });
+
         var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
         // some solution to be able to track a unique id across the channel

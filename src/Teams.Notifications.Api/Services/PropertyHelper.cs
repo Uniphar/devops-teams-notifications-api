@@ -1,6 +1,18 @@
-﻿using System.Text.Json.Nodes;
+﻿namespace Teams.Notifications.Api.Services;
 
-namespace Teams.Notifications.Api.Services;
+public record PropHelperItem
+{
+    public required PropHelperItemFile File;
+    public required string Property;
+    public required string Type;
+}
+
+public record PropHelperItemFile
+{
+    public required string Location;
+    public required string Name;
+    public required string Url;
+}
 
 public static class PropertyHelper
 {
@@ -46,14 +58,14 @@ public static class PropertyHelper
         return JsonEncodedText.Encode(value).Value;
     }
 
-    public static string FindPropAndReplace<T>(this string jsonString, T model, string property, string type, string fileUrl, string fileLocation)
+    public static string FindPropAndReplace<T>(this string jsonString, T model, PropHelperItem item)
     {
-        var toReplace = "{{" + property + ":" + type + "}}";
-        switch (type)
+        var toReplace = "{{" + item.Property + ":" + item.Type + "}}";
+        switch (item.Type)
         {
             // optional string, will remove the block if empty
             case "string?":
-                var valueString = model.TryGetStringPropertyValue(property).ToJsonString();
+                var valueString = model.TryGetStringPropertyValue(item.Property).ToJsonString();
                 if (!string.IsNullOrEmpty(valueString)) return jsonString.Replace(toReplace, valueString);
                 // Parse JSON and remove objects from arrays where the property value matches the placeholder
                 var rootString = JsonNode.Parse(jsonString);
@@ -62,12 +74,12 @@ public static class PropertyHelper
 
             // required string
             case "string":
-                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(property).ToJsonString());
+                return jsonString.Replace(toReplace, model.TryGetStringPropertyValue(item.Property).ToJsonString());
             case "int":
-                return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(property)?.ToString() ?? string.Empty);
+                return jsonString.Replace(toReplace, model.TryGetIntPropertyValue(item.Property)?.ToString() ?? string.Empty);
             case "file":
             case "file?":
-                return jsonString.ReplaceForFile(toReplace, model, fileUrl, fileLocation);
+                return jsonString.ReplaceForFile(toReplace, item.File);
             default:
                 return jsonString;
         }
@@ -124,24 +136,22 @@ public static class PropertyHelper
         return false;
     }
 
-    private static string ReplaceForFile<T>(this string content, string toReplace, T model, string fileUrl, string fileLocation)
+    private static string ReplaceForFile(this string content, string toReplace, PropHelperItemFile file)
     {
-        var toReplaceWith = string.Empty;
         // if we don't have a file, we need to remove it anyway
-        var file = model.GetFileValue();
-        if (file == null)
+        if (string.IsNullOrWhiteSpace(file.Url) || string.IsNullOrWhiteSpace(file.Location) || string.IsNullOrWhiteSpace(file.Name))
         {
             var root = JsonNode.Parse(content);
             root = RemoveObjectsWithPlaceholder(root, toReplace);
             return root?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? content;
         }
 
-        toReplaceWith = toReplace switch
+        var toReplaceWith = toReplace switch
         {
-            "{{FileUrl:file}}" or "{{FileUrl:file?}}" => fileUrl,
-            "{{FileLocation:file}}" or "{{FileLocation:file?}}" => fileLocation,
+            "{{FileUrl:file}}" or "{{FileUrl:file?}}" => file.Url,
+            "{{FileLocation:file}}" or "{{FileLocation:file?}}" => file.Location,
             "{{FileName:file}}" or "{{FileName:file?}}" => file.Name,
-            _ => toReplaceWith
+            _ => string.Empty
         };
         content = content.Replace(toReplace, toReplaceWith);
         return content;

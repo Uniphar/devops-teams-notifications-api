@@ -1,5 +1,3 @@
-using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
-
 namespace Teams.Notifications.Api;
 
 internal sealed class GlobalRouteConvention : IApplicationModelConvention
@@ -8,7 +6,7 @@ internal sealed class GlobalRouteConvention : IApplicationModelConvention
 
     public GlobalRouteConvention(string appPathPrefix)
     {
-        ArgumentNullException.ThrowIfNull(appPathPrefix, nameof(appPathPrefix));
+        ArgumentNullException.ThrowIfNull(appPathPrefix);
         routePrefix = new AttributeRouteModel(new RouteAttribute(appPathPrefix));
     }
 

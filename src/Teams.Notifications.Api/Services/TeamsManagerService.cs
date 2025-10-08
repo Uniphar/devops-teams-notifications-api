@@ -21,10 +21,11 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     public async Task<string> GetTeamIdAsync(string teamName, CancellationToken token)
     {
         var groups = await graphClient.Teams.GetAsync(request =>
-        {
-            request.QueryParameters.Filter = $"displayName eq '{teamName}'";
-            request.QueryParameters.Select = ["id"];
-        });
+            {
+                request.QueryParameters.Filter = $"displayName eq '{teamName}'";
+                request.QueryParameters.Select = ["id"];
+            },
+            token);
 
         if (groups is not { Value: [{ Id: var teamId }] })
             throw new InvalidOperationException($"Team with name {teamName} does not exist");
@@ -65,8 +66,9 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return team?.DisplayName ?? throw new InvalidOperationException($"No DisplayName found for team {teamId}");
     }
 
+    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token) => (await GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token))?.Id;
 
-    public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
+    public async Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
         var response = await graphClient
@@ -83,9 +85,9 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .ToList();
         // no need to do anything if there is no message
         if (responses == null) return null;
-        var id = responses.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
-        if (!string.IsNullOrWhiteSpace(id))
-            return id;
+        var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+        if (foundMessage != null)
+            return foundMessage;
         while (response?.OdataNextLink != null)
         {
             var configuration = new RequestInformation
@@ -96,41 +98,50 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
             response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
             if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
-            id = response.Value.FirstOrDefault(s => s.GetMessageThatHas(jsonFileName, uniqueId))?.Id;
-            if (!string.IsNullOrWhiteSpace(id))
-                return id;
+            foundMessage = response.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
         }
 
-        return id;
+        return foundMessage;
     }
 
 
-    public async Task<string> UploadFile(string teamId, string channelId, string fileUrl, Stream fileStream, CancellationToken token)
+    public async Task UploadFile(string teamId, string channelId, string fileLocation, Stream fileStream, CancellationToken token)
     {
-        var file = await GetFile(teamId, channelId, fileUrl, token);
-        var content = file.Content;
+        var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
+        var driveId = filesFolder?.ParentReference?.DriveId;
+        var item = graphClient.Drives[driveId].Items["root"];
+        // same as the list, we need to make sure you don't just drop it in the sharepoint site folder
+        var content = item.ItemWithPath(fileLocation).Content;
         await content.PutAsync(fileStream, cancellationToken: token);
-        var fileFound = await file.GetAsync(cancellationToken: token);
-        if (fileFound is { WebUrl: not null })
+    }
+
+    public async Task<string> GetFileUrl(string teamId, string channelId, string fileLocation, CancellationToken token)
+    {
+        var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
+        var driveId = filesFolder?.ParentReference?.DriveId;
+        if (driveId == null) throw new InvalidOperationException("No drive found for the channel");
+        var item = await GetDriveItem(driveId, fileLocation, token);
+        if (item is { WebUrl: not null })
             // add web=1 to open in web view, this will make it possible to edit it in browser
-            return fileFound.WebUrl + "?web=1";
-        return string.Empty;
+            return item.WebUrl + "?web=1";
+        throw new InvalidOperationException("No web url found at the location, but should be here now");
     }
 
     public async Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation, CancellationToken token)
     {
-        var item = await GetFile(teamId, channelId, fileLocation, token);
-        var content = await item.GetAsync(cancellationToken: token);
-        return content?.Name ?? string.Empty;
-    }
-
-    private async Task<CustomDriveItemItemRequestBuilder> GetFile(string teamId, string channelId, string fileLocation, CancellationToken token)
-    {
         var filesFolder = await graphClient.Teams[teamId].Channels[channelId].FilesFolder.GetAsync(cancellationToken: token);
         var driveId = filesFolder?.ParentReference?.DriveId;
+        if (driveId == null) throw new InvalidOperationException("No drive found for the channel");
+        var item = await GetDriveItem(driveId, fileLocation, token);
+        return item?.Name ?? throw new InvalidOperationException("Name not found");
+    }
 
-        var item = graphClient.Drives[driveId].Items["root"];
-        var file = item.ItemWithPath(fileLocation);
-        return file;
+    private async Task<DriveItem?> GetDriveItem(string driveId, string fileUrl, CancellationToken cancellationToken = default)
+    {
+        var path = Path.GetDirectoryName(fileUrl);
+        var rootRequest = graphClient.Drives[driveId].Root;
+        var children = rootRequest.ItemWithPath(path).Children;
+        var driveItems = (await children.GetAsync(cancellationToken: cancellationToken))?.Value;
+        return driveItems?.FirstOrDefault(x => x.Name == Path.GetFileName(fileUrl));
     }
 }

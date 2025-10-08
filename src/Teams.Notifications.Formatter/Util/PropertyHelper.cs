@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace Teams.Notifications.Formatter;
+namespace Teams.Notifications.Formatter.Util;
 
 internal static class PropertyHelper
 {

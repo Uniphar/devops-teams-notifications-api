@@ -1,4 +1,4 @@
-﻿namespace Teams.Notifications.Api.Telemetry;
+﻿namespace Telemetry;
 
 public interface ICustomEventTelemetryClient
 {
