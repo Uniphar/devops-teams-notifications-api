@@ -37,6 +37,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
     )
     $devopsClusterIdentityName = Resolve-UniComputeDomainSAName $Environment $global:p_devopsDomain
     $aksClusterApp = Get-AzADApplication -DisplayName $devopsClusterIdentityName
+    $deploymentName = Resolve-DeploymentName -Suffix '-TeamsNotificationApiBot'
     if ($PSCmdlet.ShouldProcess('Devops', 'Deploy')) {
         # we need a bot service which is not the workload identity, but a separate app registration (so we can get its secret for local debugging)
         # so to do this we will create a debug bot in the dev environment and give it the same permissions as the workload identity
