@@ -54,17 +54,20 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
                 $devopsBotEntraIdServicePrincipalDebug = New-AzADServicePrincipal -ApplicationId $devopsBotEntraIdAppDebug.AppId 
             }
         
+            $debugDeploymentConfig = @{
+                Mode              = 'Incremental'
+                Name              = $deploymentName
+                ResourceGroupName = $devopsDomainRgName
+                TemplateFile      = $botTemplate
+                endpoint          = 'https://XXXXX.devtunnels.ms/devops-teams-notification-api/api/messages'
+                environment       = 'debug'
+                botName           = $devopsBotNameDebug
+                devopsBotAppId    = $devopsBotEntraIdAppDebug.AppId
+                Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+            }
             # creates the resources for the bot only!
             # endpoint is just an example, you will need to change it all the time
-            New-AzResourceGroupDeployment -Mode Incremental `
-                -Name $deploymentName `
-                -ResourceGroupName $devopsDomainRgName `
-                -TemplateFile $botTemplate `
-                -endpoint 'https://XXXXX.devtunnels.ms/devops-teams-notification-api/api/messages' `
-                -environment 'debug' `
-                -botName $devopsBotNameDebug `
-                -devopsBotAppId $devopsBotEntraIdAppDebug.AppId `
-                -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+            New-AzResourceGroupDeployment @debugDeploymentConfig
 
             $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
             Connect-MgGraph -AccessToken $token.Token -NoWelcome
@@ -72,16 +75,19 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
             Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $botPermissionsNeeded -RevokeExisting   
         
         }
+        $deploymentConfig = @{
+            Mode              = 'Incremental'
+            Name              = $deploymentName
+            ResourceGroupName = $devopsDomainRgName
+            TemplateFile      = $botTemplate
+            endpoint          = "https://api.$Environment.uniphar.ie/devops-teams-notification-api/api/messages"
+            environment       = $Environment
+            botName           = $devopsBotName
+            devopsBotAppId    = $aksClusterApp.AppId
+            Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+        }
         # deploy the bot service, using the workload identity of the k8s cluster
-        New-AzResourceGroupDeployment -Mode Incremental `
-            -Name $deploymentName `
-            -ResourceGroupName $devopsDomainRgName `
-            -TemplateFile $botTemplate `
-            -endpoint "https://api.$Environment.uniphar.ie/devops-teams-notification-api/api/messages" `
-            -environment $Environment `
-            -botName $devopsBotName `
-            -devopsBotAppId $aksClusterApp.AppId `
-            -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+        New-AzResourceGroupDeployment @deploymentConfig
 
         # devops-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
         # in the future add revoke existing if needed and use a custom workload identity for the bot
@@ -90,15 +96,18 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         
     }
     else {
-        $TestResult = Test-AzResourceGroupDeployment -Mode Incremental `
-            -Name $deploymentName `
-            -ResourceGroupName $devopsDomainRgName `
-            -TemplateFile $botTemplate `
-            -endpoint "https://api.$Environment.uniphar.ie/devops-teams-notification-api/api/messages" `
-            -environment $Environment `
-            -botName $devopsBotName `
-            -devopsBotAppId $aksClusterApp.AppId `
-            -Verbose:($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+        $testDeploymentConfig = @{
+            Mode              = 'Incremental'
+            Name              = $deploymentName
+            ResourceGroupName = $devopsDomainRgName
+            TemplateFile      = $botTemplate
+            endpoint          = "https://api.$Environment.uniphar.ie/devops-teams-notification-api/api/messages"
+            environment       = $Environment
+            botName           = $devopsBotName
+            devopsBotAppId    = $aksClusterApp.AppId
+            Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+        }
+        $TestResult = Test-AzResourceGroupDeployment @testDeploymentConfig
 
         if ($TestResult) {
             $TestResult
