@@ -67,7 +67,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
             $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
             Connect-MgGraph -AccessToken $token.Token -NoWelcome
             # for debug purposes, give the same creds as the workload
-            Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $frontgateAndBotPermissionsNeeded -RevokeExisting   
+            Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $botPermissionsNeeded -RevokeExisting   
         
         }
         # deploy the bot service, using the workload identity of the k8s cluster
