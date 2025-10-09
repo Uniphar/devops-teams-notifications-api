@@ -19,7 +19,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         # send messages in a channel
         "ChannelMessage.Send", 
         # send chat messages, bot could use that if messaged privately
-        "Chat.ReadWrite.All"
+        "Chat.ReadWrite.All",
         # read/write files in a channel
         "Files.ReadWrite.All", 
         # Create a new team, frontgate
