@@ -5,7 +5,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         [ValidateSet('dev', 'test', 'prod')]
         [string] $Environment 
     )
-    $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\devops.bot.bicep"
+    $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\bot.bicep"
     $devopsBotName = Resolve-UniResourceName 'bot' $p_devopsDomain -Dev:$Dev -Environment $Environment
     $botPermissionsNeeded = @(
         # add users to a channel    
