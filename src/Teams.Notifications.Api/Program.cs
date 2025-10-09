@@ -70,10 +70,6 @@ global using Attachment = Microsoft.Agents.Core.Models.Attachment;
 global using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
-using Microsoft.Agents.Hosting.AspNetCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Teams.Notifications.Api.Extensions;
 
 
 const string appPathPrefix = "devops-teams-notification-api";
@@ -86,8 +82,7 @@ TokenCredential credentials = new DefaultAzureCredential();
 
 // this is what the bot is communicating on
 builder.Services.AddHttpClient(typeof(RestChannelServiceClientFactory).FullName!).AddHttpMessageHandler<RequestAndResponseLoggerHandler>();
-// Register Semantic Kernel
-builder.Services.AddKernel();
+
 
 // Values from app registration
 var clientId = builder.Configuration["AZURE_CLIENT_ID"] ?? throw new NoNullAllowedException("ClientId is required");
