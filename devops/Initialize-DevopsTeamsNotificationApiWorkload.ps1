@@ -74,7 +74,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         New-AzResourceGroupDeployment -Mode Incremental `
             -Name $deploymentName `
             -ResourceGroupName $devopsDomainRgName `
-            -TemplateFile $devopsDomainTemplateFile `
+            -TemplateFile $botTemplate `
             -endpoint "https://api.$environment.uniphar.ie/devops-teams-notification-api/api/messages" `
             -environment $Environment `
             -botName $devopsBotName `
