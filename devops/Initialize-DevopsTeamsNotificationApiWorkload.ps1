@@ -77,7 +77,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
             -Name $deploymentName `
             -ResourceGroupName $devopsDomainRgName `
             -TemplateFile $botTemplate `
-            -endpoint "https://api.$environment.uniphar.ie/devops-teams-notification-api/api/messages" `
+            -endpoint "https://api.$Environment.uniphar.ie/devops-teams-notification-api/api/messages" `
             -environment $Environment `
             -botName $devopsBotName `
             -devopsBotAppId $aksClusterApp.AppId `
@@ -94,7 +94,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
             -Name $deploymentName `
             -ResourceGroupName $devopsDomainRgName `
             -TemplateFile $botTemplate `
-            -endpoint "https://api.$environment.uniphar.ie/devops-teams-notification-api/api/messages" `
+            -endpoint "https://api.$Environment.uniphar.ie/devops-teams-notification-api/api/messages" `
             -environment $Environment `
             -botName $devopsBotName `
             -devopsBotAppId $aksClusterApp.AppId `
