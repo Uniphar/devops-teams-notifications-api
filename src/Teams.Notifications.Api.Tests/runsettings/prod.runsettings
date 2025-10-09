@@ -12,12 +12,18 @@
 			</DataCollector>
 		</DataCollectors>
 	</DataCollectionRunSettings>
+	<TestRunParameters>
+		<Parameter name="Environment" value="prod" />
+	</TestRunParameters>
 	<RunConfiguration>
 		<CollectSourceInformation>true</CollectSourceInformation>
 		<MaxCpuCount>0</MaxCpuCount>
 		<ResultsDirectory>../../../tests</ResultsDirectory>
 	</RunConfiguration>
-	<TestRunParameters>
-		<Parameter name="Environment" value="prod" />
-	</TestRunParameters>
+	<MSTest>
+		<Parallelize>
+			<Workers>0</Workers>
+			<Scope>MethodLevel</Scope>
+		</Parallelize>
+	</MSTest>
 </RunSettings>
