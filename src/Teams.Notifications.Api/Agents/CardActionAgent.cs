@@ -1,4 +1,6 @@
-﻿namespace Teams.Notifications.Api.Agents;
+﻿using Uniphar.Platform.Telemetry;
+
+namespace Teams.Notifications.Api.Agents;
 
 public class CardActionAgent : AgentApplication
 {
@@ -43,7 +45,7 @@ public class CardActionAgent : AgentApplication
         CancellationToken cancellationToken
     )
     {
-        using (_telemetry.WithProperties(new { ActionExecute = "LogicAppErrorProcessActionModel" }))
+        using (_telemetry.WithProperties([new("ActionExecute" , "LogicAppErrorProcessActionModel" )]))
             try
             {
                 var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);

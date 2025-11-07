@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11018.127 d18.0
+VisualStudioVersion = 18.0.11018.127
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Teams.Notifications.Api", "Teams.Notifications.Api\Teams.Notifications.Api.csproj", "{DBE76B19-9B36-43E0-AC90-3911480E9276}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Teams.Notifications.AdaptiveCardGen", "Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj", "{CF19B081-B4FA-5002-326E-DEF9920066AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Teams.Notifications.Formatter", "Teams.Notifications.Formatter\Teams.Notifications.Formatter.csproj", "{F7511664-D7B1-F96A-B573-FABDF4247407}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Telemetry", "Telemetry\Telemetry.csproj", "{EFFA68B1-30F8-C694-26DF-2A70C5C5647D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +33,6 @@ Global
 		{F7511664-D7B1-F96A-B573-FABDF4247407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7511664-D7B1-F96A-B573-FABDF4247407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7511664-D7B1-F96A-B573-FABDF4247407}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EFFA68B1-30F8-C694-26DF-2A70C5C5647D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EFFA68B1-30F8-C694-26DF-2A70C5C5647D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EFFA68B1-30F8-C694-26DF-2A70C5C5647D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EFFA68B1-30F8-C694-26DF-2A70C5C5647D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

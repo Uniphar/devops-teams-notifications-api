@@ -15,5 +15,5 @@ global using Teams.Notifications.Api.Extensions;
 global using Teams.Notifications.Api.Models;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
-global using Telemetry;
+global using Uniphar.Platform.Telemetry;
 global using KeyValuePair = System.Collections.Generic.KeyValuePair;

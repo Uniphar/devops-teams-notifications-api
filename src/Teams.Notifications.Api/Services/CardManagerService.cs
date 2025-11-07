@@ -24,11 +24,11 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             {
                 await adapter.DeleteActivityAsync(turnContext, conversationReference, cancellationToken);
                 telemetry.TrackEvent("ChannelDeleteMessage",
-                    new
+                    new()
                     {
-                        Team = teamName,
-                        Channel = channelName,
-                        Id = id
+                        ["Team"] = teamName,
+                        ["Channel"] = channelName,
+                        ["Id"] = id
                     });
             },
             token);
@@ -81,11 +81,11 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     // item is new
                     var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
                     telemetry.TrackEvent("ChannelNewMessage",
-                        new
+                        new()
                         {
-                            Team = teamName,
-                            Channel = channelName,
-                            newResult.Id
+["Team"] = teamName,
+                            ["Channel"] = channelName,
+                            ["MessageId"] = newResult.Id
                         });
                     return;
                 }
@@ -93,11 +93,11 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 // item needs update
                 var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
                 telemetry.TrackEvent("ChannelUpdateMessage",
-                    new
+                    new()
                     {
-                        Team = teamName,
-                        Channel = channelName,
-                        updateResult.Id
+                        ["Team"] = teamName,
+                        ["Channel"] = channelName,
+                        ["MessageId"] = updateResult.Id
                     });
             },
             token);
