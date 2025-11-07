@@ -65,5 +65,4 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
         public bool Check { get; init; }
     }
 
-     
 }
