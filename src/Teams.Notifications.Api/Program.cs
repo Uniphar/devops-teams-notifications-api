@@ -64,12 +64,12 @@ global using Teams.Notifications.Api.Middlewares;
 global using Teams.Notifications.Api.Models;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
-global using Telemetry;
 global using Activity = Microsoft.Agents.Core.Models.Activity;
 global using Attachment = Microsoft.Agents.Core.Models.Attachment;
 global using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
+global using Uniphar.Platform.Telemetry;
 
 
 const string appPathPrefix = "devops-teams-notification-api";

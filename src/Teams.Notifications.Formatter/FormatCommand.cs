@@ -5,7 +5,7 @@ namespace Teams.Notifications.Formatter;
 
 internal sealed class FormatCommand : Command<FormatCommand.Settings>
 {
-    public override int Execute(CommandContext context, Settings settings)
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         var differ = new FilesDiffer(Directory.GetCurrentDirectory());
         differ.AddAllUnderPath("./../Teams.Notifications.Api/Templates", "*.json", FormatFile);
@@ -64,4 +64,5 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
         [CommandOption("--check")]
         public bool Check { get; init; }
     }
+
 }
