@@ -17,7 +17,7 @@ public sealed class AddCorrectFileTransformer : IOpenApiOperationTransformer
     public Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
         if (operation.RequestBody?.Content == null || !operation.RequestBody.Content.TryGetValue("multipart/form-data", out var value)) return Task.CompletedTask;
-        if (value.Schema.Type == "object" && value.Schema.Properties.ContainsKey("file"))
+        if (value.Schema is { Type: JsonSchemaType.Object, Properties: not null } && value.Schema.Properties.ContainsKey("file"))
             operation.RequestBody.Content["multipart/form-data"] = new OpenApiMediaType
             {
                 Encoding = new Dictionary<string, OpenApiEncoding>
@@ -29,11 +29,11 @@ public sealed class AddCorrectFileTransformer : IOpenApiOperationTransformer
                 },
                 Schema = new OpenApiSchema
                 {
-                    Properties = new Dictionary<string, OpenApiSchema>
+                    Properties = new Dictionary<string, IOpenApiSchema>
                     {
-                        ["file"] = new()
+                        ["file"] = new OpenApiSchema
                         {
-                            Type = "string",
+                            Type = JsonSchemaType.String,
                             Format = "binary"
                         }
                     }
