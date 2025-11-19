@@ -19,7 +19,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 9.x
+          dotnet-version: 10.x
 
       - name: Expose app name into env
         run: |
@@ -37,7 +37,7 @@ jobs:
           title: "Unit Tests Coverage ONLY, does not include integration tests"
           reporttypes: "HtmlInline;MarkdownSummaryGithub"
       - name: Upload test results in case manual view
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-results
           path: coverage-results

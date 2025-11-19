@@ -53,7 +53,7 @@ global using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 global using Microsoft.IdentityModel.Tokens;
 global using Microsoft.IdentityModel.Validators;
 global using Microsoft.Kiota.Abstractions;
-global using Microsoft.OpenApi.Models;
+global using Microsoft.OpenApi;
 global using Polly;
 global using Teams.Notifications.Api;
 global using Teams.Notifications.Api.Action.Models;

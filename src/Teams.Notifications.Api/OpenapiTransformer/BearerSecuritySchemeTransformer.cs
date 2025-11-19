@@ -38,9 +38,9 @@ public sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvide
         var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
         if (authenticationSchemes.Any(authScheme => authScheme.Name == "NotificationScheme"))
         {
-            var requirements = new Dictionary<string, OpenApiSecurityScheme>
+            var requirements = new Dictionary<string, IOpenApiSecurityScheme>
                 {
-                    ["NotificationScheme"] = new()
+                    ["NotificationScheme"] = new OpenApiSecurityScheme
                     {
                         Name = "Authorization",
                         Description = "JWT Bearer authentication for API access",
