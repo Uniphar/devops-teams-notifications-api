@@ -9,16 +9,16 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         // defined in the Teams.Notifications.Api.csproj as additional item's
         var templateAndContent = context
             .AdditionalTextsProvider
-            .Where(file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
-            .Select((file, _) => (file.Path, Content: file.GetText()!.ToString()));
+            .Where(static file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
+            .Select(static (file, _) =>file);
 
         // get the content of each item, when you call this method
-        context.RegisterSourceOutput(templateAndContent, (spc, item) => { CreateFiles(item, spc); });
+        context.RegisterSourceOutput(templateAndContent, (spc, item) => { CreateFiles(item.Path, item.GetText()!.ToString(), spc); });
     }
 
-    private void CreateFiles((string Path, string Content) item, SourceProductionContext spc)
+    private static void CreateFiles(string path, string content, SourceProductionContext spc)
     {
-        var (path, content) = item;
+        
 
         var fileName = Path.GetFileNameWithoutExtension(path);
         var card = AdaptiveCard.FromJson(content).Card;
