@@ -18,7 +18,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(uniqueId));
         conversationReference.ActivityId = id;
         // delete the item
-        await adapter.ContinueConversationAsync(_clientId,
+        await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
             conversationReference,
             async (turnContext, cancellationToken) =>
             {
@@ -72,7 +72,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             conversationReference.ActivityId = idFromOldMessage;
         }
 
-        await adapter.ContinueConversationAsync(_clientId,
+        await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
             conversationReference,
             async (turnContext, cancellationToken) =>
             {
