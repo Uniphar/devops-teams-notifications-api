@@ -1,6 +1,5 @@
 ﻿namespace Teams.Notifications.Api.Models
 {
-    p
     class Root
     {
         [JsonPropertyName("data")]

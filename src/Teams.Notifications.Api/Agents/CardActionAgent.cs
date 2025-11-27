@@ -31,8 +31,6 @@ public class CardActionAgent : AgentApplication
                 tae.MessageExtensions.OnQuery("findNuGetPackage", OnQuery);
                 tae.MessageExtensions.OnSelectItem(OnSelectItem);
                 tae.MessageExtensions.OnQueryLink(OnQueryLink);
-
-                tae.OnFeedbackLoop(MyFeedbackLoopHandler);
             });
         AdaptiveCards.OnSearch("dataset", OnSearchDS);
         AdaptiveCards.OnActionExecute(new Regex(".*?"), ProcessCardActionAsync);
