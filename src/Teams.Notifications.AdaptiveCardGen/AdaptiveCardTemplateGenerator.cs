@@ -9,17 +9,17 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         // defined in the Teams.Notifications.Api.csproj as additional item's
         var templateAndContent = context
             .AdditionalTextsProvider
-            .Where(static file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
-            .Select(static (file, _) =>file);
+            .Where(static file =>
+                file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
+            .Select(static (file, _) => file);
 
         // get the content of each item, when you call this method
-        context.RegisterSourceOutput(templateAndContent, (spc, item) => { CreateFiles(item.Path, item.GetText()!.ToString(), spc); });
+        context.RegisterSourceOutput(templateAndContent,
+            (spc, item) => { CreateFiles(item.Path, item.GetText()!.ToString(), spc); });
     }
 
     private static void CreateFiles(string path, string content, SourceProductionContext spc)
     {
-        
-
         var fileName = Path.GetFileNameWithoutExtension(path);
         var card = AdaptiveCard.FromJson(content).Card;
         var itemWithUnique = card.Actions.Where(x => x.Type == "Action.Execute");
@@ -63,7 +63,9 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
     private static string GenerateActionModel(string actionModelName, List<PropWithMustache> props)
     {
-        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Property).Select(p => $"        public {MakeRequiredIfNeeded(GetTypeFromActionModelMustache(p.MustacheProperties))} {p.Property} {{ get; set; }}"));
+        var propertiesOfTheModel = string.Join("\n",
+            props.OrderBy(x => x.Property).Select(p =>
+                $"        public {MakeRequiredIfNeeded(GetTypeFromActionModelMustache(p.MustacheProperties))} {p.Property} {{ get; set; }}"));
         return
             $$"""
               #nullable enable
@@ -96,7 +98,9 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
 
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
-        var propertiesOfTheModel = string.Join("\n", props.OrderBy(x => x.Value).Select(p => $"        public {MakeRequiredIfNeeded(p.Value)} {p.Key} {{ get; set; }}"));
+        var propertiesOfTheModel = string.Join("\n",
+            props.OrderBy(x => x.Value)
+                .Select(p => $"        public {MakeRequiredIfNeeded(p.Value)} {p.Key} {{ get; set; }}"));
 
         return
             $$"""
