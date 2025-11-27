@@ -1,4 +1,6 @@
-﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using Microsoft.Agents.Core.Models;
+using Microsoft.Graph.Beta.Models;
+using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -44,7 +46,43 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         return chatMessage?.GetAdaptiveCardFromChatMessage();
     }
 
+    public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
+    {
+        var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
+        var conversationParam = new ConversationParameters()
+        {
+            IsGroup = false,
+            Members = [
+                new ChannelAccount(id: user)
+            ],
+            Agent = new ChannelAccount(id: _clientId),
+            TenantId = _tenantId,
 
+
+        };
+        var activity = new Activity
+        {
+            Type = "message",
+            Attachments = new List<Attachment>
+            {
+                new()
+                {
+                    ContentType = AdaptiveCard.ContentType,
+                    Content = await CreateCardFromTemplateAsync(jsonFileName, null, model, teamsManagerService, token: token)
+                }
+            }
+        };
+        await adapter.CreateConversationAsync(_clientId, Channels.Msteams,$"https://smba.trafficmanager.net/emea/{_tenantId}", audience, conversationParam,
+             async (turnContext, cancellationToken) =>
+             {
+                 var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
+                 telemetry.TrackEvent("NewMessage",
+                     new()
+                     {
+                         ["MessageId"] = newResult.Id
+                     }); ;
+             },token);
+    }
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
@@ -103,20 +141,23 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             token);
     }
 
-    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, IFormFile? formFile, T model, ITeamsManagerService teamsManagerService, string teamId, string channelId, string channelName, CancellationToken token) where T : BaseTemplateModel
+    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, IFormFile? formFile, T model, ITeamsManagerService teamsManagerService, string? teamId=null, string? channelId = null, string? channelName = null, CancellationToken token= default) where T : BaseTemplateModel
     {
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}", token);
         var props = text.GetMustachePropertiesFromString();
         var fileUrl = string.Empty;
         var fileLocation = string.Empty;
         var fileName = string.Empty;
-        if (props.HasFileTemplate() && formFile != null)
+        if (!string.IsNullOrEmpty(teamId) && !string.IsNullOrEmpty(channelId))
         {
-            fileName = formFile.FileName;
-            fileLocation = channelName + "/error/" + formFile.FileName;
-            await using var stream = formFile.OpenReadStream();
-            await teamsManagerService.UploadFile(teamId, channelId, fileLocation, stream, token);
-            fileUrl = await teamsManagerService.GetFileUrl(teamId, channelId, fileLocation, token);
+            if (props.HasFileTemplate() && formFile != null)
+            {
+                fileName = formFile.FileName;
+                fileLocation = channelName + "/error/" + formFile.FileName;
+                await using var stream = formFile.OpenReadStream();
+                await teamsManagerService.UploadFile(teamId, channelId, fileLocation, stream, token);
+                fileUrl = await teamsManagerService.GetFileUrl(teamId, channelId, fileLocation, token);
+            }
         }
 
         // replace all props with the values
