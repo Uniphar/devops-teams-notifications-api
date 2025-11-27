@@ -1,12 +1,11 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.20/MicrosoftTeams.schema.json",
-  "version": "1.0.3",
-  "manifestVersion": "1.20",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
+  "version": "1.0.4",
+  "manifestVersion": "1.23",
   "id": "13b7427c-6df3-4032-acd1-4633ddfdccaa",
   "name": { "short": "Uniphar Test Bot", "full": "Uniphar Test Bot" },
   "developer": {
     "name": "Uniphar",
-    "mpnId": "",
     "websiteUrl": "https://www.uniphar.ie/",
     "privacyUrl": "https://www.uniphar.ie/static/privacy-statement/",
     "termsOfUseUrl": "https://www.uniphar.ie/static/terms-conditions"
@@ -22,7 +21,7 @@
     {
       "botId": "7fcfe79f-21e8-4fbd-ae4d-48329d52870b",
       "scopes": ["team", "groupChat", "personal"],
-      "isNotificationOnly": true,
+      "isNotificationOnly": false,
       "supportsCalling": false,
       "supportsVideo": false,
       "supportsFiles": true
@@ -33,6 +32,7 @@
     "id": "7fcfe79f-21e8-4fbd-ae4d-48329d52870b",
     "resource": "api://botid-7fcfe79f-21e8-4fbd-ae4d-48329d52870b"
   },
+  "permissions": ["identity", "messageTeamMembers"],
   "devicePermissions": ["notifications", "openExternal"],
   "defaultGroupCapability": {
     "team": "bot",
