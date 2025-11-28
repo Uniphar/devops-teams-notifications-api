@@ -45,14 +45,23 @@ public sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvide
                         Name = "Authorization",
                         Description = "JWT Bearer authentication for API access",
                         In = ParameterLocation.Header,
-                        Scheme = "Bearer",
-                        BearerFormat = "JWT",
+                        Scheme = "bearer",
+                        BearerFormat = "Json Web Token",
                         Type = SecuritySchemeType.Http
                     }
                 }
                 ;
             document.Components ??= new OpenApiComponents();
             document.Components.SecuritySchemes = requirements;
+            // Apply it as a requirement for all operations
+            foreach (var operation in document.Paths.Values.SelectMany(path => path.Operations ?? []))
+            {
+                operation.Value.Security ??= [];
+                operation.Value.Security.Add(new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("NotificationScheme", document)] = []
+                });
+            }
         }
     }
 }
