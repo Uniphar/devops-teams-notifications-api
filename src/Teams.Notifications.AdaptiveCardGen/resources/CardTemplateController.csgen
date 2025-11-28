@@ -23,7 +23,7 @@ public class {{name}}Controller : ControllerBase
     /// <param name="model">Information that needs to be sent to teams</param>
     /// <param name="user">User you want to sent a card to</param>
     /// <param name="cancellationToken">CancellationToken for when the application stops, mostly used for the bot</param>
-    [HttpPost("{{name}}")]
+    [HttpPost("{{name}}ToUser")]
     // with swagger response you can give it a description
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status200OK)]
