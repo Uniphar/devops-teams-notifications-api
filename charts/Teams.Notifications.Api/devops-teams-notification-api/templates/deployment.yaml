@@ -48,7 +48,7 @@ spec:
               port: 8080
           env:
           - name: ASPNETCORE_URLS
-            value: "http://+:8080"
+            value: "http://+:8080,https://+:8443"
         {{- range $key, $value := .Values.env }}
           - name: {{ $key | upper | replace "." "_" }}
             value: {{ $value | quote }}
