@@ -66,6 +66,18 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return team?.DisplayName ?? throw new InvalidOperationException($"No DisplayName found for team {teamId}");
     }
 
+    public async Task<string> GetUserAadObjectIdAsync(string userPrincipalName, CancellationToken token)
+    {
+        var user = await graphClient
+            .Users[userPrincipalName]
+            .GetAsync(request =>
+            {
+                request.QueryParameters.Select = ["id"];
+            }, token);
+        
+        return user?.Id ?? throw new InvalidOperationException($"User with principal name {userPrincipalName} not found");
+    }
+
     public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token) => (await GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token))?.Id;
 
     public async Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)

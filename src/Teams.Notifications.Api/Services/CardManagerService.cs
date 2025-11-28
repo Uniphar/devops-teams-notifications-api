@@ -48,16 +48,16 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
+        var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
         var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
         var conversationParam = new ConversationParameters()
         {
             IsGroup = false,
             Members = [
-                new ChannelAccount(id: user)
+                new ChannelAccount(aadObjectId: userAadObjectId)
             ],
-            Agent = new ChannelAccount(id: _clientId),
+            Agent = new ChannelAccount(aadObjectId: _clientId),
             TenantId = _tenantId,
-
 
         };
         var activity = new Activity
