@@ -50,15 +50,15 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
         var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
-        var conversationParam = new ConversationParameters()
+        var conversationParam = new ConversationParameters
         {
             IsGroup = false,
-            Members = [
-                new ChannelAccount(aadObjectId: userAadObjectId)
+            Members =
+            [
+                new ChannelAccount(userAadObjectId, aadObjectId: userAadObjectId)
             ],
-            Agent = new ChannelAccount(aadObjectId: _clientId),
-            TenantId = _tenantId,
-
+            Agent = new ChannelAccount(_clientId, aadObjectId: _clientId),
+            TenantId = _tenantId
         };
         var activity = new Activity
         {
