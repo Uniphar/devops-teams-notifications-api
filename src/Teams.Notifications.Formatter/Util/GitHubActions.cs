@@ -6,8 +6,7 @@ internal static class GitHubActions
 
     public static void Error(string title, string message, string? file = null, SourceRange start = default, SourceRange end = default)
     {
-        if (!IsCI)
-            return;
+        if (!IsCI) return;
 
         ArgumentException.ThrowIfNullOrWhiteSpace(title);
         ArgumentException.ThrowIfNullOrWhiteSpace(message);
@@ -55,8 +54,9 @@ file static class Git
     public static string GetRepoRoot(string path = ".")
     {
         for (var currentPath = Path.GetFullPath(path); !string.IsNullOrWhiteSpace(currentPath); currentPath = Path.GetDirectoryName(currentPath))
-            if (Directory.Exists(Path.Combine(currentPath, ".git")))
-                return currentPath;
+        {
+            if (Directory.Exists(Path.Combine(currentPath, ".git"))) return currentPath;
+        }
 
         throw new InvalidOperationException("Not a path in a git repo");
     }

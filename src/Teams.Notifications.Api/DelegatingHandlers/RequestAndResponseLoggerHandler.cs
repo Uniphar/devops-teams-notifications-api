@@ -17,8 +17,7 @@ public class RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHan
         var timer = Stopwatch.StartNew();
         var requestBody = string.Empty;
         if (request.Content != null) requestBody = await request.Content?.ReadAsStringAsync(cancellationToken)!;
-        if (requestBody.Length > MaxBodyLength)
-            requestBody = $"body to big:{requestBody.Length} chars";
+        if (requestBody.Length > MaxBodyLength) requestBody = $"body to big:{requestBody.Length} chars";
 
         var requestLogEvent = new
         {
@@ -30,8 +29,7 @@ public class RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHan
 
         var response = await base.SendAsync(request, cancellationToken);
         var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-        if (responseBody.Length > MaxBodyLength)
-            responseBody = $"body to big:{responseBody.Length} chars]";
+        if (responseBody.Length > MaxBodyLength) responseBody = $"body to big:{responseBody.Length} chars]";
 
         var responseLogEvent = new
         {
@@ -42,10 +40,13 @@ public class RequestAndResponseLoggerHandler(ILogger<RequestAndResponseLoggerHan
         };
 
         if (ShouldLog)
+        {
             logger.LogDebug("Request finished and got a {status}: {requestLogEvent} {responseLogEvent}",
                 responseLogEvent.status,
                 requestLogEvent,
                 responseLogEvent);
+        }
+
         return response;
     }
 

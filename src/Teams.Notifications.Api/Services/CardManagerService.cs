@@ -1,6 +1,4 @@
-﻿using Microsoft.Agents.Core.Models;
-using Microsoft.Graph.Beta.Models;
-using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -55,9 +53,9 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             IsGroup = false,
             Members =
             [
-                new ChannelAccount(userAadObjectId, aadObjectId: userAadObjectId)
+                new(userAadObjectId, aadObjectId: userAadObjectId)
             ],
-            Agent = new ChannelAccount(_clientId, aadObjectId: _clientId),
+            Agent = new(_clientId, aadObjectId: _clientId),
             TenantId = _tenantId
         };
         var activity = new Activity
@@ -72,17 +70,23 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 }
             }
         };
-        await adapter.CreateConversationAsync(_clientId, Channels.Msteams,$"https://smba.trafficmanager.net/emea/{_tenantId}", audience, conversationParam,
-             async (turnContext, cancellationToken) =>
-             {
-                 var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
-                 telemetry.TrackEvent("NewMessage",
-                     new()
-                     {
-                         ["MessageId"] = newResult.Id
-                     });
-             },token);
+        await adapter.CreateConversationAsync(_clientId,
+            Channels.Msteams,
+            $"https://smba.trafficmanager.net/emea/{_tenantId}",
+            audience,
+            conversationParam,
+            async (turnContext, cancellationToken) =>
+            {
+                var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
+                telemetry.TrackEvent("NewMessage",
+                    new()
+                    {
+                        ["MessageId"] = newResult.Id
+                    });
+            },
+            token);
     }
+
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
@@ -121,7 +125,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     telemetry.TrackEvent("ChannelNewMessage",
                         new()
                         {
-["Team"] = teamName,
+                            ["Team"] = teamName,
                             ["Channel"] = channelName,
                             ["MessageId"] = newResult.Id
                         });
@@ -141,7 +145,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             token);
     }
 
-    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, IFormFile? formFile, T model, ITeamsManagerService teamsManagerService, string? teamId=null, string? channelId = null, string? channelName = null, CancellationToken token= default) where T : BaseTemplateModel
+    public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, IFormFile? formFile, T model, ITeamsManagerService teamsManagerService, string? teamId = null, string? channelId = null, string? channelName = null, CancellationToken token = default) where T : BaseTemplateModel
     {
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}", token);
         var props = text.GetMustachePropertiesFromString();
@@ -163,18 +167,20 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         // replace all props with the values
 
         foreach (var (propertyName, type) in props)
+        {
             text = text.FindPropAndReplace(model,
-                new PropHelperItem
+                new()
                 {
                     Property = propertyName,
                     Type = type,
-                    File = new PropHelperItemFile
+                    File = new()
                     {
                         Url = fileUrl,
                         Location = fileLocation,
                         Name = fileName
                     }
                 });
+        }
 
         var item = AdaptiveCard.FromJson(text).Card;
         if (item == null) throw new ArgumentNullException(nameof(jsonFileName));
@@ -196,7 +202,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         {
             ChannelId = Channels.Msteams,
             ServiceUrl = $"https://smba.trafficmanager.net/emea/{_tenantId}",
-            Conversation = new ConversationAccount(id: channelId),
+            Conversation = new(id: channelId),
             ActivityId = channelId
         };
 }

@@ -27,8 +27,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             },
             token);
 
-        if (groups is not { Value: [{ Id: var teamId }] })
-            throw new InvalidOperationException($"Team with name {teamName} does not exist");
+        if (groups is not { Value: [{ Id: var teamId }] }) throw new InvalidOperationException($"Team with name {teamName} does not exist");
         return teamId ?? throw new InvalidOperationException($"Team with name {teamName} does not exist");
     }
 
@@ -44,8 +43,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                 },
                 token);
 
-        if (channels is not { Value: [{ Id: var channelId }] })
-            throw new InvalidOperationException($"Channel with name {channelName} does not exist");
+        if (channels is not { Value: [{ Id: var channelId }] }) throw new InvalidOperationException($"Channel with name {channelName} does not exist");
         return channelId ?? throw new InvalidOperationException($"Channel with name {channelName} does not exist");
     }
 
@@ -70,11 +68,8 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     {
         var user = await graphClient
             .Users[userPrincipalName]
-            .GetAsync(request =>
-            {
-                request.QueryParameters.Select = ["id"];
-            }, token);
-        
+            .GetAsync(request => { request.QueryParameters.Select = ["id"]; }, token);
+
         return user?.Id ?? throw new InvalidOperationException($"User with principal name {userPrincipalName} not found");
     }
 
@@ -98,14 +93,13 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         // no need to do anything if there is no message
         if (responses == null) return null;
         var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
-        if (foundMessage != null)
-            return foundMessage;
+        if (foundMessage != null) return foundMessage;
         while (response?.OdataNextLink != null)
         {
             var configuration = new RequestInformation
             {
                 HttpMethod = Method.GET,
-                URI = new Uri(response.OdataNextLink)
+                URI = new(response.OdataNextLink)
             };
 
             response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);

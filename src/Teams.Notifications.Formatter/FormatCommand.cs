@@ -10,15 +10,14 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
         var differ = new FilesDiffer(Directory.GetCurrentDirectory());
         differ.AddAllUnderPath("./../Teams.Notifications.Api/Templates", "*.json", FormatFile);
 
-        if (!settings.Check) return !differ.Apply() ? throw new Exception("Failed to apply changes to config files.") : 0;
+        if (!settings.Check) return !differ.Apply() ? throw new("Failed to apply changes to config files.") : 0;
 
-        if (differ.Check("Formatting", "File differs after formatting"))
-            return 0;
+        if (differ.Check("Formatting", "File differs after formatting")) return 0;
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLineInterpolated($"[red]One of more config files were not formatted before commiting.[/] Run `dotnet run format` in the `{typeof(FormatCommand).Assembly.GetName().Name}` project directory.");
         GitHubActions.Error("Formatting", $"One of more config files were not formatted before commiting. Run `dotnet run format` in the `{typeof(FormatCommand).Assembly.GetName().Name}` project directory, and commit the updated config files.");
-        throw new Exception("Failed to apply changes to config files.");
+        throw new("Failed to apply changes to config files.");
     }
 
     private static void FormatFile(string sourcePath, Stream formattedFile)
@@ -31,9 +30,9 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
             var file = Path.GetFileName(sourcePath);
             AnsiConsole.MarkupLineInterpolated($"[bold red]The following file has incompatible properties[/] [bold white]{file}[/] ");
             var table = new Table();
-            table.AddColumn(new TableColumn("[green]Template[/]"));
-            table.AddColumn(new TableColumn(new Markup("[yellow]Type[/]")));
-            table.AddColumn(new TableColumn("[blue]Property name[/]"));
+            table.AddColumn(new("[green]Template[/]"));
+            table.AddColumn(new(new Markup("[yellow]Type[/]")));
+            table.AddColumn(new("[blue]Property name[/]"));
             wrongItemsTypes.ToList().ForEach(x => table.AddRow("[bold green]{{" + x.Key + ":" + x.Value + "}}[/]", $"[yellow]{x.Value}[/]", $"[blue]{x.Key}[/]"));
             AnsiConsole.Write(table);
             GitHubActions.Error("Formatting", $"One of the files has incompatible properties, check the following file: {file} for property: {string.Join(",", wrongItemsTypes.Keys)}, unrecognised type(s) {string.Join(",", wrongItemsTypes.Values)}");
@@ -64,5 +63,4 @@ internal sealed class FormatCommand : Command<FormatCommand.Settings>
         [CommandOption("--check")]
         public bool Check { get; init; }
     }
-
 }

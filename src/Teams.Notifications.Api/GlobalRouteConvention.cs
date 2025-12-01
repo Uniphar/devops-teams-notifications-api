@@ -7,14 +7,16 @@ internal sealed class GlobalRouteConvention : IApplicationModelConvention
     public GlobalRouteConvention(string appPathPrefix)
     {
         ArgumentNullException.ThrowIfNull(appPathPrefix);
-        routePrefix = new AttributeRouteModel(new RouteAttribute(appPathPrefix));
+        routePrefix = new(new RouteAttribute(appPathPrefix));
     }
 
     public void Apply(ApplicationModel application)
     {
         foreach (var selector in application.Controllers.SelectMany(c => c.Selectors))
+        {
             selector.AttributeRouteModel = selector.AttributeRouteModel != null
                 ? AttributeRouteModel.CombineAttributeRouteModel(routePrefix, selector.AttributeRouteModel)
                 : routePrefix;
+        }
     }
 }

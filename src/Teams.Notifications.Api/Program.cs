@@ -70,6 +70,11 @@ global using Attachment = Microsoft.Agents.Core.Models.Attachment;
 global using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
+using Microsoft.Agents.Hosting.AspNetCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Teams.Notifications.Api.Extensions;
+using Uniphar.Platform.Telemetry;
 
 
 const string appPathPrefix = "devops-teams-notification-api";
@@ -160,7 +165,7 @@ builder
     });
 if (environment != "local")
     // key vault is required for ApplicationInsights, since it needs the connection string, but locally we will remove it
-    builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
+    builder.Configuration.AddAzureKeyVault(new($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 
 builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();

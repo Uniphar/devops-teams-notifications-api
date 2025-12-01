@@ -1,7 +1,4 @@
-﻿using Microsoft.Agents.Client;
-using Microsoft.Agents.Extensions.Teams.App;
-
-namespace Teams.Notifications.Api.Agents;
+﻿namespace Teams.Notifications.Api.Agents;
 
 public class CardActionAgent : AgentApplication
 {
@@ -26,10 +23,9 @@ public class CardActionAgent : AgentApplication
         _frontgateApiService = frontgateApiService;
         _httpClientFactory = httpClientFactory;
         AdaptiveCards.OnActionExecute(new Regex(".*?"), ProcessCardActionAsync);
-  
     }
 
-    
+
     [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.ReactionAdded)]
     protected async Task OnMessageReaction(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
@@ -44,13 +40,11 @@ public class CardActionAgent : AgentApplication
         await turnContext.SendActivityAsync(MessageFactory.Text("Welcome " + user), cancellationToken);
     }
 
-   
 
     [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Activity, Type = ActivityTypes.Message, Rank = RouteRank.Last)]
     protected async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrWhiteSpace(turnContext.Activity.Text)) 
-            await turnContext.SendActivityAsync(MessageFactory.Text("We don't support any more interaction"), cancellationToken);
+        if (!string.IsNullOrWhiteSpace(turnContext.Activity.Text)) await turnContext.SendActivityAsync(MessageFactory.Text("We don't support any more interaction"), cancellationToken);
     }
 
     protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(

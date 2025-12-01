@@ -26,8 +26,9 @@ internal static class PropertyHelper
     {
         HashSet<TKey> seenKeys = [];
         foreach (var element in source)
-            if (seenKeys.Add(keySelector(element)))
-                yield return element;
+        {
+            if (seenKeys.Add(keySelector(element))) yield return element;
+        }
     }
 
     /// <summary>
@@ -44,7 +45,7 @@ internal static class PropertyHelper
             )
             .ToDictionary(x => x.Key, x => x.Value);
 
-        return new Tuple<bool, Dictionary<string, string>>(!wrongItems.Any(), wrongItems);
+        return new(!wrongItems.Any(), wrongItems);
     }
 
     /// <summary>
@@ -55,6 +56,6 @@ internal static class PropertyHelper
     public static Tuple<bool, Dictionary<string, string>> IsValidFile(this Dictionary<string, string> nameAndType)
     {
         var wrongItems = nameAndType.Where(x => x is { Value: "file" or "file?", Key: not ("FileUrl" or "FileName" or "FileLocation") }).ToDictionary(x => x.Key, x => x.Value);
-        return new Tuple<bool, Dictionary<string, string>>(!wrongItems.Any(), wrongItems);
+        return new(!wrongItems.Any(), wrongItems);
     }
 }

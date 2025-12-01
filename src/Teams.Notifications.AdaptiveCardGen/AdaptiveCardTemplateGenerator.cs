@@ -9,8 +9,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         // defined in the Teams.Notifications.Api.csproj as additional item's
         var templateAndContent = context
             .AdditionalTextsProvider
-            .Where(static file =>
-                file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
+            .Where(static file => file.Path.EndsWith(".json", StringComparison.Ordinal) && file.Path.Contains("Templates"))
             .Select(static (file, _) => file);
 
         // get the content of each item, when you call this method
@@ -64,8 +63,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
     private static string GenerateActionModel(string actionModelName, List<PropWithMustache> props)
     {
         var propertiesOfTheModel = string.Join("\n",
-            props.OrderBy(x => x.Property).Select(p =>
-                $"        public {MakeRequiredIfNeeded(GetTypeFromActionModelMustache(p.MustacheProperties))} {p.Property} {{ get; set; }}"));
+            props.OrderBy(x => x.Property).Select(p => $"        public {MakeRequiredIfNeeded(GetTypeFromActionModelMustache(p.MustacheProperties))} {p.Property} {{ get; set; }}"));
         return
             $$"""
               #nullable enable
@@ -99,7 +97,8 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
 
         // key is the prop name, value the type, since keys are distinct by nature in Dictionaries
         var propertiesOfTheModel = string.Join("\n",
-            props.OrderBy(x => x.Value)
+            props
+                .OrderBy(x => x.Value)
                 .Select(p => $"        public {MakeRequiredIfNeeded(p.Value)} {p.Key} {{ get; set; }}"));
 
         return
@@ -131,7 +130,7 @@ public class AdaptiveCardTemplateGenerator : IIncrementalGenerator
         if (stream == null)
         {
             spc.ReportDiagnostic(Diagnostic.Create(
-                new DiagnosticDescriptor(
+                new(
                     "ACG001",
                     "AdaptiveCard generation file could not be found",
                     "Name: {0}",

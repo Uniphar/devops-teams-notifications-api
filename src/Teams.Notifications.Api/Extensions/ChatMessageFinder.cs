@@ -30,8 +30,7 @@ public static class ChatMessageFinder
             {
                 // need to make sure it is a text block, with the json filename as text
                 if (itemWithUnique is not AdaptiveTextBlock adaptiveTextBlock) continue;
-                if (adaptiveTextBlock.Text == jsonFileName)
-                    return chatMessage;
+                if (adaptiveTextBlock.Text == jsonFileName) return chatMessage;
             }
         }
 
