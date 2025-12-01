@@ -80,7 +80,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                      new()
                      {
                          ["MessageId"] = newResult.Id
-                     }); ;
+                     });
              },token);
     }
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
