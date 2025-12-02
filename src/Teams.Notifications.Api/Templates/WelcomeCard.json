@@ -6,5 +6,16 @@
       "type": "TextBlock",
       "text": "Hello!"
     }
+  ],
+  "actions": [
+    {
+      "type": "Action.Execute",
+      "id": "WelcomeBack",
+      "data": {
+        "info": "something"
+      },
+      "verb": "WelcomeBack",
+      "title": "Say Welcome back"
+    }
   ]
 }
