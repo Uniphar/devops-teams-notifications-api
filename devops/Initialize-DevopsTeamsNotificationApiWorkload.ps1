@@ -18,6 +18,8 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "ChatMessage.Read.All", 
         # send messages in a channel
         "ChannelMessage.Send", 
+        # install app for a user and see what apps are installed
+        "TeamsAppInstallation.ReadWriteAndConsentSelfForUser.All",
         # send chat messages, bot could use that if messaged privately
         "Chat.ReadWrite.All",
         # read/write files in a channel
