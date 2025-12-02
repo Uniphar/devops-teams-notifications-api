@@ -41,7 +41,8 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
     $aksClusterApp = Get-AzADApplication -DisplayName $devopsClusterIdentityName
     $deploymentName = Resolve-DeploymentName -Suffix '-TeamsNotificationApiBot'
     $devopsDomainRgName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Dev:$Dev -Environment $Environment
-
+    $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
+    Connect-MgGraph -AccessToken $token.Token -NoWelcome
     # we need a bot service which is not the workload identity, but a separate app registration (so we can get its secret for local debugging)
     # so to do this we will create a debug bot in the dev environment and give it the same permissions as the workload identity
     if ($Environment -eq 'dev') {
@@ -71,10 +72,9 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         # endpoint is just an example, you will need to change it all the time
         New-AzResourceGroupDeployment @debugDeploymentConfig
 
-        $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
-        Connect-MgGraph -AccessToken $token.Token -NoWelcome
+     
         # for debug purposes, give the same creds as the workload
-        Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $botPermissionsNeeded -RevokeExisting   
+        Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $botPermissionsNeeded -RevokeExisting -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent  
         
     }
     $deploymentConfig = @{
@@ -93,5 +93,5 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
 
     # devops-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
     # in the future add revoke existing if needed and use a custom workload identity for the bot
-    Grant-MicrosoftGraphPermission -ApplicationName $devopsClusterIdentityName -Permissions $botPermissionsNeeded
+    Grant-MicrosoftGraphPermission -ApplicationName $devopsClusterIdentityName -Permissions $botPermissionsNeeded -RevokeExisting -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
 }
