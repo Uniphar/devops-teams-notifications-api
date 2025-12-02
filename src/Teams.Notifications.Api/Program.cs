@@ -168,7 +168,9 @@ builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((doc, _, _) =>
     {
-        foreach (var server in doc.Servers ?? []) server.Url = server.Url?.Replace("http://", "https://");
+        foreach (var server in doc.Servers ?? [])
+            if (server.Url != null && server.Url.Contains("uniphar.ie"))
+                server.Url = server.Url?.Replace("http://", "https://");
         return Task.CompletedTask;
     });
     options.AddDocumentTransformer<AddAdaptiveCardDocsTransformer>();
@@ -185,6 +187,7 @@ builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 // Configure OpenTelemetry
 builder.RegisterOpenTelemetry(appPathPrefix);
+
 
 var app = builder.Build();
 app.MapHealthChecks("/health");
