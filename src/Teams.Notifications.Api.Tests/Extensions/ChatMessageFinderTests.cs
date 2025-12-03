@@ -36,7 +36,7 @@ public class ChatMessageFinderTests
     {
         var msg = new ChatMessage
         {
-            Attachments = [new ChatMessageAttachment { Content = null }]
+            Attachments = [new() { Content = null }]
         };
         var result = msg.GetCardThatHas("file.json", "uid");
         Assert.IsNull(result);
@@ -51,7 +51,7 @@ public class ChatMessageFinderTests
         };
         var msg = new ChatMessage
         {
-            Attachments = [new ChatMessageAttachment { Content = card.ToJson() }]
+            Attachments = [new() { Content = card.ToJson() }]
         };
 
         var result = msg.GetCardThatHas("file.json", "uid");
@@ -67,7 +67,7 @@ public class ChatMessageFinderTests
         };
         var msg = new ChatMessage
         {
-            Attachments = [new ChatMessageAttachment { Content = card.ToJson() }]
+            Attachments = [new() { Content = card.ToJson() }]
         };
         var result = msg.GetCardThatHas("file.json", "uid");
         Assert.IsNotNull(result);
@@ -82,7 +82,7 @@ public class ChatMessageFinderTests
         };
         var msg = new ChatMessage
         {
-            Attachments = [new ChatMessageAttachment { Content = card.ToJson() }]
+            Attachments = [new() { Content = card.ToJson() }]
         };
         var result = msg.GetCardThatHas("file.json", "uid");
         Assert.IsNull(result);
@@ -93,7 +93,7 @@ public class ChatMessageFinderTests
     {
         var msg = new ChatMessage
         {
-            Attachments = [new ChatMessageAttachment { Content = "  " }]
+            Attachments = [new() { Content = "  " }]
         };
 
         var result = msg.GetCardThatHas("file.json", "uid");
@@ -105,7 +105,7 @@ public class ChatMessageFinderTests
     {
         var msg = new ChatMessage
         {
-            Attachments = [new ChatMessageAttachment { Content = " " }]
+            Attachments = [new() { Content = " " }]
         };
         var result = msg.GetCardThatHas("file.json", "uid");
         Assert.IsNull(result);

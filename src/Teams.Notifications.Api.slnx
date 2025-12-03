@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Teams.Notifications.AdaptiveCardGen/Teams.Notifications.AdaptiveCardGen.csproj" />
+  <Project Path="Teams.Notifications.Api.Tests/Teams.Notifications.Api.Tests.csproj" />
+  <Project Path="Teams.Notifications.Api/Teams.Notifications.Api.csproj" />
+  <Project Path="Teams.Notifications.Formatter/Teams.Notifications.Formatter.csproj" />
+</Solution>

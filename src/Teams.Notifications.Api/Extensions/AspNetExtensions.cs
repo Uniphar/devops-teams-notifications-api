@@ -60,7 +60,7 @@ internal static class AspNetExtensions
                 options =>
                 {
                     options.SaveToken = true;
-                    options.TokenValidationParameters = new TokenValidationParameters
+                    options.TokenValidationParameters = new()
                     {
                         ValidateIssuer = true,
                         ValidateAudience = true,
@@ -75,7 +75,7 @@ internal static class AspNetExtensions
                     // Using Microsoft.IdentityModel.Validators
                     options.TokenValidationParameters.EnableAadSigningKeyIssuerValidation();
 
-                    options.Events = new JwtBearerEvents
+                    options.Events = new()
                     {
                         // Create a ConfigurationManager based on the requestor.  This is to handle ABS non-Entra tokens.
                         OnMessageReceived = async context =>
@@ -104,17 +104,21 @@ internal static class AspNetExtensions
 
                             if (AuthenticationConstants.BotFrameworkTokenIssuer.Equals(issuer))
                                 // Use the Azure Bot authority for this configuration manager
+                            {
                                 context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(azureBotServiceOpenIdMetadataUrl,
-                                    _ => new ConfigurationManager<OpenIdConnectConfiguration>(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
+                                    _ => new(azureBotServiceOpenIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
                                     {
                                         AutomaticRefreshInterval = openIdRefreshInterval
                                     });
+                            }
                             else
+                            {
                                 context.Options.TokenValidationParameters.ConfigurationManager = _openIdMetadataCache.GetOrAdd(openIdMetadataUrl,
-                                    _ => new ConfigurationManager<OpenIdConnectConfiguration>(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
+                                    _ => new(openIdMetadataUrl, new OpenIdConnectConfigurationRetriever(), new HttpClient())
                                     {
                                         AutomaticRefreshInterval = openIdRefreshInterval
                                     });
+                            }
 
                             await Task.CompletedTask.ConfigureAwait(false);
                         },

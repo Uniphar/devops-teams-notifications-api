@@ -18,6 +18,25 @@ public class {{name}}Controller : ControllerBase
     }
 
     /// <summary>
+    ///     Creates or updates card as message in teams
+    /// </summary>
+    /// <param name="model">Information that needs to be sent to teams</param>
+    /// <param name="user">User you want to sent a card to</param>
+    /// <param name="cancellationToken">CancellationToken for when the application stops, mostly used for the bot</param>
+    [HttpPost("{{name}}ToUser")]
+    // with swagger response you can give it a description
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [Authorize(Policy = "Teams.Notifications.Api.Writer", AuthenticationSchemes = "NotificationScheme")]
+    public async Task<IActionResult> PostUser({{name}}Model model, [FromQuery(Name = "UserName")] string user, CancellationToken cancellationToken)
+    {
+        using (_telemetry.WithProperties([new("CreateOrUpdateCardUser", "{{name}}Model")]))
+            await _cardManagerService.CreateOrUpdateAsync(jsonFileName, model, user, cancellationToken);
+            return Ok();
+    }
+
+    /// <summary>
     ///     Creates or updates the file error in teams
     /// </summary>
     /// <param name="model">Information that needs to be sent to teams</param>

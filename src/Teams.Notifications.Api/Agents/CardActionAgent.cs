@@ -1,41 +1,50 @@
-﻿using Uniphar.Platform.Telemetry;
-
-namespace Teams.Notifications.Api.Agents;
+﻿namespace Teams.Notifications.Api.Agents;
 
 public class CardActionAgent : AgentApplication
 {
     private readonly IFrontgateApiService _frontgateApiService;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<CardActionAgent> _logger;
     private readonly ITeamsManagerService _teamsManagerService;
     private readonly ICustomEventTelemetryClient _telemetry;
-
 
     public CardActionAgent(
         AgentApplicationOptions options,
         ITeamsManagerService teamsManagerService,
         IFrontgateApiService frontgateApiService,
         ICustomEventTelemetryClient telemetry,
-        ILogger<CardActionAgent> logger
+        ILogger<CardActionAgent> logger,
+        IHttpClientFactory httpClientFactory
     ) : base(options)
     {
         _telemetry = telemetry;
         _logger = logger;
         _teamsManagerService = teamsManagerService;
         _frontgateApiService = frontgateApiService;
+        _httpClientFactory = httpClientFactory;
         AdaptiveCards.OnActionExecute(new Regex(".*?"), ProcessCardActionAsync);
     }
 
-    [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)]
-    protected async Task MemberAddedAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
+
+    [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.ReactionAdded)]
+    protected async Task OnMessageReaction(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
-        await turnContext.SendActivityAsync(MessageFactory.Text("Welcome new user"), cancellationToken);
+        await turnContext.SendActivityAsync("Message Reaction: " + turnContext.Activity.ReactionsAdded[0].Type, cancellationToken: cancellationToken);
     }
+
+    [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Conversation, EventName = ConversationUpdateEvents.MembersAdded)]
+    protected async Task WelcomeMessageToUserAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
+    {
+        var member = await TeamsInfo.GetMemberAsync(turnContext, turnContext.Activity.From.Id, cancellationToken);
+        var user = member.Name ?? "new user";
+        await turnContext.SendActivityAsync(MessageFactory.Text("Welcome " + user), cancellationToken);
+    }
+
 
     [Microsoft.Agents.Builder.App.Route(RouteType = RouteType.Activity, Type = ActivityTypes.Message, Rank = RouteRank.Last)]
     protected async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrWhiteSpace(turnContext.Activity.Text))
-            await turnContext.SendActivityAsync(MessageFactory.Text("You are not meant to chat in this channel"), cancellationToken);
+        if (!string.IsNullOrWhiteSpace(turnContext.Activity.Text)) await turnContext.SendActivityAsync(MessageFactory.Text("We don't support any more interaction"), cancellationToken);
     }
 
     protected async Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(
@@ -45,7 +54,8 @@ public class CardActionAgent : AgentApplication
         CancellationToken cancellationToken
     )
     {
-        using (_telemetry.WithProperties([new("ActionExecute" , "LogicAppErrorProcessActionModel" )]))
+        using (_telemetry.WithProperties([new("ActionExecute", "LogicAppErrorProcessActionModel")]))
+        {
             try
             {
                 var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);
@@ -98,5 +108,6 @@ public class CardActionAgent : AgentApplication
                 _logger.LogError(ex, "Error processing card action");
                 throw;
             }
+        }
     }
 }

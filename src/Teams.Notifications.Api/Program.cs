@@ -1,24 +1,3 @@
-global using Teams.Notifications.Api.OpenApiTransformer;
-global using System;
-global using System.Collections;
-global using System.Collections.Concurrent;
-global using System.Collections.Generic;
-global using System.Data;
-global using System.Diagnostics;
-global using System.Globalization;
-global using System.IdentityModel.Tokens.Jwt;
-global using System.IO;
-global using System.Linq;
-global using System.Net.Http;
-global using System.Net.Http.Headers;
-global using System.Net.Http.Json;
-global using System.Reflection;
-global using System.Text.Json;
-global using System.Text.Json.Nodes;
-global using System.Text.Json.Serialization;
-global using System.Text.RegularExpressions;
-global using System.Threading;
-global using System.Threading.Tasks;
 global using AdaptiveCards;
 global using Azure.Core;
 global using Azure.Identity;
@@ -55,6 +34,26 @@ global using Microsoft.IdentityModel.Validators;
 global using Microsoft.Kiota.Abstractions;
 global using Microsoft.OpenApi;
 global using Polly;
+global using System;
+global using System.Collections;
+global using System.Collections.Concurrent;
+global using System.Collections.Generic;
+global using System.Data;
+global using System.Diagnostics;
+global using System.Globalization;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.IO;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Net.Http.Headers;
+global using System.Net.Http.Json;
+global using System.Reflection;
+global using System.Text.Json;
+global using System.Text.Json.Nodes;
+global using System.Text.Json.Serialization;
+global using System.Text.RegularExpressions;
+global using System.Threading;
+global using System.Threading.Tasks;
 global using Teams.Notifications.Api;
 global using Teams.Notifications.Api.Action.Models;
 global using Teams.Notifications.Api.Agents;
@@ -62,14 +61,15 @@ global using Teams.Notifications.Api.DelegatingHandlers;
 global using Teams.Notifications.Api.Extensions;
 global using Teams.Notifications.Api.Middlewares;
 global using Teams.Notifications.Api.Models;
+global using Teams.Notifications.Api.OpenApiTransformer;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
+global using Uniphar.Platform.Telemetry;
 global using Activity = Microsoft.Agents.Core.Models.Activity;
 global using Attachment = Microsoft.Agents.Core.Models.Attachment;
 global using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
 global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
-global using Uniphar.Platform.Telemetry;
 
 
 const string appPathPrefix = "devops-teams-notification-api";
@@ -160,12 +160,17 @@ builder
     });
 if (environment != "local")
     // key vault is required for ApplicationInsights, since it needs the connection string, but locally we will remove it
-    builder.Configuration.AddAzureKeyVault(new Uri($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
+    builder.Configuration.AddAzureKeyVault(new($"https://uni-devops-app-{environment}-kv.vault.azure.net/"), credentials);
 
 builder.Services.AddSingleton<IMiddleware[]>(_ => [new CaptureMiddleware()]);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi(options =>
 {
+    options.AddDocumentTransformer((doc, _, _) =>
+    {
+        foreach (var server in doc.Servers ?? []) server.Url = server.Url?.Replace("http://", "https://");
+        return Task.CompletedTask;
+    });
     options.AddDocumentTransformer<AddAdaptiveCardDocsTransformer>();
     options.AddOperationTransformer<AddCorrectFileTransformer>();
 

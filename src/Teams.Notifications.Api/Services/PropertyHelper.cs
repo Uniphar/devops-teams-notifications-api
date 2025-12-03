@@ -38,8 +38,9 @@ public static class PropertyHelper
     {
         HashSet<TKey> seenKeys = [];
         foreach (var element in source)
-            if (seenKeys.Add(keySelector(element)))
-                yield return element;
+        {
+            if (seenKeys.Add(keySelector(element))) yield return element;
+        }
     }
 
     /// <summary>
@@ -70,7 +71,7 @@ public static class PropertyHelper
                 // Parse JSON and remove objects from arrays where the property value matches the placeholder
                 var rootString = JsonNode.Parse(jsonString);
                 rootString = RemoveObjectsWithPlaceholder(rootString, toReplace);
-                return rootString?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? jsonString;
+                return rootString?.ToJsonString(new() { WriteIndented = false }) ?? jsonString;
 
             // required string
             case "string":
@@ -93,16 +94,18 @@ public static class PropertyHelper
             case JsonArray array:
             {
                 for (var i = array.Count - 1; i >= 0; i--)
+                {
                     if (array[i] is JsonObject obj && ObjectContainsPlaceholder(obj, toReplace))
                         array.RemoveAt(i);
                     else
                         RemoveObjectsWithPlaceholder(array[i], toReplace);
+                }
+
                 break;
             }
             case JsonObject obj:
             {
-                foreach (var prop in obj)
-                    RemoveObjectsWithPlaceholder(prop.Value, toReplace);
+                foreach (var prop in obj) RemoveObjectsWithPlaceholder(prop.Value, toReplace);
                 break;
             }
         }
@@ -114,6 +117,7 @@ public static class PropertyHelper
     private static bool ObjectContainsPlaceholder(JsonObject obj, string toReplace)
     {
         foreach (var prop in obj)
+        {
             switch (prop.Value)
             {
                 case JsonValue value when value.ToString().Contains(toReplace):
@@ -122,16 +126,19 @@ public static class PropertyHelper
                 case JsonArray arr:
                 {
                     foreach (var item in arr)
+                    {
                         switch (item)
                         {
                             case JsonObject arrObj when ObjectContainsPlaceholder(arrObj, toReplace):
                             case JsonValue arrVal when arrVal.ToString().Contains(toReplace):
                                 return true;
                         }
+                    }
 
                     break;
                 }
             }
+        }
 
         return false;
     }
@@ -143,7 +150,7 @@ public static class PropertyHelper
         {
             var root = JsonNode.Parse(content);
             root = RemoveObjectsWithPlaceholder(root, toReplace);
-            return root?.ToJsonString(new JsonSerializerOptions { WriteIndented = false }) ?? content;
+            return root?.ToJsonString(new() { WriteIndented = false }) ?? content;
         }
 
         var toReplaceWith = toReplace switch
@@ -160,16 +167,14 @@ public static class PropertyHelper
     private static int? TryGetIntPropertyValue<T>(this T model, string propertyName)
     {
         var property = typeof(T).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-        if (property == null || property.PropertyType != typeof(int))
-            return null;
+        if (property == null || property.PropertyType != typeof(int)) return null;
         return (int?)(property.GetValue(model) ?? null);
     }
 
     private static string? TryGetStringPropertyValue<T>(this T model, string propertyName)
     {
         var property = typeof(T).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-        if (property == null || property.PropertyType != typeof(string))
-            return null;
+        if (property == null || property.PropertyType != typeof(string)) return null;
 
         return property.GetValue(model) as string;
     }
@@ -177,8 +182,7 @@ public static class PropertyHelper
     public static IFormFile? GetFileValue<T>(this T model)
     {
         var property = typeof(T).GetProperty("File", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-        if (property == null || property.PropertyType != typeof(IFormFile))
-            return null;
+        if (property == null || property.PropertyType != typeof(IFormFile)) return null;
 
         return property.GetValue(model) as IFormFile;
     }

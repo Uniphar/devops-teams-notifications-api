@@ -1,3 +1,5 @@
+using System.Security.Claims;
+
 namespace Teams.Notifications.Api.Tests.Services;
 
 [TestClass]
@@ -11,12 +13,12 @@ public class CardManagerServiceTests
 
     public CardManagerServiceTests()
     {
-        _adapterMock = new Mock<IChannelAdapter>();
-        _teamsManagerServiceMock = new Mock<ITeamsManagerService>();
-        _configMock = new Mock<IConfiguration>();
+        _adapterMock = new();
+        _teamsManagerServiceMock = new();
+        _configMock = new();
         _configMock.Setup(c => c["AZURE_CLIENT_ID"]).Returns("client-id");
         _configMock.Setup(c => c["AZURE_TENANT_ID"]).Returns("tenant-id");
-        _telemetryMock = new Mock<ICustomEventTelemetryClient>();
+        _telemetryMock = new();
     }
 
     private CardManagerService CreateService() => new(_adapterMock.Object, _teamsManagerServiceMock.Object, _configMock.Object, _telemetryMock.Object);
@@ -32,7 +34,7 @@ public class CardManagerServiceTests
         _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId("teamId", "channelId", "file.json", "uid", CancellationToken.None)).ReturnsAsync("msgId");
         _adapterMock
             .Setup(x => x.ContinueConversationAsync(
-                It.IsAny<string>(),
+                It.IsAny<ClaimsIdentity>(),
                 It.IsAny<ConversationReference>(),
                 It.IsAny<AgentCallbackHandler>(),
                 It.IsAny<CancellationToken>()))
@@ -43,7 +45,7 @@ public class CardManagerServiceTests
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
-                "client-id",
+                It.IsAny<ClaimsIdentity>(),
                 It.Is<ConversationReference>(cr => cr.ActivityId == "msgId"),
                 It.IsAny<AgentCallbackHandler>(),
                 CancellationToken.None),
@@ -77,7 +79,7 @@ public class CardManagerServiceTests
 
         _adapterMock
             .Setup(x => x.ContinueConversationAsync(
-                It.IsAny<string>(),
+                It.IsAny<ClaimsIdentity>(),
                 It.IsAny<ConversationReference>(),
                 It.IsAny<AgentCallbackHandler>(),
                 It.IsAny<CancellationToken>()))
@@ -88,7 +90,7 @@ public class CardManagerServiceTests
 
         // Assert
         _adapterMock.Verify(x => x.ContinueConversationAsync(
-                "client-id",
+                It.IsAny<ClaimsIdentity>(),
                 It.IsAny<ConversationReference>(),
                 It.IsAny<AgentCallbackHandler>(),
                 CancellationToken.None),
@@ -134,6 +136,7 @@ public class CardManagerServiceTests
         // 5 items should be left since the rest should be removed
         Assert.HasCount(5, item.Body);
         foreach (var element in item.Body)
+        {
             switch (element)
             {
                 case AdaptiveTextBlock textBlock:
@@ -151,5 +154,6 @@ public class CardManagerServiceTests
                     break;
                 }
             }
+        }
     }
 }

@@ -6,7 +6,7 @@ internal sealed class FilesDiffer(string BasePath)
 
     public void Add(string path, Action<string, Stream> generateExpectedContents)
     {
-        Diffs.Add(new FileDiff
+        Diffs.Add(new()
         {
             SourcePath = Path.GetRelativePath(BasePath, path),
             SourceHash = File.Exists(path)
@@ -18,8 +18,7 @@ internal sealed class FilesDiffer(string BasePath)
 
     public void AddAllUnderPath(string path, string pattern, Action<string, Stream> generateExpectedContents)
     {
-        foreach (var file in Directory.EnumerateFiles(path, pattern, SearchOption.AllDirectories))
-            Add(file, generateExpectedContents);
+        foreach (var file in Directory.EnumerateFiles(path, pattern, SearchOption.AllDirectories)) Add(file, generateExpectedContents);
     }
 
     public bool Apply()
@@ -88,8 +87,7 @@ internal sealed class FilesDiffer(string BasePath)
         {
             AnsiConsole.WriteException(ex);
 
-            if (operation is not null && ex is JsonException jsonEx)
-                GitHubActions.Error(operation, jsonEx.Message, diff.SourcePath, jsonEx.LineNumber);
+            if (operation is not null && ex is JsonException jsonEx) GitHubActions.Error(operation, jsonEx.Message, diff.SourcePath, jsonEx.LineNumber);
             hash = null;
             return null;
         }

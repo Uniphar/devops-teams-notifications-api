@@ -18,7 +18,7 @@ public sealed class TeamsChannelMessagingServiceTests
             var tenantId = context.Properties["TenantId"]?.ToString() ?? throw new ArgumentNullException(nameof(context));
             var clientSecret = context.Properties["ClientSecret"]!.ToString();
             var defaultCredential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            graph = new GraphServiceClient(defaultCredential);
+            graph = new(defaultCredential);
         }
 
         var configuration = new ConfigurationBuilder()
@@ -27,7 +27,7 @@ public sealed class TeamsChannelMessagingServiceTests
                 KeyValuePair.Create("AZURE_CLIENT_ID", clientId)!
             ])
             .Build();
-        _teamManager = new TeamsManagerService(graph, configuration);
+        _teamManager = new(graph, configuration);
     }
 
     [TestMethod]
