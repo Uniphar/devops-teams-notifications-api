@@ -80,8 +80,13 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
 
      
         # for debug purposes, give the same creds as the workload
-        Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $botPermissionsNeeded -RevokeExisting -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent  
-        
+        $debugGrantPermissionConfig = @{
+            ApplicationName = $devopsBotNameDebug
+            Permissions     = $botPermissionsNeeded
+            RevokeExisting  = $true
+            Verbose         = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+        }
+        Grant-MicrosoftGraphPermission @debugGrantPermissionConfig
     }
     $deploymentConfig = @{
         Mode              = 'Incremental'
@@ -99,5 +104,11 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
 
     # devops-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
     # in the future add revoke existing if needed and use a custom workload identity for the bot
-    Grant-MicrosoftGraphPermission -ApplicationName $devopsClusterIdentityName -Permissions $botPermissionsNeeded -RevokeExisting -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
+    $grantPermissionConfig = @{
+        ApplicationName = $devopsClusterIdentityName
+        Permissions     = $botPermissionsNeeded
+        RevokeExisting  = $true
+        Verbose         = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+    }
+    Grant-MicrosoftGraphPermission @grantPermissionConfig
 }
