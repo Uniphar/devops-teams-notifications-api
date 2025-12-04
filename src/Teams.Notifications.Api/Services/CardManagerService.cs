@@ -1,4 +1,6 @@
-﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using Microsoft.Agents.Core.Models;
+using Microsoft.Graph.Beta.Models;
+using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -47,6 +49,9 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
+        var chatId= await teamsManagerService.GetChatIdAsync(userAadObjectId, token);
+        var chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId ,userAadObjectId, jsonFileName, model.UniqueId, token);
+        var chatMessageJson=chatMessage?.GetAdaptiveCardFromChatMessage();
         var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
         var conversationParam = new ConversationParameters
         {

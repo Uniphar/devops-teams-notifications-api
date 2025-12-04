@@ -1,4 +1,7 @@
-﻿namespace Teams.Notifications.Api.Services;
+﻿using Azure;
+using Microsoft.Graph.Beta.Models;
+
+namespace Teams.Notifications.Api.Services;
 
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
@@ -71,6 +74,50 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .GetAsync(request => { request.QueryParameters.Select = ["id"]; }, token);
 
         return user?.Id ?? throw new InvalidOperationException($"User with principal name {userPrincipalName} not found");
+    }
+
+    public async Task<string?> GetChatIdAsync(string aadObjectId, CancellationToken token)
+    {
+        // check if app is installed for the user
+        var installedChatResource = await graphClient
+            .Users[aadObjectId]
+            .Teamwork
+            .InstalledApps
+            .GetAsync(request =>
+                {
+                    request.QueryParameters.Expand = ["teamsAppDefinition"];
+                    request.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                },
+                token);
+        if (installedChatResource?.Value == null) return null;
+        var id = installedChatResource?.Value.FirstOrDefault()?.Id;
+        if (string.IsNullOrWhiteSpace(id)) return null;
+        var chat = await graphClient.Users[aadObjectId].Teamwork.InstalledApps[id].Chat.GetAsync(cancellationToken: token);
+        return chat?.Id;
+    }
+
+    public async Task<ChatMessage?> GetChatMessageByUniqueId(string chatId, string userAadObjectId, string jsonFileName, string uniqueId, CancellationToken token)
+    {
+        var response = await graphClient.Chats[chatId].Messages.GetAsync(cancellationToken: token);
+        // no need to do anything if there is no message
+        var responses = response?.Value;
+        if (responses == null) return null;
+        var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+        if (foundMessage != null) return foundMessage;
+        while (response?.OdataNextLink != null)
+        {
+            var configuration = new RequestInformation
+            {
+                HttpMethod = Method.GET,
+                URI = new(response.OdataNextLink)
+            };
+
+            response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
+            if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
+            foundMessage = response.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+        }
+
+        return foundMessage;
     }
 
     public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token) => (await GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token))?.Id;

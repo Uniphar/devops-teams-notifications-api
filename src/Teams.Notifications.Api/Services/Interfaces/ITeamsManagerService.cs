@@ -13,4 +13,6 @@ public interface ITeamsManagerService
     Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token);
     Task<string> GetFileUrl(string teamId, string channelId, string fileLocation, CancellationToken token);
     Task<string> GetUserAadObjectIdAsync(string userPrincipalName, CancellationToken token);
+    Task<string?> GetChatIdAsync(string aadObjectId, CancellationToken token);
+    Task<ChatMessage?> GetChatMessageByUniqueId(string chatId, string userAadObjectId, string jsonFileName, string modelUniqueId, CancellationToken token);
 }
