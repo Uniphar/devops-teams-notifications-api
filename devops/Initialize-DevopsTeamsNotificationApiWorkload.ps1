@@ -7,36 +7,42 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
     )
     $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\bot.bicep"
     $devopsBotName = Resolve-UniResourceName 'bot' $p_devopsDomain -Dev:$Dev -Environment $Environment
+    # Minimal application permissions required for:
+    # - Installing a Teams app into any team, channel, or chat
+    # - Reading all messages (teams/channel/chats)
+    # - Adding users to teams/channels/chats
+    # - Creating teams
+    # - Reading/writing files in channels
+
     $botPermissionsNeeded = @(
-        # add users to a channel    
-        "ChannelMember.ReadWrite.All", 
-        # read what channels are in a team
-        "ChannelSettings.ReadWrite.All",
-        # see members in the team
-        "ChatMember.ReadWrite.All", 
-        # read messages in a channel
-        "ChatMessage.Read.All", 
-        # send messages in a channel
-        "ChannelMessage.Send", 
-        # install app for a user and see what apps are installed
-        "TeamsAppInstallation.ReadWriteAndConsentSelfForUser.All",
-        # send chat messages, bot could use that if messaged privately
-        "Chat.ReadWrite.All",
-        # read/write files in a channel
-        "Files.ReadWrite.All", 
-        # Create a new team, frontgate
-        "Team.Create", 
-        # Add team members in a team
-        "TeamMember.ReadWrite.All", 
-        # read what teams are in a tenant
-        "TeamSettings.ReadWrite.All",
-        # ability to read user info without being signed in, needed for the bot
-        "TeamsUserConfiguration.Read.All",
-        # frontgate, to create a group, which then will be used to create a team
-        "Group.ReadWrite.All",
-        #ability to read user profile, needed for frontgate to get user id
+        # Group control to create groups, update membership, and manage private/shared channels.
+        "Group.ReadWrite.All"
+        # Create new Microsoft Teams
+        "Team.Create"
+        # Not everything is fully covered by Group.ReadWrite.All
+        "TeamMember.ReadWrite.All"
+        # Add/remove users from channels, including private/shared channels
+        "ChannelMember.ReadWrite.All"
+        # Read and update channels
+        "ChannelSettings.ReadWrite.All"
+        # Read *all* channel messages across the entire tenant (standard + private + shared)
+        "ChannelMessage.Read.All"
+        # Send messages as the bot/app into any channel
+        "ChannelMessage.Send"
+        # Read/write all chat messages (1:1 + group chats) and send messages
+        "Chat.ReadWrite.All"
+        # Add/remove members from chats (1:1 or multiparty)
+        "ChatMember.ReadWrite.All"
+        # Install/uninstall a Teams app in a chat and read installed apps
+        "TeamsAppInstallation.ReadWriteForChat.All"
+        # Allow the chat/user to consent to the app install; needed for broad installs
+        "TeamsAppInstallation.ReadWriteAndConsentSelfForChat.All"
+        # Read and write files in Teams channels (SharePoint-backed)
+        "Files.ReadWrite.All"
+        # Read user profiles – needed for resolving user IDs to add to teams/chats/channels
         "User.Read.All"
     )
+
     $devopsClusterIdentityName = Resolve-UniComputeDomainSAName $Environment $global:p_devopsDomain
     $aksClusterApp = Get-AzADApplication -DisplayName $devopsClusterIdentityName
     $deploymentName = Resolve-DeploymentName -Suffix '-TeamsNotificationApiBot'
@@ -74,7 +80,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
 
      
         # for debug purposes, give the same creds as the workload
-        Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $botPermissionsNeeded -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent  
+        Grant-MicrosoftGraphPermission -ApplicationName $devopsBotNameDebug -Permissions $botPermissionsNeeded -RevokeExisting -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent  
         
     }
     $deploymentConfig = @{
@@ -93,5 +99,5 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
 
     # devops-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
     # in the future add revoke existing if needed and use a custom workload identity for the bot
-    Grant-MicrosoftGraphPermission -ApplicationName $devopsClusterIdentityName -Permissions $botPermissionsNeeded -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
+    Grant-MicrosoftGraphPermission -ApplicationName $devopsClusterIdentityName -Permissions $botPermissionsNeeded -RevokeExisting -Verbose:$PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent
 }
