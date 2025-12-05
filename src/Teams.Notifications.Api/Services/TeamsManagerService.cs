@@ -119,7 +119,6 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                     requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
                 },
                 token);
-        ;
         var id = installedChatResource?.Value?.FirstOrDefault()?.Id;
         if (!string.IsNullOrWhiteSpace(id)) return id;
 

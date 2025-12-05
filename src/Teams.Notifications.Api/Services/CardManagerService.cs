@@ -47,30 +47,18 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
-        var teamAppId = await teamsManagerService.GetTeamsAppIdAsync(token);
+        //var teamAppId = await teamsManagerService.GetTeamsAppIdAsync(token);
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
-        string? chatMessageJson = null;
-        if (!string.IsNullOrWhiteSpace(installedAppId))
-        {
-            var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
-            if (!string.IsNullOrWhiteSpace(chatId))
-            {
-                var chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
-                chatMessageJson = chatMessage?.GetAdaptiveCardFromChatMessage();
-            }
-        }
+        ChatMessage? chatMessage = null;
 
-        var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
-        var conversationParam = new ConversationParameters
-        {
-            IsGroup = false,
-            Members =
-            [
-                new(userAadObjectId, aadObjectId: userAadObjectId)
-            ],
-            Agent = new(_clientId, aadObjectId: _clientId),
-            TenantId = _tenantId
-        };
+
+        if (string.IsNullOrWhiteSpace(installedAppId)) throw new NullReferenceException(nameof(installedAppId));
+
+        var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
+
+        if (string.IsNullOrWhiteSpace(chatId)) throw new NullReferenceException(nameof(chatId));
+        if (!string.IsNullOrWhiteSpace(chatId)) chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
+
         var activity = new Activity
         {
             Type = "message",
@@ -83,23 +71,39 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 }
             }
         };
-        if (!string.IsNullOrWhiteSpace(chatMessageJson))
+
+        var conversationReference = GetConversationReference(chatId);
+        var idFromOldMessage = chatMessage?.Id;
+        // found an existing card so update id
+        if (!string.IsNullOrWhiteSpace(idFromOldMessage))
         {
-            telemetry.TrackEvent("ExistingMessageFound");
+            activity.Id = idFromOldMessage;
+            conversationReference.ActivityId = idFromOldMessage;
         }
 
-        await adapter.CreateConversationAsync(_clientId,
-            Channels.Msteams,
-            $"https://smba.trafficmanager.net/emea/{_tenantId}",
-            audience,
-            conversationParam,
+
+        await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
+            conversationReference,
             async (turnContext, cancellationToken) =>
             {
-                var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
-                telemetry.TrackEvent("NewMessage",
+                if (string.IsNullOrWhiteSpace(idFromOldMessage))
+                {
+                    // item is new
+                    var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
+                    telemetry.TrackEvent("ChatNewMessage",
+                        new()
+                        {
+                            ["MessageId"] = newResult.Id
+                        });
+                    return;
+                }
+
+                // item needs update
+                var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
+                telemetry.TrackEvent("ChatUpdateMessage",
                     new()
                     {
-                        ["MessageId"] = newResult.Id
+                        ["MessageId"] = updateResult.Id
                     });
             },
             token);
@@ -221,6 +225,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             ChannelId = Channels.Msteams,
             ServiceUrl = $"https://smba.trafficmanager.net/emea/{_tenantId}",
             Conversation = new(id: channelId),
-            ActivityId = channelId
+            ActivityId = channelId,
+            Agent = new(agenticAppId: _clientId)
         };
 }
