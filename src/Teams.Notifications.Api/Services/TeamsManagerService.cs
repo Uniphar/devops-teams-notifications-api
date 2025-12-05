@@ -3,22 +3,45 @@
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
-    private readonly string _teamsAppId = config["TEAMS_APP_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing TEAMS_APP_ID");
+    private string? _teamsAppId;
+
+    private async Task<string> GetTeamsAppIdAsync(CancellationToken token)
+    {
+        if (!string.IsNullOrWhiteSpace(_teamsAppId)) return _teamsAppId;
+
+        var apps = await graphClient
+            .AppCatalogs
+            .TeamsApps
+            .GetAsync(requestConfiguration =>
+            {
+                requestConfiguration.QueryParameters.Filter = $"appDefinitions/any(a:a/authorization/clientAppId eq '{_clientId}')";
+                requestConfiguration.QueryParameters.Expand = ["appDefinitions"];
+            }, token);
+
+        var teamsApp = apps?.Value?.FirstOrDefault();
+        _teamsAppId = teamsApp?.Id ?? throw new InvalidOperationException($"Teams app with client ID {_clientId} not found in app catalog");
+        return _teamsAppId;
+    }
 
     public async Task CheckOrInstallBotIsInTeam(string teamId, CancellationToken token)
     {
         var check = await graphClient
             .Teams[teamId]
             .InstalledApps
-            .GetAsync(requestConfiguration => { requestConfiguration.QueryParameters.Filter = $"id eq '{_teamsAppId}'"; },
+            .GetAsync(requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
+                    requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                },
                 token);
         if (check?.Value?.Count == 0)
         {
+            var teamsAppId = await GetTeamsAppIdAsync(token);
             var requestBody = new UserScopeTeamsAppInstallation
             {
                 AdditionalData = new Dictionary<string, object>
                 {
-                    ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{_teamsAppId}"
+                    ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{teamsAppId}"
                 }
             };
 
@@ -92,15 +115,21 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .Users[aadObjectId]
             .Teamwork
             .InstalledApps
-            .GetAsync(request => { request.QueryParameters.Filter = $"id eq '{_teamsAppId}'"; },
-                token);
+            .GetAsync(requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
+                    requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                },
+                token); ;
         var id = installedChatResource?.Value?.FirstOrDefault()?.Id;
         if (!string.IsNullOrWhiteSpace(id)) return id;
+        
+        var teamsAppId = await GetTeamsAppIdAsync(token);
         var requestBody = new UserScopeTeamsAppInstallation
         {
             AdditionalData = new Dictionary<string, object>
             {
-                ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{_teamsAppId}"
+                ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{teamsAppId}"
             }
         };
 
