@@ -48,17 +48,18 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
+        string? chatMessageJson = null;
         if (!string.IsNullOrWhiteSpace(installedAppId))
         {
             var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
             if (!string.IsNullOrWhiteSpace(chatId))
             {
                 var chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
-                var chatMessageJson = chatMessage?.GetAdaptiveCardFromChatMessage();
+                chatMessageJson = chatMessage?.GetAdaptiveCardFromChatMessage();
             }
         }
 
-            var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
+        var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
         var conversationParam = new ConversationParameters
         {
             IsGroup = false,
@@ -81,6 +82,11 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 }
             }
         };
+        if (!string.IsNullOrWhiteSpace(chatMessageJson))
+        {
+            telemetry.TrackEvent("ExistingMessageFound");
+        }
+
         await adapter.CreateConversationAsync(_clientId,
             Channels.Msteams,
             $"https://smba.trafficmanager.net/emea/{_tenantId}",

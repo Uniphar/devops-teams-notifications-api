@@ -92,10 +92,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .Users[aadObjectId]
             .Teamwork
             .InstalledApps
-            .GetAsync(request =>
-                {
-                    request.QueryParameters.Filter = $"id eq '{_teamsAppId}'";
-                },
+            .GetAsync(request => { request.QueryParameters.Filter = $"id eq '{_teamsAppId}'"; },
                 token);
         var id = installedChatResource?.Value?.FirstOrDefault()?.Id;
         if (!string.IsNullOrWhiteSpace(id)) return id;

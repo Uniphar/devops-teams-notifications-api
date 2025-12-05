@@ -21,7 +21,7 @@ public class CardActionAgent : AgentApplication
         OnMessageReactionsAdded(MessageReactionAsync);
         AdaptiveCards.OnActionExecute("Process", ProcessCardActionAsync);
         AdaptiveCards.OnActionExecute("WelcomeBack", WelcomeBackCardActionAsync);
-        
+
         OnMessage(ConversationUpdateEvents.MembersAdded, WelcomeMessageToUserAsync);
         OnActivity(ActivityTypes.Message, MessageActivityAsync, RouteRank.Last);
     }
