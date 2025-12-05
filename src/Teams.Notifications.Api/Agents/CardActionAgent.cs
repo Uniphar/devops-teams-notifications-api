@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-namespace Teams.Notifications.Api.Agents;
+﻿namespace Teams.Notifications.Api.Agents;
 
 public class CardActionAgent : AgentApplication
 {
@@ -48,6 +46,7 @@ public class CardActionAgent : AgentApplication
     }
 
     private Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token) => turnContext.HandleLogAppProcessFile(data, _telemetry, _logger, _teamsManagerService, _frontgateApiService, token);
+
     private async Task<AdaptiveCardInvokeResponse> WelcomeBackCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token)
     {
         await turnContext.SendActivityAsync(MessageFactory.Text("I am going to work on your request"), token);

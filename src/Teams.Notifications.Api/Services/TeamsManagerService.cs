@@ -1,24 +1,33 @@
-﻿using Azure;
-using Microsoft.Graph.Beta.Models;
-
-namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Services;
 
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
+    private readonly string _teamsAppId = config["TEAMS_APP_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing TEAMS_APP_ID");
 
-    public async Task CheckBotIsInTeam(string teamId, CancellationToken token)
+    public async Task CheckOrInstallBotIsInTeam(string teamId, CancellationToken token)
     {
-        var result = await graphClient
+        var check = await graphClient
             .Teams[teamId]
             .InstalledApps
-            .GetAsync(requestConfiguration =>
-                {
-                    requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
-                    requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
-                },
+            .GetAsync(requestConfiguration => { requestConfiguration.QueryParameters.Filter = $"id eq '{_teamsAppId}'"; },
                 token);
-        if (result?.Value?.Count == 0) throw new InvalidOperationException("Please install the bot on the Team, it is not installed at the moment");
+        if (check?.Value?.Count == 0)
+        {
+            var requestBody = new UserScopeTeamsAppInstallation
+            {
+                AdditionalData = new Dictionary<string, object>
+                {
+                    ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{_teamsAppId}"
+                }
+            };
+
+
+            await graphClient
+                .Teams[teamId]
+                .InstalledApps
+                .PostAsync(requestBody, cancellationToken: token);
+        }
     }
 
     public async Task<string> GetTeamIdAsync(string teamName, CancellationToken token)
@@ -76,7 +85,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return user?.Id ?? throw new InvalidOperationException($"User with principal name {userPrincipalName} not found");
     }
 
-    public async Task<string?> GetChatIdAsync(string aadObjectId, CancellationToken token)
+    public async Task<string?> GetOrInstallChatAppIdAsync(string aadObjectId, CancellationToken token)
     {
         // check if app is installed for the user
         var installedChatResource = await graphClient
@@ -85,14 +94,28 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             .InstalledApps
             .GetAsync(request =>
                 {
-                    request.QueryParameters.Expand = ["teamsAppDefinition"];
-                    request.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                    request.QueryParameters.Filter = $"id eq '{_teamsAppId}'";
                 },
                 token);
-        if (installedChatResource?.Value == null) return null;
-        var id = installedChatResource?.Value.FirstOrDefault()?.Id;
-        if (string.IsNullOrWhiteSpace(id)) return null;
-        var chat = await graphClient.Users[aadObjectId].Teamwork.InstalledApps[id].Chat.GetAsync(cancellationToken: token);
+        var id = installedChatResource?.Value?.FirstOrDefault()?.Id;
+        if (!string.IsNullOrWhiteSpace(id)) return id;
+        var requestBody = new UserScopeTeamsAppInstallation
+        {
+            AdditionalData = new Dictionary<string, object>
+            {
+                ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{_teamsAppId}"
+            }
+        };
+
+
+        var result = await graphClient.Users[aadObjectId].Teamwork.InstalledApps.PostAsync(requestBody, cancellationToken: token);
+        return result?.Id;
+    }
+
+    public async Task<string?> GetChatIdAsync(string installedAppId, string aadObjectId, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(installedAppId)) return null;
+        var chat = await graphClient.Users[aadObjectId].Teamwork.InstalledApps[installedAppId].Chat.GetAsync(cancellationToken: token);
         return chat?.Id;
     }
 

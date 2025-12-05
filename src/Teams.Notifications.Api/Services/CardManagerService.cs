@@ -1,6 +1,4 @@
-﻿using Microsoft.Agents.Core.Models;
-using Microsoft.Graph.Beta.Models;
-using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -12,7 +10,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
-        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var conversationReference = GetConversationReference(channelId);
         var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
@@ -39,7 +37,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task<string?> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
-        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
         // check that we found the item to delete
@@ -49,10 +47,18 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
-        var chatId= await teamsManagerService.GetChatIdAsync(userAadObjectId, token);
-        var chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId ,userAadObjectId, jsonFileName, model.UniqueId, token);
-        var chatMessageJson=chatMessage?.GetAdaptiveCardFromChatMessage();
-        var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
+        var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
+        if (!string.IsNullOrWhiteSpace(installedAppId))
+        {
+            var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
+            if (!string.IsNullOrWhiteSpace(chatId))
+            {
+                var chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
+                var chatMessageJson = chatMessage?.GetAdaptiveCardFromChatMessage();
+            }
+        }
+
+            var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
         var conversationParam = new ConversationParameters
         {
             IsGroup = false,
@@ -95,7 +101,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
-        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
 
         var activity = new Activity

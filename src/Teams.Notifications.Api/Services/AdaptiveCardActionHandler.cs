@@ -7,7 +7,8 @@ internal static class AdaptiveCardActionHandler
         ICustomEventTelemetryClient telemetry,
         ILogger logger,
         ITeamsManagerService teamsManagerService,
-        IFrontgateApiService frontgateApiService, CancellationToken cancellationToken
+        IFrontgateApiService frontgateApiService,
+        CancellationToken cancellationToken
     )
     {
         using (telemetry.WithProperties([new("ActionExecute", "LogicAppErrorProcessActionModel")]))
