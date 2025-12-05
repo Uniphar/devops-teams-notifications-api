@@ -33,6 +33,8 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "Chat.ReadWrite.All"
         # Add/remove members from chats (1:1 or multiparty)
         "ChatMember.ReadWrite.All"
+        # Needed to get the teams app id
+        "AppCatalog.ReadWrite.All"
         # to read all apps installed for a user, makes sure we can then check it in the chat
         "TeamsAppInstallation.Read.All"
         # Install/uninstall a Teams app in a chat and read installed apps

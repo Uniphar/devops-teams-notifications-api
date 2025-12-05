@@ -47,6 +47,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
+        var teamAppId = await teamsManagerService.GetTeamsAppIdAsync(token);
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
         string? chatMessageJson = null;
         if (!string.IsNullOrWhiteSpace(installedAppId))

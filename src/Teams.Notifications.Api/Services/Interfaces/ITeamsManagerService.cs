@@ -16,4 +16,5 @@ public interface ITeamsManagerService
     Task<string?> GetChatIdAsync(string installedAppId, string aadObjectId, CancellationToken token);
     Task<ChatMessage?> GetChatMessageByUniqueId(string chatId, string userAadObjectId, string jsonFileName, string modelUniqueId, CancellationToken token);
     Task<string?> GetOrInstallChatAppIdAsync(string aadObjectId, CancellationToken token);
+    Task<string> GetTeamsAppIdAsync(CancellationToken token);
 }

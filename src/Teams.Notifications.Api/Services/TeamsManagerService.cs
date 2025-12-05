@@ -3,24 +3,22 @@
 public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration config) : ITeamsManagerService
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
-    private string? _teamsAppId;
 
-    private async Task<string> GetTeamsAppIdAsync(CancellationToken token)
+
+    public async Task<string> GetTeamsAppIdAsync(CancellationToken token)
     {
-        if (!string.IsNullOrWhiteSpace(_teamsAppId)) return _teamsAppId;
-
         var apps = await graphClient
             .AppCatalogs
             .TeamsApps
             .GetAsync(requestConfiguration =>
-            {
-                requestConfiguration.QueryParameters.Filter = $"appDefinitions/any(a:a/authorization/clientAppId eq '{_clientId}')";
-                requestConfiguration.QueryParameters.Expand = ["appDefinitions"];
-            }, token);
+                {
+                    requestConfiguration.QueryParameters.Filter = $"appDefinitions/any(a:a/authorization/clientAppId eq '{_clientId}')";
+                    requestConfiguration.QueryParameters.Expand = ["appDefinitions"];
+                },
+                token);
 
         var teamsApp = apps?.Value?.FirstOrDefault();
-        _teamsAppId = teamsApp?.Id ?? throw new InvalidOperationException($"Teams app with client ID {_clientId} not found in app catalog");
-        return _teamsAppId;
+        return teamsApp?.Id ?? throw new InvalidOperationException($"Teams app with client ID {_clientId} not found in app catalog");
     }
 
     public async Task CheckOrInstallBotIsInTeam(string teamId, CancellationToken token)
@@ -120,10 +118,11 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                     requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
                     requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
                 },
-                token); ;
+                token);
+        ;
         var id = installedChatResource?.Value?.FirstOrDefault()?.Id;
         if (!string.IsNullOrWhiteSpace(id)) return id;
-        
+
         var teamsAppId = await GetTeamsAppIdAsync(token);
         var requestBody = new UserScopeTeamsAppInstallation
         {
