@@ -125,15 +125,37 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         var teamsAppId = await GetTeamsAppIdAsync(token);
         var requestBody = new UserScopeTeamsAppInstallation
         {
+            ConsentedPermissionSet = new()
+            {
+                ResourceSpecificPermissions = new()
+                {
+                    new()
+                    {
+                        PermissionValue = "TeamsActivity.Send.User",
+                        PermissionType = TeamsAppResourceSpecificPermissionType.Application,
+                    },
+                },
+            },
             AdditionalData = new Dictionary<string, object>
             {
                 ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{teamsAppId}"
             }
         };
 
-
-        var result = await graphClient.Users[aadObjectId].Teamwork.InstalledApps.PostAsync(requestBody, cancellationToken: token);
-        return result?.Id;
+// create
+        await graphClient.Users[aadObjectId].Teamwork.InstalledApps.PostAsync(requestBody, cancellationToken: token);
+        // get the resource that we created
+        installedChatResource = await graphClient
+            .Users[aadObjectId]
+            .Teamwork
+            .InstalledApps
+            .GetAsync(requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
+                    requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                },
+                token);
+        return installedChatResource?.Value?.FirstOrDefault()?.Id;
     }
 
     public async Task<string?> GetChatIdAsync(string installedAppId, string aadObjectId, CancellationToken token)
