@@ -35,6 +35,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "Chat.ReadWrite.All"
         # Add/remove members from chats (1:1 or multiparty)
         "ChatMember.ReadWrite.All"
+        
         # Needed to get the teams app ids from the app catalog, which we have installed already
         "AppCatalog.ReadWrite.All"
         # read all installed Teams apps in the tenant
@@ -43,6 +44,8 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "TeamsAppInstallation.ReadWriteAndConsentSelfForUser.All"
         # install/uninstall a Teams app for a CHAT and read installed apps
         "TeamsAppInstallation.ReadWriteAndConsentSelfForChat.All"
+        # to install a Teams app for a TEAM and read installed apps
+        "TeamsAppInstallation.ReadWriteAndConsentForTeam.All"
         # Read and write files in Teams channels (SharePoint-backed)
         "Files.ReadWrite.All"
         # Read user profiles – needed for resolving user IDs to add to teams/chats/channels

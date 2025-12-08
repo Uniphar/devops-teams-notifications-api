@@ -37,6 +37,17 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             var teamsAppId = await GetTeamsAppIdAsync(token);
             var requestBody = new UserScopeTeamsAppInstallation
             {
+                ConsentedPermissionSet = new()
+                {
+                    ResourceSpecificPermissions = new()
+                    {
+                        new()
+                        {
+                            PermissionValue = "ChatMessage.Read.Chat",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        }
+                    }
+                },
                 AdditionalData = new Dictionary<string, object>
                 {
                     ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{teamsAppId}"
@@ -132,9 +143,9 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                     new()
                     {
                         PermissionValue = "TeamsActivity.Send.User",
-                        PermissionType = TeamsAppResourceSpecificPermissionType.Application,
-                    },
-                },
+                        PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                    }
+                }
             },
             AdditionalData = new Dictionary<string, object>
             {
@@ -142,7 +153,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             }
         };
 
-// create
+        // create
         await graphClient.Users[aadObjectId].Teamwork.InstalledApps.PostAsync(requestBody, cancellationToken: token);
         // get the resource that we created
         installedChatResource = await graphClient
