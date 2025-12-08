@@ -39,11 +39,57 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
             {
                 ConsentedPermissionSet = new()
                 {
+                    // same as the actual manifest permissions
                     ResourceSpecificPermissions = new()
                     {
                         new()
                         {
-                            PermissionValue = "ChatMessage.Read.Chat",
+                            PermissionValue = "Channel.Create.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "Channel.Delete.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "ChannelMessage.Read.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "ChannelMessage.Send.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "ChannelSettings.Read.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "ChannelSettings.ReadWrite.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "Member.Read.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "Owner.Read.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "TeamMember.Read.Group",
+                            PermissionType = TeamsAppResourceSpecificPermissionType.Application
+                        },
+                        new()
+                        {
+                            PermissionValue = "TeamsActivity.Send.Group",
                             PermissionType = TeamsAppResourceSpecificPermissionType.Application
                         }
                     }

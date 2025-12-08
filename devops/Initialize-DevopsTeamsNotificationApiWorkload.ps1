@@ -45,7 +45,6 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "TeamsAppInstallation.ReadWriteAndConsentSelfForChat.All"
         # to install a Teams app for a TEAM and read installed apps
         "TeamsAppInstallation.ReadWriteAndConsentSelfForTeam.All"
-
         # Read and write files in Teams channels (SharePoint-backed)
         "Files.ReadWrite.All"
         # Read user profiles – needed for resolving user IDs to add to teams/chats/channels
