@@ -10,7 +10,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
-        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var conversationReference = GetConversationReference(channelId);
         var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
@@ -37,27 +37,50 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task<string?> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
-        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
         // check that we found the item to delete
         return chatMessage?.GetAdaptiveCardFromChatMessage();
     }
 
+    public async Task CreateMessageToUserAsync(string message, string user, CancellationToken token)
+    {
+        var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
+        var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
+        if (string.IsNullOrWhiteSpace(installedAppId)) throw new NullReferenceException(nameof(installedAppId));
+        var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
+        if (string.IsNullOrWhiteSpace(chatId)) throw new NullReferenceException(nameof(chatId));
+        var conversationReference = GetConversationReference(chatId);
+        await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
+            conversationReference,
+            async (turnContext, cancellationToken) =>
+            {
+                // item is new
+                var newResult = await turnContext.SendActivityAsync(MessageFactory.Text(message), cancellationToken);
+                telemetry.TrackEvent("ChatNewMessage",
+                    new()
+                    {
+                        ["MessageId"] = newResult.Id
+                    });
+            },
+            token);
+    }
+
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
-        var audience = AgentClaims.GetTokenAudience(AgentClaims.CreateIdentity(_clientId));
-        var conversationParam = new ConversationParameters
-        {
-            IsGroup = false,
-            Members =
-            [
-                new(userAadObjectId, aadObjectId: userAadObjectId)
-            ],
-            Agent = new(_clientId, aadObjectId: _clientId),
-            TenantId = _tenantId
-        };
+
+        var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
+
+
+        if (string.IsNullOrWhiteSpace(installedAppId)) throw new NullReferenceException(nameof(installedAppId));
+
+        var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
+
+        if (string.IsNullOrWhiteSpace(chatId)) throw new NullReferenceException(nameof(chatId));
+        var chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
+
         var activity = new Activity
         {
             Type = "message",
@@ -70,27 +93,49 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 }
             }
         };
-        await adapter.CreateConversationAsync(_clientId,
-            Channels.Msteams,
-            $"https://smba.trafficmanager.net/emea/{_tenantId}",
-            audience,
-            conversationParam,
+
+        var conversationReference = GetConversationReference(chatId);
+        var idFromOldMessage = chatMessage?.Id;
+        // found an existing card so update id
+        if (!string.IsNullOrWhiteSpace(idFromOldMessage))
+        {
+            activity.Id = idFromOldMessage;
+            conversationReference.ActivityId = idFromOldMessage;
+        }
+
+
+        await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
+            conversationReference,
             async (turnContext, cancellationToken) =>
             {
-                var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
-                telemetry.TrackEvent("NewMessage",
+                if (string.IsNullOrWhiteSpace(idFromOldMessage))
+                {
+                    // item is new
+                    var newResult = await turnContext.SendActivityAsync(activity, cancellationToken);
+                    telemetry.TrackEvent("ChatNewMessage",
+                        new()
+                        {
+                            ["MessageId"] = newResult.Id
+                        });
+                    return;
+                }
+
+                // item needs update
+                var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
+                telemetry.TrackEvent("ChatUpdateMessage",
                     new()
                     {
-                        ["MessageId"] = newResult.Id
+                        ["MessageId"] = updateResult.Id
                     });
             },
             token);
     }
 
+
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
-        await teamsManagerService.CheckBotIsInTeam(teamId, token);
+        await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
 
         var activity = new Activity
@@ -203,6 +248,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             ChannelId = Channels.Msteams,
             ServiceUrl = $"https://smba.trafficmanager.net/emea/{_tenantId}",
             Conversation = new(id: channelId),
-            ActivityId = channelId
+            ActivityId = channelId,
+            Agent = new(agenticAppId: _clientId)
         };
 }

@@ -1,3 +1,22 @@
+global using System;
+global using System.Collections;
+global using System.Collections.Concurrent;
+global using System.Collections.Generic;
+global using System.Data;
+global using System.Diagnostics;
+global using System.Globalization;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.IO;
+global using System.Linq;
+global using System.Net.Http;
+global using System.Net.Http.Json;
+global using System.Reflection;
+global using System.Text.Json;
+global using System.Text.Json.Nodes;
+global using System.Text.Json.Serialization;
+global using System.Text.RegularExpressions;
+global using System.Threading;
+global using System.Threading.Tasks;
 global using AdaptiveCards;
 global using Azure.Core;
 global using Azure.Identity;
@@ -13,7 +32,6 @@ global using Microsoft.Agents.Extensions.Teams.Models;
 global using Microsoft.Agents.Hosting.AspNetCore;
 global using Microsoft.Agents.Storage;
 global using Microsoft.AspNetCore.Authentication;
-global using Microsoft.AspNetCore.Authentication.JwtBearer;
 global using Microsoft.AspNetCore.Authorization;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;
@@ -34,26 +52,6 @@ global using Microsoft.IdentityModel.Validators;
 global using Microsoft.Kiota.Abstractions;
 global using Microsoft.OpenApi;
 global using Polly;
-global using System;
-global using System.Collections;
-global using System.Collections.Concurrent;
-global using System.Collections.Generic;
-global using System.Data;
-global using System.Diagnostics;
-global using System.Globalization;
-global using System.IdentityModel.Tokens.Jwt;
-global using System.IO;
-global using System.Linq;
-global using System.Net.Http;
-global using System.Net.Http.Headers;
-global using System.Net.Http.Json;
-global using System.Reflection;
-global using System.Text.Json;
-global using System.Text.Json.Nodes;
-global using System.Text.Json.Serialization;
-global using System.Text.RegularExpressions;
-global using System.Threading;
-global using System.Threading.Tasks;
 global using Teams.Notifications.Api;
 global using Teams.Notifications.Api.Action.Models;
 global using Teams.Notifications.Api.Agents;
@@ -168,7 +166,11 @@ builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((doc, _, _) =>
     {
-        foreach (var server in doc.Servers ?? []) server.Url = server.Url?.Replace("http://", "https://");
+        foreach (var server in doc.Servers ?? [])
+        {
+            if (server.Url != null && server.Url.Contains("uniphar.ie")) server.Url = server.Url.Replace("http://", "https://");
+        }
+
         return Task.CompletedTask;
     });
     options.AddDocumentTransformer<AddAdaptiveCardDocsTransformer>();
@@ -185,6 +187,7 @@ builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 // Configure OpenTelemetry
 builder.RegisterOpenTelemetry(appPathPrefix);
+
 
 var app = builder.Build();
 app.MapHealthChecks("/health");

@@ -20,8 +20,8 @@ public class {{name}}Controller : ControllerBase
     /// <summary>
     ///     Creates or updates card as message in teams
     /// </summary>
-    /// <param name="model">Information that needs to be sent to teams</param>
-    /// <param name="user">User you want to sent a card to</param>
+    /// <param name="model">Information that needs to be send to teams</param>
+    /// <param name="user">User you want to send a card to</param>
     /// <param name="cancellationToken">CancellationToken for when the application stops, mostly used for the bot</param>
     [HttpPost("{{name}}ToUser")]
     // with swagger response you can give it a description
@@ -39,9 +39,9 @@ public class {{name}}Controller : ControllerBase
     /// <summary>
     ///     Creates or updates the file error in teams
     /// </summary>
-    /// <param name="model">Information that needs to be sent to teams</param>
-    /// <param name="teamName">Teamname you want to sent the message into</param>
-    /// <param name="channelName">Channel you want to sent the message into</param>
+    /// <param name="model">Information that needs to be send to teams</param>
+    /// <param name="teamName">Teamname you want to send the message into</param>
+    /// <param name="channelName">Channel you want to send the message into</param>
     /// <param name="cancellationToken">CancellationToken for when the application stops, mostly used for the bot</param>
     [HttpPost("{{name}}")]
     // with swagger response you can give it a description
@@ -72,8 +72,8 @@ public class {{name}}Controller : ControllerBase
     ///     Deletes the card based on the id
     /// </summary>
     /// <param name="uniqueId">The id used to know what card to delete, required</param>
-    /// <param name="teamName">Teamname you want to sent the message into</param>
-    /// <param name="channelName">Channel you want to sent the message into</param>
+    /// <param name="teamName">Teamname you want to send the message into</param>
+    /// <param name="channelName">Channel you want to send the message into</param>
     /// <param name="cancellationToken">CancellationToken for when the application stops, mostly used for the bot</param>
     [HttpDelete("{{name}}")]
     [Produces("application/json")]

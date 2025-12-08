@@ -34,7 +34,7 @@ public sealed class AddAdaptiveCardDocsTransformer : IOpenApiDocumentTransformer
     {
         var paths = document.Paths;
         foreach (var path in paths)
-        foreach (var operation in (path.Value?.Operations ?? [])
+        foreach (var operation in (path.Value.Operations ?? [])
                  .Where(operation => operation.Key == HttpMethod.Get))
         {
             operation.Value.Responses?["200"].Content?["application/json"].Schema = new OpenApiSchema

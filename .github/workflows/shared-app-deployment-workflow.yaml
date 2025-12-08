@@ -132,19 +132,6 @@ jobs:
             }
           azPSVersion: "latest"
 
-      - name: run domain powershell
-        uses: azure/powershell@v2
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} #required for gh cli to determine "current PR"
-        with:
-          inlineScript: |
-            Import-Module .\devops-azure\src\Uniphar.DevOps.psd1 -ErrorAction Stop -Force
-            . ./devops/Initialize-DevopsTeamsNotificationApiWorkload.ps1
-            Initialize-DevopsTeamsNotificationApiWorkload '${{ inputs.environment }}'
-          azPSVersion: "latest"
-          errorActionPreference: "stop"
-          failOnStandardError: true
-
       - name: get helm chart
         working-directory: ./charts/${{ env.APPLICATION_FOLDER }}
         run: helm pull oci://$ACR_NAME.azurecr.io/helm/${{ env.APPLICATION_NAME }} --version $APPLICATION_VERSION

@@ -4,9 +4,26 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 {
     private readonly string _clientId = config["AZURE_CLIENT_ID"] ?? throw new ArgumentNullException(nameof(config), "Missing AZURE_CLIENT_ID");
 
-    public async Task CheckBotIsInTeam(string teamId, CancellationToken token)
+
+    public async Task<string> GetTeamsAppIdAsync(CancellationToken token)
     {
-        var result = await graphClient
+        var apps = await graphClient
+            .AppCatalogs
+            .TeamsApps
+            .GetAsync(requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Filter = $"appDefinitions/any(a:a/authorization/clientAppId eq '{_clientId}')";
+                    requestConfiguration.QueryParameters.Expand = ["appDefinitions"];
+                },
+                token);
+
+        var teamsApp = apps?.Value?.FirstOrDefault();
+        return teamsApp?.Id ?? throw new InvalidOperationException($"Teams app with client ID {_clientId} not found in app catalog");
+    }
+
+    public async Task CheckOrInstallBotIsInTeam(string teamId, CancellationToken token)
+    {
+        var foundAppInstallsResponse = await graphClient
             .Teams[teamId]
             .InstalledApps
             .GetAsync(requestConfiguration =>
@@ -15,7 +32,23 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                     requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
                 },
                 token);
-        if (result?.Value?.Count == 0) throw new InvalidOperationException("Please install the bot on the Team, it is not installed at the moment");
+        if (foundAppInstallsResponse?.Value?.Count == 0)
+        {
+            var teamsAppId = await GetTeamsAppIdAsync(token);
+            var requestBody = new UserScopeTeamsAppInstallation
+            {
+                AdditionalData = new Dictionary<string, object>
+                {
+                    ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{teamsAppId}"
+                }
+            };
+
+
+            await graphClient
+                .Teams[teamId]
+                .InstalledApps
+                .PostAsync(requestBody, cancellationToken: token);
+        }
     }
 
     public async Task<string> GetTeamIdAsync(string teamName, CancellationToken token)
@@ -73,17 +106,78 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return user?.Id ?? throw new InvalidOperationException($"User with principal name {userPrincipalName} not found");
     }
 
+    public async Task<string?> GetOrInstallChatAppIdAsync(string aadObjectId, CancellationToken token)
+    {
+        // check if app is installed for the user
+        var installedChatResource = await graphClient
+            .Users[aadObjectId]
+            .Teamwork
+            .InstalledApps
+            .GetAsync(requestConfiguration =>
+                {
+                    requestConfiguration.QueryParameters.Expand = ["teamsAppDefinition"];
+                    requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
+                },
+                token);
+        var id = installedChatResource?.Value?.FirstOrDefault()?.Id;
+        if (!string.IsNullOrWhiteSpace(id)) return id;
+
+        var teamsAppId = await GetTeamsAppIdAsync(token);
+        var requestBody = new UserScopeTeamsAppInstallation
+        {
+            AdditionalData = new Dictionary<string, object>
+            {
+                ["teamsApp@odata.bind"] = $"https://graph.microsoft.com/beta/appCatalogs/teamsApps/{teamsAppId}"
+            }
+        };
+
+
+        var result = await graphClient.Users[aadObjectId].Teamwork.InstalledApps.PostAsync(requestBody, cancellationToken: token);
+        return result?.Id;
+    }
+
+    public async Task<string?> GetChatIdAsync(string installedAppId, string aadObjectId, CancellationToken token)
+    {
+        if (string.IsNullOrWhiteSpace(installedAppId)) return null;
+        var chat = await graphClient.Users[aadObjectId].Teamwork.InstalledApps[installedAppId].Chat.GetAsync(cancellationToken: token);
+        return chat?.Id;
+    }
+
+    public async Task<ChatMessage?> GetChatMessageByUniqueId(string chatId, string userAadObjectId, string jsonFileName, string uniqueId, CancellationToken token)
+    {
+        var messagesResponse = await graphClient.Chats[chatId].Messages.GetAsync(cancellationToken: token);
+        // no need to do anything if there is no message
+        var responses = messagesResponse?.Value;
+        if (responses == null) return null;
+        var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+        if (foundMessage != null) return foundMessage;
+        while (messagesResponse?.OdataNextLink != null)
+        {
+            var configuration = new RequestInformation
+            {
+                HttpMethod = Method.GET,
+                URI = new(messagesResponse.OdataNextLink)
+            };
+
+            messagesResponse = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
+            if (messagesResponse?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
+            foundMessage = messagesResponse.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+        }
+
+        return foundMessage;
+    }
+
     public async Task<string?> GetMessageIdByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token) => (await GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token))?.Id;
 
     public async Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
-        var response = await graphClient
+        var messagesResponse = await graphClient
             .Teams[teamId]
             .Channels[channelId]
             .Messages
             .GetAsync(x => { x.QueryParameters.Top = 100; }, token);
-        var responses = response
+        var responses = messagesResponse
             ?.Value
             ?.Where(x => x.DeletedDateTime == null &&
                          x.From?.Application != null &&
@@ -94,17 +188,17 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         if (responses == null) return null;
         var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
         if (foundMessage != null) return foundMessage;
-        while (response?.OdataNextLink != null)
+        while (messagesResponse?.OdataNextLink != null)
         {
             var configuration = new RequestInformation
             {
                 HttpMethod = Method.GET,
-                URI = new(response.OdataNextLink)
+                URI = new(messagesResponse.OdataNextLink)
             };
 
-            response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
-            if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
-            foundMessage = response.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+            messagesResponse = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
+            if (messagesResponse?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
+            foundMessage = messagesResponse.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
         }
 
         return foundMessage;
