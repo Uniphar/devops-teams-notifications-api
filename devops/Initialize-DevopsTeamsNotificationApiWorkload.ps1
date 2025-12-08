@@ -37,6 +37,8 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "ChatMember.ReadWrite.All"
         # Needed to get the teams app ids from the app catalog, which we have installed already
         "AppCatalog.ReadWrite.All"
+        # read all installed Teams apps in the tenant
+        "TeamsAppInstallation.Read.All"
         # install/uninstall a Teams app for a USER and read installed apps
         "TeamsAppInstallation.ReadWriteAndConsentSelfForUser.All"
         # install/uninstall a Teams app for a CHAT and read installed apps
