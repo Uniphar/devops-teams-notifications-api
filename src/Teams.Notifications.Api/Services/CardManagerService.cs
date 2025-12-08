@@ -47,7 +47,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
-        //var teamAppId = await teamsManagerService.GetTeamsAppIdAsync(token);
+
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
         ChatMessage? chatMessage = null;
 
@@ -57,7 +57,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
 
         if (string.IsNullOrWhiteSpace(chatId)) throw new NullReferenceException(nameof(chatId));
-        if (!string.IsNullOrWhiteSpace(chatId)) chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
+        chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
 
         var activity = new Activity
         {
