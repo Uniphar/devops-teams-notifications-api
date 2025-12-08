@@ -23,7 +23,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
     public async Task CheckOrInstallBotIsInTeam(string teamId, CancellationToken token)
     {
-        var check = await graphClient
+        var foundAppInstallsResponse = await graphClient
             .Teams[teamId]
             .InstalledApps
             .GetAsync(requestConfiguration =>
@@ -32,7 +32,7 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
                     requestConfiguration.QueryParameters.Filter = $"teamsAppDefinition/authorization/clientAppId eq '{_clientId}'";
                 },
                 token);
-        if (check?.Value?.Count == 0)
+        if (foundAppInstallsResponse?.Value?.Count == 0)
         {
             var teamsAppId = await GetTeamsAppIdAsync(token);
             var requestBody = new UserScopeTeamsAppInstallation
@@ -145,23 +145,23 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
     public async Task<ChatMessage?> GetChatMessageByUniqueId(string chatId, string userAadObjectId, string jsonFileName, string uniqueId, CancellationToken token)
     {
-        var response = await graphClient.Chats[chatId].Messages.GetAsync(cancellationToken: token);
+        var messagesResponse = await graphClient.Chats[chatId].Messages.GetAsync(cancellationToken: token);
         // no need to do anything if there is no message
-        var responses = response?.Value;
+        var responses = messagesResponse?.Value;
         if (responses == null) return null;
         var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
         if (foundMessage != null) return foundMessage;
-        while (response?.OdataNextLink != null)
+        while (messagesResponse?.OdataNextLink != null)
         {
             var configuration = new RequestInformation
             {
                 HttpMethod = Method.GET,
-                URI = new(response.OdataNextLink)
+                URI = new(messagesResponse.OdataNextLink)
             };
 
-            response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
-            if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
-            foundMessage = response.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+            messagesResponse = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
+            if (messagesResponse?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
+            foundMessage = messagesResponse.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
         }
 
         return foundMessage;
@@ -172,12 +172,12 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
     public async Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
     {
         // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
-        var response = await graphClient
+        var messagesResponse = await graphClient
             .Teams[teamId]
             .Channels[channelId]
             .Messages
             .GetAsync(x => { x.QueryParameters.Top = 100; }, token);
-        var responses = response
+        var responses = messagesResponse
             ?.Value
             ?.Where(x => x.DeletedDateTime == null &&
                          x.From?.Application != null &&
@@ -188,17 +188,17 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         if (responses == null) return null;
         var foundMessage = responses.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
         if (foundMessage != null) return foundMessage;
-        while (response?.OdataNextLink != null)
+        while (messagesResponse?.OdataNextLink != null)
         {
             var configuration = new RequestInformation
             {
                 HttpMethod = Method.GET,
-                URI = new(response.OdataNextLink)
+                URI = new(messagesResponse.OdataNextLink)
             };
 
-            response = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
-            if (response?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
-            foundMessage = response.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
+            messagesResponse = await graphClient.RequestAdapter.SendAsync(configuration, _ => new ChatMessageCollectionResponse(), cancellationToken: token);
+            if (messagesResponse?.Value == null) throw new NullReferenceException("Messages should not be null if there is a next page");
+            foundMessage = messagesResponse.Value.Select(s => s.GetCardThatHas(jsonFileName, uniqueId)).FirstOrDefault(x => x != null);
         }
 
         return foundMessage;
