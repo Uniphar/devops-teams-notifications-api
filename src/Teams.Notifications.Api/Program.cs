@@ -168,7 +168,7 @@ builder.Services.AddOpenApi(options =>
     {
         foreach (var server in doc.Servers ?? [])
         {
-            if (server.Url != null && server.Url.Contains("uniphar.ie")) server.Url = server.Url?.Replace("http://", "https://");
+            if (server.Url != null && server.Url.Contains("uniphar.ie")) server.Url = server.Url.Replace("http://", "https://");
         }
 
         return Task.CompletedTask;

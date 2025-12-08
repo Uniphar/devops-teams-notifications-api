@@ -57,8 +57,8 @@ internal static class AdaptiveCardActionHandler
                 var uploadResponse = await frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo, cancellationToken);
 
                 return uploadResponse.IsSuccessStatusCode
-                    ? AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Succes")
-                    : AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to sent file: {uploadResponse.ReasonPhrase}");
+                    ? AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success")
+                    : AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to send file: {uploadResponse.ReasonPhrase}");
             }
             catch (Exception ex)
             {
