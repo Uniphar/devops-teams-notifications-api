@@ -19,6 +19,8 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "Group.ReadWrite.All"
         # Create new Microsoft Teams
         "Team.Create"
+        # Read and update team settings
+        "TeamSettings.ReadWrite.All"
         # Not everything is fully covered by Group.ReadWrite.All
         "TeamMember.ReadWrite.All"
         # Add/remove users from channels, including private/shared channels
