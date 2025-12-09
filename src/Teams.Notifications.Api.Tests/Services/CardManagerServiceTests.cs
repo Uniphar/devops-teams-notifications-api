@@ -63,7 +63,7 @@ public class CardManagerServiceTests
         _teamsManagerServiceMock.Setup(x => x.GetMessageIdByUniqueId(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((string?)null);
 
         // Act & Assert
-        await Assert.ThrowsExactlyAsync<ArgumentNullException>(() => service.DeleteCardAsync("file.json", "uid", "team", "channel", CancellationToken.None));
+        await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => service.DeleteCardAsync("file.json", "uid", "team", "channel", CancellationToken.None));
     }
 
     [TestMethod]
