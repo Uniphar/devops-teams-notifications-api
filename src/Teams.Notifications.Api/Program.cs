@@ -59,6 +59,7 @@ global using Teams.Notifications.Api.DelegatingHandlers;
 global using Teams.Notifications.Api.Extensions;
 global using Teams.Notifications.Api.Middlewares;
 global using Teams.Notifications.Api.Models;
+global using Teams.Notifications.Api.Filters;
 global using Teams.Notifications.Api.OpenApiTransformer;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
@@ -149,6 +150,7 @@ builder
     {
         o.Conventions.Add(new HideChannelApi());
         o.Conventions.Add(new GlobalRouteConvention(appPathPrefix));
+        o.Filters.Add<InvalidOperationExceptionFilter>();
     })
     .AddJsonOptions(options =>
     {
