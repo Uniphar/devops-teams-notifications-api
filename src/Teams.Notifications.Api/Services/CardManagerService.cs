@@ -15,7 +15,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var conversationReference = GetConversationReference(channelId);
         var id = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
         // check that we found the item to delete
-        if (string.IsNullOrWhiteSpace(id)) throw new ArgumentNullException(nameof(uniqueId));
+        if (string.IsNullOrWhiteSpace(id)) throw new InvalidOperationException($"Card with unique ID '{uniqueId}' not found in team '{teamName}', channel '{channelName}'");
         conversationReference.ActivityId = id;
         // delete the item
         await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
@@ -48,9 +48,9 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
     {
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
-        if (string.IsNullOrWhiteSpace(installedAppId)) throw new NullReferenceException(nameof(installedAppId));
+        if (string.IsNullOrWhiteSpace(installedAppId)) throw new InvalidOperationException($"Unable to install or retrieve chat app for user '{user}'");
         var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
-        if (string.IsNullOrWhiteSpace(chatId)) throw new NullReferenceException(nameof(chatId));
+        if (string.IsNullOrWhiteSpace(chatId)) throw new InvalidOperationException($"Unable to retrieve chat for user '{user}'");
         var conversationReference = GetConversationReference(chatId);
         await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
             conversationReference,
@@ -74,11 +74,11 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
 
 
-        if (string.IsNullOrWhiteSpace(installedAppId)) throw new NullReferenceException(nameof(installedAppId));
+        if (string.IsNullOrWhiteSpace(installedAppId)) throw new InvalidOperationException($"Unable to install or retrieve chat app for user '{user}'");
 
         var chatId = await teamsManagerService.GetChatIdAsync(installedAppId, userAadObjectId, token);
 
-        if (string.IsNullOrWhiteSpace(chatId)) throw new NullReferenceException(nameof(chatId));
+        if (string.IsNullOrWhiteSpace(chatId)) throw new InvalidOperationException($"Unable to retrieve chat for user '{user}'");
         var chatMessage = await teamsManagerService.GetChatMessageByUniqueId(chatId, userAadObjectId, jsonFileName, model.UniqueId, token);
 
         var activity = new Activity
