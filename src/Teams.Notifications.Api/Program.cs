@@ -188,7 +188,7 @@ builder.Services.AddOpenApi(options =>
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 // Configure OpenTelemetry
-builder.RegisterOpenTelemetry(appPathPrefix);
+builder.RegisterOpenTelemetry(appPathPrefix).Build();
 
 
 var app = builder.Build();

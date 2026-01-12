@@ -1,5 +1,4 @@
-﻿using Teams.Notifications.Api.Services.Interfaces;
-using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
