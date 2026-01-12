@@ -1,4 +1,7 @@
-﻿namespace Teams.Notifications.Api.Services;
+﻿using Teams.Notifications.Api.Services.Interfaces;
+using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+
+namespace Teams.Notifications.Api.Services;
 
 internal static class AdaptiveCardActionHandler
 {
@@ -56,9 +59,14 @@ internal static class AdaptiveCardActionHandler
                 // Upload the file to the external API
                 var uploadResponse = await frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo, cancellationToken);
 
-                return uploadResponse.IsSuccessStatusCode
-                    ? AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success")
-                    : AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to send file: {uploadResponse.ReasonPhrase}");
+                if (uploadResponse.IsSuccessStatusCode)
+                {
+                    // Update the card to remove the process button
+                    await RemoveProcessButton(turnContext, cancellationToken);
+                    return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
+                }
+
+                return AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to send file: {uploadResponse.ReasonPhrase}");
             }
             catch (Exception ex)
             {
@@ -66,5 +74,38 @@ internal static class AdaptiveCardActionHandler
                 throw;
             }
         }
+    }
+
+    private static async Task RemoveProcessButton(ITurnContext turnContext, CancellationToken cancellationToken)
+    {
+        if (turnContext
+                .Activity
+                .Attachments
+                .FirstOrDefault(x => x.ContentType == AdaptiveCard.ContentType)
+                ?.Content is not JsonElement cardContent)
+            return;
+
+        var cardJson = cardContent.ToString();
+        var card = AdaptiveCard.FromJson(cardJson).Card;
+
+        // Remove the Process action
+        var processAction = card.Actions.FirstOrDefault(a => a is AdaptiveExecuteAction { Verb: "Process" });
+        if (processAction != null) card.Actions.Remove(processAction);
+
+        var activity = new Activity
+        {
+            Type = "message",
+            Id = turnContext.Activity.Id,
+            Attachments = new List<Attachment>
+            {
+                new()
+                {
+                    ContentType = AdaptiveCard.ContentType,
+                    Content = card.ToJson()
+                }
+            }
+        };
+
+        await turnContext.UpdateActivityAsync(activity, cancellationToken);
     }
 }
