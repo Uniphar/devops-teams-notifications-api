@@ -76,7 +76,14 @@ internal static class AdaptiveCardActionHandler
 
                     if (string.IsNullOrWhiteSpace(cardJson))
                     {
-                        telemetry.TrackEvent("LogAppProcessFile_NoAdaptiveCard");
+                        telemetry.TrackEvent("LogAppProcessFile_NoAdaptiveCard",
+                            new()
+                            {
+                                ["Team"] = teamName,
+                                ["Channel"] = channelName,
+                                ["FileName"] = fileName,
+                                ["MessageId"] = messageId
+                            });
                         return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong retrieving the card");
                     }
 
@@ -91,7 +98,8 @@ internal static class AdaptiveCardActionHandler
                         {
                             ["Team"] = teamName,
                             ["Channel"] = channelName,
-                            ["FileName"] = fileName
+                            ["FileName"] = fileName,
+                            ["MessageId"] = messageId
                         });
 
                     return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
