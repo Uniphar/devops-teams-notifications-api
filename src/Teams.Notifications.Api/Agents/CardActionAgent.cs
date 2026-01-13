@@ -5,11 +5,13 @@ public class CardActionAgent : AgentApplication
     private readonly IFrontgateApiService _frontgateApiService;
     private readonly ILogger<CardActionAgent> _logger;
     private readonly ITeamsManagerService _teamsManagerService;
+    private readonly ICardManagerService _cardManagerService;
     private readonly ICustomEventTelemetryClient _telemetry;
 
     public CardActionAgent(AgentApplicationOptions options,
         ITeamsManagerService teamsManagerService,
         IFrontgateApiService frontgateApiService,
+        ICardManagerService cardManagerService,
         ICustomEventTelemetryClient telemetry,
         ILogger<CardActionAgent> logger
     ) : base(options)
@@ -18,6 +20,7 @@ public class CardActionAgent : AgentApplication
         _logger = logger;
         _teamsManagerService = teamsManagerService;
         _frontgateApiService = frontgateApiService;
+        _cardManagerService = cardManagerService;
         OnMessageReactionsAdded(MessageReactionAsync);
         AdaptiveCards.OnActionExecute("Process", ProcessCardActionAsync);
         AdaptiveCards.OnActionExecute("WelcomeBack", WelcomeBackCardActionAsync);
@@ -45,7 +48,7 @@ public class CardActionAgent : AgentApplication
         if (!string.IsNullOrWhiteSpace(turnContext.Activity.Text)) await turnContext.SendActivityAsync(MessageFactory.Text("We don't support any interaction at the moment"), cancellationToken);
     }
 
-    private Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token) => turnContext.HandleLogAppProcessFile(data, _telemetry, _logger, _teamsManagerService, _frontgateApiService, token);
+    private Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token) => turnContext.HandleLogAppProcessFile(data, _telemetry, _logger, _teamsManagerService, _frontgateApiService, _cardManagerService, token);
 
     private async Task<AdaptiveCardInvokeResponse> WelcomeBackCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token)
     {

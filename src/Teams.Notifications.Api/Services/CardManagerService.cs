@@ -242,6 +242,47 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         return item.ToJson();
     }
 
+    public async Task UpdateCardRemoveActionsAsync(ITurnContext turnContext, string[] actionsToRemove, CancellationToken cancellationToken)
+    {
+        var replyToId = turnContext.Activity.ReplyToId;
+        if (string.IsNullOrWhiteSpace(replyToId))
+            return;
+
+        var currentActivity = turnContext.Activity;
+        if (currentActivity.Attachments == null || !currentActivity.Attachments.Any())
+            return;
+
+        var cardAttachment = currentActivity.Attachments.FirstOrDefault(a => a.ContentType == AdaptiveCard.ContentType);
+        if (cardAttachment?.Content == null)
+            return;
+
+        var cardJson = cardAttachment.Content is JsonElement jsonElement
+            ? jsonElement.GetRawText()
+            : JsonSerializer.Serialize(cardAttachment.Content);
+
+        var card = AdaptiveCard.FromJson(cardJson).Card;
+        if (card == null)
+            return;
+
+        foreach (var actionVerb in actionsToRemove)
+        {
+            var actionToRemove = card.Actions.FirstOrDefault(a => a is AdaptiveExecuteAction exe && exe.Verb == actionVerb);
+            if (actionToRemove != null)
+            {
+                card.Actions.Remove(actionToRemove);
+            }
+        }
+
+        var updatedActivity = MessageFactory.Attachment(new Attachment
+        {
+            ContentType = AdaptiveCard.ContentType,
+            Content = JsonSerializer.Deserialize<JsonElement>(card.ToJson())
+        });
+        updatedActivity.Id = replyToId;
+
+        await turnContext.UpdateActivityAsync(updatedActivity, cancellationToken);
+    }
+
     private ConversationReference GetConversationReference(string channelId) =>
         new()
         {

@@ -10,6 +10,7 @@ internal static class AdaptiveCardActionHandler
         ILogger logger,
         ITeamsManagerService teamsManagerService,
         IFrontgateApiService frontgateApiService,
+        ICardManagerService cardManagerService,
         CancellationToken cancellationToken
     )
     {
@@ -60,8 +61,7 @@ internal static class AdaptiveCardActionHandler
 
                 if (uploadResponse.IsSuccessStatusCode)
                 {
-                    // Update the card to remove the process button, only triggered when successful, in case the user wants to retry
-                    await RemoveProcessButton(turnContext, cancellationToken);
+                    await cardManagerService.UpdateCardRemoveActionsAsync(turnContext, ["Process"], cancellationToken);
                     return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
                 }
 
@@ -73,38 +73,5 @@ internal static class AdaptiveCardActionHandler
                 throw;
             }
         }
-    }
-
-    private static async Task RemoveProcessButton(ITurnContext turnContext, CancellationToken cancellationToken)
-    {
-        if (turnContext
-                .Activity
-                .Attachments
-                .FirstOrDefault(x => x.ContentType == AdaptiveCard.ContentType)
-                ?.Content is not JsonElement cardContent)
-            return;
-
-        var cardJson = cardContent.ToString();
-        var card = AdaptiveCard.FromJson(cardJson).Card;
-
-        // Remove the Process action
-        var processAction = card.Actions.FirstOrDefault(a => a is AdaptiveExecuteAction { Verb: "Process" });
-        if (processAction != null) card.Actions.Remove(processAction);
-
-        var activity = new Activity
-        {
-            Type = "message",
-            Id = turnContext.Activity.Id,
-            Attachments = new List<Attachment>
-            {
-                new()
-                {
-                    ContentType = AdaptiveCard.ContentType,
-                    Content = card.ToJson()
-                }
-            }
-        };
-
-        await turnContext.UpdateActivityAsync(activity, cancellationToken);
     }
 }
