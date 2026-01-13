@@ -61,6 +61,8 @@ internal static class AdaptiveCardActionHandler
 
                 if (uploadResponse.IsSuccessStatusCode)
                 {
+                    // in a conversation, the ReplyToId is the message id, instead of the normal id
+                    // see https://learn.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-actions?tabs=csharp#example-of-incoming-invoke-message
                     var messageId = turnContext.Activity.ReplyToId;
 
                     if (string.IsNullOrWhiteSpace(messageId))
