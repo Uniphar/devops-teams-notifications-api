@@ -61,7 +61,7 @@ internal static class AdaptiveCardActionHandler
 
                 if (uploadResponse.IsSuccessStatusCode)
                 {
-                    var messageId = turnContext.Activity.Id;
+                    var messageId = turnContext.Activity.ReplyToId;
 
                     if (string.IsNullOrWhiteSpace(messageId))
                     {
