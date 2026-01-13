@@ -3,7 +3,6 @@
 public class CardActionAgent : AgentApplication
 {
     private readonly IFrontgateApiService _frontgateApiService;
-    private readonly ILogger<CardActionAgent> _logger;
     private readonly ITeamsManagerService _teamsManagerService;
     private readonly ICardManagerService _cardManagerService;
     private readonly ICustomEventTelemetryClient _telemetry;
@@ -12,12 +11,10 @@ public class CardActionAgent : AgentApplication
         ITeamsManagerService teamsManagerService,
         IFrontgateApiService frontgateApiService,
         ICardManagerService cardManagerService,
-        ICustomEventTelemetryClient telemetry,
-        ILogger<CardActionAgent> logger
+        ICustomEventTelemetryClient telemetry
     ) : base(options)
     {
         _telemetry = telemetry;
-        _logger = logger;
         _teamsManagerService = teamsManagerService;
         _frontgateApiService = frontgateApiService;
         _cardManagerService = cardManagerService;
@@ -48,7 +45,7 @@ public class CardActionAgent : AgentApplication
         if (!string.IsNullOrWhiteSpace(turnContext.Activity.Text)) await turnContext.SendActivityAsync(MessageFactory.Text("We don't support any interaction at the moment"), cancellationToken);
     }
 
-    private Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token) => turnContext.HandleLogAppProcessFile(data, _telemetry, _logger, _teamsManagerService, _frontgateApiService, _cardManagerService, token);
+    private Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token) => turnContext.HandleLogAppProcessFile(data, _telemetry, _teamsManagerService, _frontgateApiService, _cardManagerService, token);
 
     private async Task<AdaptiveCardInvokeResponse> WelcomeBackCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token)
     {

@@ -1,6 +1,4 @@
-﻿using AdaptiveCards;
-using Microsoft.Graph.Beta.Models;
-using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -9,7 +7,6 @@ internal static class AdaptiveCardActionHandler
     internal static async Task<AdaptiveCardInvokeResponse> HandleLogAppProcessFile(this ITurnContext turnContext,
         object data,
         ICustomEventTelemetryClient telemetry,
-        ILogger logger,
         ITeamsManagerService teamsManagerService,
         IFrontgateApiService frontgateApiService,
         ICardManagerService cardManagerService,
@@ -18,6 +15,7 @@ internal static class AdaptiveCardActionHandler
     {
         using (telemetry.WithProperties([new("ActionExecute", "LogicAppErrorProcessActionModel")]))
         {
+            telemetry.TrackEvent("ReprocessPressed");
             try
             {
                 var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);
@@ -31,13 +29,13 @@ internal static class AdaptiveCardActionHandler
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                 if (teamDetails is null)
                 {
-                    logger.LogWarning("No team data for this file");
+                    telemetry.TrackEvent("LogAppProcessFile_NoTeamData");
                     return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong reprocessing the file");
                 }
 
                 if (channel?.Name == null)
                 {
-                    logger.LogWarning("Could not load channel name");
+                    telemetry.TrackEvent("LogAppProcessFile_NoChannelName");
                     return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong reprocessing the file");
                 }
 
@@ -64,27 +62,35 @@ internal static class AdaptiveCardActionHandler
                 if (uploadResponse.IsSuccessStatusCode)
                 {
                     var messageId = turnContext.Activity.Id;
-                    
+
                     if (string.IsNullOrWhiteSpace(messageId))
                     {
-                        logger.LogWarning("Could not retrieve message ID from activity");
+                        telemetry.TrackEvent("LogAppProcessFile_NoMessageId");
                         return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong retrieving the card");
                     }
 
                     var chatMessage = await teamsManagerService.GetMessageById(teamId, channelId, messageId, cancellationToken);
                     var cardJson = chatMessage?.GetAdaptiveCardFromChatMessage();
-                    
+
                     if (string.IsNullOrWhiteSpace(cardJson))
                     {
-                        logger.LogWarning("Could not retrieve adaptive card from chat message");
+                        telemetry.TrackEvent("LogAppProcessFile_NoAdaptiveCard");
                         return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong retrieving the card");
                     }
-                    
+
                     var card = AdaptiveCard.FromJson(cardJson).Card;
                     // we set a unique id so we can find it back
                     var id = card.Body.FirstOrDefault(x => x is AdaptiveTextBlock { Text: "LogicAppError.json" })?.Id ?? string.Empty;
 
                     await cardManagerService.UpdateCardRemoveActionsAsync("LogicAppError.json", id, teamName, channelName, ["Process"], cancellationToken);
+
+                    telemetry.TrackEvent("LogAppProcessFile_Success",
+                        new()
+                        {
+                            ["Team"] = teamName,
+                            ["Channel"] = channelName,
+                            ["FileName"] = fileName
+                        });
 
                     return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
                 }
@@ -93,7 +99,11 @@ internal static class AdaptiveCardActionHandler
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error processing card action");
+                telemetry.TrackEvent("LogAppProcessFile_Error",
+                    new()
+                    {
+                        ["Error"] = ex.Message
+                    });
                 throw;
             }
         }
