@@ -60,12 +60,12 @@ internal static class AdaptiveCardActionHandler
 
                 if (uploadResponse.IsSuccessStatusCode)
                 {
-                    // Update the card to remove the process button
+                    // Update the card to remove the process button, only triggered when successful, in case the user wants to retry
                     await RemoveProcessButton(turnContext, cancellationToken);
                     return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
                 }
 
-                return AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to send file: {uploadResponse.ReasonPhrase}");
+                return AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to send file: {await uploadResponse.Content.ReadAsStringAsync(cancellationToken)}");
             }
             catch (Exception ex)
             {
