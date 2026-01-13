@@ -242,27 +242,31 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         return item.ToJson();
     }
 
-    public async Task UpdateCardRemoveActionsAsync(ITurnContext turnContext, string[] actionsToRemove, CancellationToken cancellationToken)
+    public async Task UpdateCardRemoveActionsAsync(string jsonFileName, string uniqueId, string teamName, string channelName, string[] actionsToRemove, CancellationToken token)
     {
-        var replyToId = turnContext.Activity.ReplyToId;
-        if (string.IsNullOrWhiteSpace(replyToId))
-            return;
+        var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
+        await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
+        var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
+        var messageId = await teamsManagerService.GetMessageIdByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
 
-        var currentActivity = turnContext.Activity;
-        if (currentActivity.Attachments == null || !currentActivity.Attachments.Any())
-            return;
+        if (string.IsNullOrWhiteSpace(messageId))
+        {
+            throw new InvalidOperationException($"Card with unique ID '{uniqueId}' not found in team '{teamName}', channel '{channelName}'");
+        }
 
-        var cardAttachment = currentActivity.Attachments.FirstOrDefault(a => a.ContentType == AdaptiveCard.ContentType);
-        if (cardAttachment?.Content == null)
-            return;
-
-        var cardJson = cardAttachment.Content is JsonElement jsonElement
-            ? jsonElement.GetRawText()
-            : JsonSerializer.Serialize(cardAttachment.Content);
+        var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
+        var cardJson = chatMessage?.GetAdaptiveCardFromChatMessage();
+        
+        if (string.IsNullOrWhiteSpace(cardJson))
+        {
+            throw new InvalidOperationException($"No adaptive card content found for card '{uniqueId}'");
+        }
 
         var card = AdaptiveCard.FromJson(cardJson).Card;
         if (card == null)
-            return;
+        {
+            throw new InvalidOperationException($"Failed to parse adaptive card for '{uniqueId}'");
+        }
 
         foreach (var actionVerb in actionsToRemove)
         {
@@ -273,14 +277,38 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             }
         }
 
-        var updatedActivity = MessageFactory.Attachment(new Attachment
+        var activity = new Activity
         {
-            ContentType = AdaptiveCard.ContentType,
-            Content = JsonSerializer.Deserialize<JsonElement>(card.ToJson())
-        });
-        updatedActivity.Id = replyToId;
+            Type = "message",
+            Id = messageId,
+            Attachments = new List<Attachment>
+            {
+                new()
+                {
+                    ContentType = AdaptiveCard.ContentType,
+                    Content = JsonSerializer.Deserialize<JsonElement>(card.ToJson())
+                }
+            }
+        };
 
-        await turnContext.UpdateActivityAsync(updatedActivity, cancellationToken);
+        var conversationReference = GetConversationReference(channelId);
+        conversationReference.ActivityId = messageId;
+
+        await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
+            conversationReference,
+            async (turnContext, cancellationToken) =>
+            {
+                var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
+                telemetry.TrackEvent("ChannelUpdateCardRemoveActions",
+                    new()
+                    {
+                        ["Team"] = teamName,
+                        ["Channel"] = channelName,
+                        ["MessageId"] = updateResult.Id,
+                        ["ActionsRemoved"] = string.Join(",", actionsToRemove)
+                    });
+            },
+            token);
     }
 
     private ConversationReference GetConversationReference(string channelId) =>

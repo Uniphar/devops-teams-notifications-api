@@ -1,4 +1,6 @@
-﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
+﻿using AdaptiveCards;
+using Microsoft.Graph.Beta.Models;
+using AdaptiveCard = AdaptiveCards.AdaptiveCard;
 
 namespace Teams.Notifications.Api.Services;
 
@@ -61,7 +63,16 @@ internal static class AdaptiveCardActionHandler
 
                 if (uploadResponse.IsSuccessStatusCode)
                 {
-                    await cardManagerService.UpdateCardRemoveActionsAsync(turnContext, ["Process"], cancellationToken);
+                    var json=turnContext.Activity.Attachments.FirstOrDefault(x => x.ContentType == AdaptiveCard.ContentType)?.Content;
+                    var cardJson = json is JsonElement jsonElement
+                        ? jsonElement.GetRawText()
+                        : JsonSerializer.Serialize(json);
+                    var card = AdaptiveCard.FromJson(cardJson).Card;
+                    // we set a unique id so we can find it back
+                    var id = card.Body.FirstOrDefault(x => x is AdaptiveTextBlock)?.Id?? string.Empty;
+
+                    await cardManagerService.UpdateCardRemoveActionsAsync("LogicAppError.json", id, teamName, channelName, ["Process"], cancellationToken);
+
                     return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
                 }
 
