@@ -11,6 +11,7 @@ public interface ITeamsManagerService
     Task<string> GetTeamName(string teamId, CancellationToken token);
     Task<string> GetFileNameAsync(string teamId, string channelId, string fileLocation, CancellationToken token);
     Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token);
+    Task<ChatMessage?> GetMessageById(string teamId, string channelId, string messageId, CancellationToken token);
     Task<string> GetFileUrl(string teamId, string channelId, string fileLocation, CancellationToken token);
     Task<string> GetUserAadObjectIdAsync(string userPrincipalName, CancellationToken token);
     Task<string?> GetChatIdAsync(string installedAppId, string aadObjectId, CancellationToken token);

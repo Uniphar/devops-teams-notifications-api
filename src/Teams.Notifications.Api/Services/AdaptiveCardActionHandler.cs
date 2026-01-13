@@ -63,13 +63,26 @@ internal static class AdaptiveCardActionHandler
 
                 if (uploadResponse.IsSuccessStatusCode)
                 {
-                    var json=turnContext.Activity.Attachments.FirstOrDefault(x => x.ContentType == AdaptiveCard.ContentType)?.Content;
-                    var cardJson = json is JsonElement jsonElement
-                        ? jsonElement.GetRawText()
-                        : JsonSerializer.Serialize(json);
+                    var messageId = turnContext.Activity.Id;
+                    
+                    if (string.IsNullOrWhiteSpace(messageId))
+                    {
+                        logger.LogWarning("Could not retrieve message ID from activity");
+                        return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong retrieving the card");
+                    }
+
+                    var chatMessage = await teamsManagerService.GetMessageById(teamId, channelId, messageId, cancellationToken);
+                    var cardJson = chatMessage?.GetAdaptiveCardFromChatMessage();
+                    
+                    if (string.IsNullOrWhiteSpace(cardJson))
+                    {
+                        logger.LogWarning("Could not retrieve adaptive card from chat message");
+                        return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong retrieving the card");
+                    }
+                    
                     var card = AdaptiveCard.FromJson(cardJson).Card;
                     // we set a unique id so we can find it back
-                    var id = card.Body.FirstOrDefault(x => x is AdaptiveTextBlock)?.Id?? string.Empty;
+                    var id = card.Body.FirstOrDefault(x => x is AdaptiveTextBlock { Text: "LogicAppError.json" })?.Id ?? string.Empty;
 
                     await cardManagerService.UpdateCardRemoveActionsAsync("LogicAppError.json", id, teamName, channelName, ["Process"], cancellationToken);
 
