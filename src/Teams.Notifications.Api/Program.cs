@@ -57,9 +57,9 @@ global using Teams.Notifications.Api.Action.Models;
 global using Teams.Notifications.Api.Agents;
 global using Teams.Notifications.Api.DelegatingHandlers;
 global using Teams.Notifications.Api.Extensions;
+global using Teams.Notifications.Api.Filters;
 global using Teams.Notifications.Api.Middlewares;
 global using Teams.Notifications.Api.Models;
-global using Teams.Notifications.Api.Filters;
 global using Teams.Notifications.Api.OpenApiTransformer;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
@@ -188,7 +188,7 @@ builder.Services.AddOpenApi(options =>
 builder.Services.AddSingleton<IStorage, MemoryStorage>();
 
 // Configure OpenTelemetry
-builder.RegisterOpenTelemetry(appPathPrefix);
+builder.RegisterOpenTelemetry(appPathPrefix).Build();
 
 
 var app = builder.Build();
