@@ -23,14 +23,6 @@ internal static class LogicAppActionHandler
                 var channels = await TeamsInfo.GetTeamChannelsAsync(turnContext, cancellationToken: cancellationToken);
                 var channel = channels.FirstOrDefault(x => x.Id == teamsChannelData.Channel.Id);
 
-                // Guard against null channel data, which can occur when the json can't be deserialized
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-                if (teamDetails is null)
-                {
-                    telemetry.TrackEvent("LogAppProcessFile_NoTeamData");
-                    return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong reprocessing the file");
-                }
-
                 if (channel?.Name == null)
                 {
                     telemetry.TrackEvent("LogAppProcessFile_NoChannelName");
@@ -81,7 +73,7 @@ internal static class LogicAppActionHandler
             }
             catch (Exception ex)
             {
-                telemetry.TrackEvent("LogAppProcessFile_Error",
+                telemetry.TrackEvent("LogAppProcessFileError",
                     new()
                     {
                         ["Error"] = ex.Message
