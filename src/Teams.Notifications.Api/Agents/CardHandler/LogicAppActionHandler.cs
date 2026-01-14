@@ -13,7 +13,6 @@ internal static class LogicAppActionHandler
     {
         using (telemetry.WithProperties([new("ActionExecute", "LogicAppErrorProcessActionModel")]))
         {
-            telemetry.TrackEvent("ReprocessPressed");
             try
             {
                 var model = ProtocolJsonSerializer.ToObject<LogicAppErrorProcessActionModel>(data);
