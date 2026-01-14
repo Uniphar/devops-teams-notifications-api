@@ -2,7 +2,7 @@
 
 internal static class LogicAppActionHandler
 {
-    internal static async Task<AdaptiveCardInvokeResponse> HandleProcessVerbLogicApp(this ITurnContext turnContext,
+    internal static async Task<AdaptiveCardInvokeResponse> HandleProcessVerbLogicAppAsync(this ITurnContext turnContext,
         object data,
         ICustomEventTelemetryClient telemetry,
         ITeamsManagerService teamsManagerService,
