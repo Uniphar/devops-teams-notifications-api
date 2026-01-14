@@ -1,6 +1,4 @@
-﻿using AdaptiveCard = AdaptiveCards.AdaptiveCard;
-
-namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Services;
 
 internal static class AdaptiveCardActionHandler
 {
@@ -49,6 +47,10 @@ internal static class AdaptiveCardActionHandler
                 var groupUniqueName = await teamsManagerService.GetGroupNameUniqueName(teamId, cancellationToken);
                 var teamName = await teamsManagerService.GetTeamName(teamId, cancellationToken);
 
+                // in a conversation, the ReplyToId is the message id, instead of the normal id
+                // see https://learn.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-actions?tabs=csharp#example-of-incoming-invoke-message
+                var messageId = turnContext.Activity.ReplyToId;
+
                 var fileInfo = new LogicAppFrontgateFileInformation
                 {
                     file_name = fileName,
@@ -61,39 +63,9 @@ internal static class AdaptiveCardActionHandler
 
                 if (uploadResponse.IsSuccessStatusCode)
                 {
-                    // in a conversation, the ReplyToId is the message id, instead of the normal id
-                    // see https://learn.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-actions?tabs=csharp#example-of-incoming-invoke-message
-                    var messageId = turnContext.Activity.ReplyToId;
+                    await cardManagerService.RemoveActionsFromCardAsync(teamId, channelId, messageId, ["Process"], cancellationToken);
 
-                    if (string.IsNullOrWhiteSpace(messageId))
-                    {
-                        telemetry.TrackEvent("LogAppProcessFile_NoMessageId");
-                        return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong retrieving the card");
-                    }
-
-                    var chatMessage = await teamsManagerService.GetMessageById(teamId, channelId, messageId, cancellationToken);
-                    var cardJson = chatMessage?.GetAdaptiveCardFromChatMessage();
-
-                    if (string.IsNullOrWhiteSpace(cardJson))
-                    {
-                        telemetry.TrackEvent("LogAppProcessFile_NoAdaptiveCard",
-                            new()
-                            {
-                                ["Team"] = teamName,
-                                ["Channel"] = channelName,
-                                ["FileName"] = fileName,
-                                ["MessageId"] = messageId
-                            });
-                        return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong retrieving the card");
-                    }
-
-                    var card = AdaptiveCard.FromJson(cardJson).Card;
-                    // we set a unique id so we can find it back
-                    var id = card.Body.FirstOrDefault(x => x is AdaptiveTextBlock { Text: "LogicAppError.json" })?.Id ?? string.Empty;
-
-                    await cardManagerService.UpdateCardRemoveActionsAsync("LogicAppError.json", id, teamName, channelName, ["Process"], cancellationToken);
-
-                    telemetry.TrackEvent("LogAppProcessFile_Success",
+                    telemetry.TrackEvent("ReprocessFileSuccess",
                         new()
                         {
                             ["Team"] = teamName,
