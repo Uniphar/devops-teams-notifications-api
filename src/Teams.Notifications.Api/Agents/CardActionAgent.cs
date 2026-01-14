@@ -1,5 +1,9 @@
 ﻿namespace Teams.Notifications.Api.Agents;
 
+/// <summary>
+///     Main agent that handles card actions and other interactions.
+///     It does not create cards, that is done by controller actions that call the CardManagerService.
+/// </summary>
 public class CardActionAgent : AgentApplication
 {
     private readonly IFrontgateApiService _frontgateApiService;
@@ -26,12 +30,26 @@ public class CardActionAgent : AgentApplication
         OnActivity(ActivityTypes.Message, MessageActivityAsync, RouteRank.Last);
     }
 
+
+    /// <summary>
+    /// Proof of concept for message reactions
+    /// </summary>
+    /// <param name="turnContext"></param>
+    /// <param name="turnState"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     private static async Task MessageReactionAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
         await turnContext.SendActivityAsync("Message Reaction: " + turnContext.Activity.ReactionsAdded[0].Type, cancellationToken: cancellationToken);
     }
 
-
+    /// <summary>
+    /// proof of concept for welcome message, for now just says welcome
+    /// </summary>
+    /// <param name="turnContext"></param>
+    /// <param name="turnState"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     private static async Task WelcomeMessageToUserAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
         var member = await TeamsInfo.GetMemberAsync(turnContext, turnContext.Activity.From.Id, cancellationToken);
@@ -39,14 +57,37 @@ public class CardActionAgent : AgentApplication
         await turnContext.SendActivityAsync(MessageFactory.Text("Welcome " + user), cancellationToken);
     }
 
-
+    /// <summary>
+    /// If the User tries to send us a message, we just tell them we don't support it
+    /// </summary>
+    /// <param name="turnContext"></param>
+    /// <param name="turnState"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
     private static async Task MessageActivityAsync(ITurnContext turnContext, ITurnState turnState, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(turnContext.Activity.Text)) await turnContext.SendActivityAsync(MessageFactory.Text("We don't support any interaction at the moment"), cancellationToken);
     }
 
-    private Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token) => turnContext.HandleLogAppProcessFile(data, _telemetry, _teamsManagerService, _frontgateApiService, _cardManagerService, token);
-
+    /// <summary>
+    ///     LogicApp handle of the "Reprocess File" button, will send it to Frontgate for reprocessing, and update the card
+    ///     accordingly, so you can't press it again
+    /// </summary>
+    /// <param name="turnContext"></param>
+    /// <param name="turnState"></param>
+    /// <param name="data"></param>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    private Task<AdaptiveCardInvokeResponse> ProcessCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token) => turnContext.HandleProcessVerbLogicApp(data, _telemetry, _teamsManagerService, _frontgateApiService, _cardManagerService, token);
+    
+    /// <summary>
+    /// WelcomeCard.json "Welcome Back" button action handler
+    /// </summary>
+    /// <param name="turnContext"></param>
+    /// <param name="turnState"></param>
+    /// <param name="data"></param>
+    /// <param name="token"></param>
+    /// <returns></returns>
     private async Task<AdaptiveCardInvokeResponse> WelcomeBackCardActionAsync(ITurnContext turnContext, ITurnState turnState, object data, CancellationToken token)
     {
         await turnContext.SendActivityAsync(MessageFactory.Text("I am going to work on your request"), token);

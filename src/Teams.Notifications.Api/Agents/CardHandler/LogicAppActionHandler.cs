@@ -1,8 +1,8 @@
-﻿namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Agents.CardHandler;
 
-internal static class AdaptiveCardActionHandler
+internal static class LogicAppActionHandler
 {
-    internal static async Task<AdaptiveCardInvokeResponse> HandleLogAppProcessFile(this ITurnContext turnContext,
+    internal static async Task<AdaptiveCardInvokeResponse> HandleProcessVerbLogicApp(this ITurnContext turnContext,
         object data,
         ICustomEventTelemetryClient telemetry,
         ITeamsManagerService teamsManagerService,

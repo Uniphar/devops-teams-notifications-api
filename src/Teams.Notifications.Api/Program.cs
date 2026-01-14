@@ -55,6 +55,7 @@ global using Polly;
 global using Teams.Notifications.Api;
 global using Teams.Notifications.Api.Action.Models;
 global using Teams.Notifications.Api.Agents;
+global using Teams.Notifications.Api.Agents.CardHandler;
 global using Teams.Notifications.Api.DelegatingHandlers;
 global using Teams.Notifications.Api.Extensions;
 global using Teams.Notifications.Api.Middlewares;
@@ -64,6 +65,7 @@ global using Teams.Notifications.Api.OpenApiTransformer;
 global using Teams.Notifications.Api.Services;
 global using Teams.Notifications.Api.Services.Interfaces;
 global using Uniphar.Platform.Telemetry;
+
 global using Activity = Microsoft.Agents.Core.Models.Activity;
 global using Attachment = Microsoft.Agents.Core.Models.Attachment;
 global using IMiddleware = Microsoft.Agents.Builder.IMiddleware;
