@@ -68,7 +68,18 @@ internal static class LogicAppActionHandler
                     return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
                 }
 
-                return AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to send file: {await uploadResponse.Content.ReadAsStringAsync(cancellationToken)}");
+                var messageToUser = "Something went wrong sending file";
+                try
+                {
+                    var errorMessage = await uploadResponse.Content.ReadAsStringAsync(cancellationToken);
+                    if (!string.IsNullOrWhiteSpace(errorMessage)) messageToUser = $"Failed to send file: {errorMessage}";
+                }
+                catch (Exception)
+                {
+                    //Do nothing, we just sent the user the error message
+                }
+
+                return AdaptiveCardInvokeResponseFactory.BadRequest(messageToUser);
             }
             catch (Exception ex)
             {
