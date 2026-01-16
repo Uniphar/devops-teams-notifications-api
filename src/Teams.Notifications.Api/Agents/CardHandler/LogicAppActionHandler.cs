@@ -1,13 +1,13 @@
-﻿namespace Teams.Notifications.Api.Services;
+﻿namespace Teams.Notifications.Api.Agents.CardHandler;
 
-internal static class AdaptiveCardActionHandler
+internal static class LogicAppActionHandler
 {
-    internal static async Task<AdaptiveCardInvokeResponse> HandleLogAppProcessFile(this ITurnContext turnContext,
+    internal static async Task<AdaptiveCardInvokeResponse> HandleProcessVerbLogicAppAsync(this ITurnContext turnContext,
         object data,
         ICustomEventTelemetryClient telemetry,
-        ILogger logger,
         ITeamsManagerService teamsManagerService,
         IFrontgateApiService frontgateApiService,
+        ICardManagerService cardManagerService,
         CancellationToken cancellationToken
     )
     {
@@ -22,17 +22,9 @@ internal static class AdaptiveCardActionHandler
                 var channels = await TeamsInfo.GetTeamChannelsAsync(turnContext, cancellationToken: cancellationToken);
                 var channel = channels.FirstOrDefault(x => x.Id == teamsChannelData.Channel.Id);
 
-                // Guard against null channel data, which can occur when the json can't be deserialized
-                // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-                if (teamDetails is null)
-                {
-                    logger.LogWarning("No team data for this file");
-                    return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong reprocessing the file");
-                }
-
                 if (channel?.Name == null)
                 {
-                    logger.LogWarning("Could not load channel name");
+                    telemetry.TrackEvent("LogAppProcessFile_NoChannelName");
                     return AdaptiveCardInvokeResponseFactory.BadRequest("Something went wrong reprocessing the file");
                 }
 
@@ -46,6 +38,10 @@ internal static class AdaptiveCardActionHandler
                 var groupUniqueName = await teamsManagerService.GetGroupNameUniqueName(teamId, cancellationToken);
                 var teamName = await teamsManagerService.GetTeamName(teamId, cancellationToken);
 
+                // in a conversation, the ReplyToId is the message id, instead of the normal id
+                // see https://learn.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-actions?tabs=csharp#example-of-incoming-invoke-message
+                var messageId = turnContext.Activity.ReplyToId;
+
                 var fileInfo = new LogicAppFrontgateFileInformation
                 {
                     file_name = fileName,
@@ -56,13 +52,42 @@ internal static class AdaptiveCardActionHandler
                 // Upload the file to the external API
                 var uploadResponse = await frontgateApiService.UploadFileAsync(model.PostOriginalBlobUri ?? string.Empty, fileInfo, cancellationToken);
 
-                return uploadResponse.IsSuccessStatusCode
-                    ? AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success")
-                    : AdaptiveCardInvokeResponseFactory.BadRequest($"Failed to send file: {uploadResponse.ReasonPhrase}");
+                if (uploadResponse.IsSuccessStatusCode)
+                {
+                    await cardManagerService.RemoveActionsFromCardAsync(teamId, channelId, messageId, ["Process"], cancellationToken);
+
+                    telemetry.TrackEvent("ReprocessFileSuccess",
+                        new()
+                        {
+                            ["Team"] = teamName,
+                            ["Channel"] = channelName,
+                            ["FileName"] = fileName,
+                            ["MessageId"] = messageId
+                        });
+
+                    return AdaptiveCardInvokeResponseFactory.Message(model.PostSuccessMessage ?? "Success");
+                }
+
+                var messageToUser = "Something went wrong sending file";
+                try
+                {
+                    var errorMessage = await uploadResponse.Content.ReadAsStringAsync(cancellationToken);
+                    if (!string.IsNullOrWhiteSpace(errorMessage)) messageToUser = $"Failed to send file: {errorMessage}";
+                }
+                catch (Exception)
+                {
+                    //Do nothing, we just sent the user the error message
+                }
+
+                return AdaptiveCardInvokeResponseFactory.BadRequest(messageToUser);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error processing card action");
+                telemetry.TrackEvent("LogAppProcessFileError",
+                    new()
+                    {
+                        ["Error"] = ex.Message
+                    });
                 throw;
             }
         }

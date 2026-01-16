@@ -190,6 +190,63 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
             token);
     }
 
+    public async Task RemoveActionsFromCardAsync(string teamId, string channelId, string messageId, string[] actionsToRemove, CancellationToken token)
+    {
+        // to get the card, this doesn't get provided by the action invoke
+        var chatMessage = await teamsManagerService.GetMessageById(teamId, channelId, messageId, token);
+        var cardJson = chatMessage?.GetAdaptiveCardFromChatMessage();
+        if (string.IsNullOrWhiteSpace(cardJson))
+        {
+            telemetry.TrackEvent("NoAdaptiveCardFound",
+                new()
+                {
+                    ["Team"] = teamId,
+                    ["Channel"] = channelId,
+                    ["MessageId"] = messageId
+                });
+            throw new InvalidOperationException("Card not found in team");
+        }
+
+        var card = AdaptiveCard.FromJson(cardJson).Card;
+        // remove all actions that match the verbs
+        foreach (var actionVerb in actionsToRemove)
+        foreach (var adaptiveAction in card.Actions.Where(a => a is AdaptiveExecuteAction exe && exe.Verb == actionVerb).ToList())
+            card.Actions.Remove(adaptiveAction);
+
+        var activity = new Activity
+        {
+            Type = "message",
+            Id = messageId,
+            Attachments = new List<Attachment>
+            {
+                new()
+                {
+                    ContentType = AdaptiveCard.ContentType,
+                    Content = card.ToJson()
+                }
+            }
+        };
+
+        var conversationReference = GetConversationReference(channelId);
+        conversationReference.ActivityId = messageId;
+
+        await adapter.ContinueConversationAsync(AgentClaims.CreateIdentity(_clientId),
+            conversationReference,
+            async (turnContext, cancellationToken) =>
+            {
+                var updateResult = await turnContext.UpdateActivityAsync(activity, cancellationToken);
+                telemetry.TrackEvent("ChannelUpdateCardRemoveActions",
+                    new()
+                    {
+                        ["Team"] = teamId,
+                        ["Channel"] = channelId,
+                        ["MessageId"] = updateResult.Id,
+                        ["ActionsRemoved"] = string.Join(",", actionsToRemove)
+                    });
+            },
+            token);
+    }
+
     public static async Task<string> CreateCardFromTemplateAsync<T>(string jsonFileName, IFormFile? formFile, T model, ITeamsManagerService teamsManagerService, string? teamId = null, string? channelId = null, string? channelName = null, CancellationToken token = default) where T : BaseTemplateModel
     {
         var text = await File.ReadAllTextAsync($"./Templates/{jsonFileName}", token);

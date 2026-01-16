@@ -283,6 +283,23 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
         return foundMessage;
     }
 
+    public async Task<ChatMessage?> GetMessageById(string teamId, string channelId, string messageId, CancellationToken token)
+    {
+        try
+        {
+            var chatMessage = await graphClient
+                .Teams[teamId]
+                .Channels[channelId]
+                .Messages[messageId]
+                .GetAsync(cancellationToken: token);
+            
+            return chatMessage;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
 
     public async Task UploadFile(string teamId, string channelId, string fileLocation, Stream fileStream, CancellationToken token)
     {
