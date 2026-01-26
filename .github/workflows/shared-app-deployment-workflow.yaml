@@ -83,25 +83,25 @@ jobs:
 
       - name: compute environment variables
         uses: azure/powershell@v2
+        env:
+          AKS_CLUSTER_NAME: ${{ vars[format('AKS_{0}_{1}_CLUSTER', matrix.regionShortCode, inputs.environment)] }}
         with:
           inlineScript: |
             try{
               Import-Module .\devops-azure\src\Uniphar.DevOps.psd1 -ErrorAction Stop -Force
-
-              $ACRName = '${{ inputs.acrName }}'
-              $AKSClusterResourceGroup = Resolve-UniResourceName 'resource-group' $p_computeProject -Environment '${{ inputs.environment }}' -Region '${{ matrix.regionShortCode }}'
-              $AKSClusterName = Resolve-UniResourceName 'aks' $p_computeProject -Context $app_AKS -Environment '${{ inputs.environment }}' -Region '${{ matrix.regionShortCode }}'
+              
               $AKSClusterServiceAccountClientId = (Get-UniDomainServicePrincipalDetail 'devops' '${{ inputs.environment }}').AppId
               $AzureEntraExternalTenantId = Resolve-UniEntraExternalTenantId -Environment '${{ inputs.environment }}'
               
-              echo "ACR_NAME=$ACRName" >> $env:GITHUB_ENV
-              echo "AKS_CLUSTER_RESOURCE_GROUP=$AKSClusterResourceGroup" >> $env:GITHUB_ENV
-              echo "AKS_CLUSTER_NAME=$AKSClusterName" >> $env:GITHUB_ENV
+              echo "AKS_CLUSTER_SERVICE_ACCOUNT_CLIENT_ID=$AKSClusterServiceAccountClientId" >> $env:GITHUB_ENV
+              echo "AZURE_ENTRA_EXTERNAL_TENANT_ID=$AzureEntraExternalTenantId" >> $env:GITHUB_ENV
+              echo "AKS_CLUSTER_NAME=$env:AKS_CLUSTER_NAME" >> $env:GITHUB_ENV
+              # Pass inputs to environment variables
+              echo "ACR_NAME=${{ inputs.acrName }}" >> $env:GITHUB_ENV
               echo "APPLICATION_FOLDER=${{ inputs.applicationFolder }}" >> $env:GITHUB_ENV
               echo "APPLICATION_NAME=${{ inputs.applicationName }}" >> $env:GITHUB_ENV
               echo "APPLICATION_VERSION=${{ inputs.applicationVersion }}" >> $env:GITHUB_ENV
-              echo "AZURE_ENTRA_EXTERNAL_TENANT_ID=$AzureEntraExternalTenantId" >> $env:GITHUB_ENV
-              echo "AKS_CLUSTER_SERVICE_ACCOUNT_CLIENT_ID=$AKSClusterServiceAccountClientId" >> $env:GITHUB_ENV
+              
             }
             catch {
               Write-Error $_
@@ -119,7 +119,7 @@ jobs:
       - name: Gets K8s context
         uses: azure/aks-set-context@v4
         with:
-          resource-group: ${{ env.AKS_CLUSTER_RESOURCE_GROUP }}
+          resource-group: compute-${{ matrix.regionShortCode }}-${{ inputs.environment }}
           cluster-name: ${{ env.AKS_CLUSTER_NAME }}
           use-kubelogin: "true"
         id: k8context
