@@ -81,6 +81,34 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
+      - name: compute environment variables
+        uses: azure/powershell@v2
+        env:
+          AKS_CLUSTER_NAME: ${{ vars[format('AKS_{0}_{1}_CLUSTER', matrix.regionShortCode, inputs.environment)] }}
+        with:
+          inlineScript: |
+            try{
+              Import-Module .\devops-azure\src\Uniphar.DevOps.psd1 -ErrorAction Stop -Force
+              
+              $AKSClusterServiceAccountClientId = (Get-UniDomainServicePrincipalDetail 'devops' '${{ inputs.environment }}').AppId
+              $AzureEntraExternalTenantId = Resolve-UniEntraExternalTenantId -Environment '${{ inputs.environment }}'
+              
+              echo "AKS_CLUSTER_SERVICE_ACCOUNT_CLIENT_ID=$AKSClusterServiceAccountClientId" >> $env:GITHUB_ENV
+              echo "AZURE_ENTRA_EXTERNAL_TENANT_ID=$AzureEntraExternalTenantId" >> $env:GITHUB_ENV
+              echo "AKS_CLUSTER_NAME=$env:AKS_CLUSTER_NAME" >> $env:GITHUB_ENV
+              # Pass inputs to environment variables
+              echo "ACR_NAME=${{ inputs.acrName }}" >> $env:GITHUB_ENV
+              echo "APPLICATION_FOLDER=${{ inputs.applicationFolder }}" >> $env:GITHUB_ENV
+              echo "APPLICATION_NAME=${{ inputs.applicationName }}" >> $env:GITHUB_ENV
+              echo "APPLICATION_VERSION=${{ inputs.applicationVersion }}" >> $env:GITHUB_ENV
+              
+            }
+            catch {
+              Write-Error $_
+              exit 1
+            }
+          azPSVersion: "latest"
+
       - name: setup kubectl
         uses: azure/use-kubelogin@v1
         env:
@@ -91,20 +119,13 @@ jobs:
       - name: Gets K8s context
         uses: azure/aks-set-context@v4
         with:
-          resource-group: "compute-${{ matrix.regionShortCode }}-${{ inputs.environment }}"
-          cluster-name: "compute-aks-${{ matrix.regionShortCode }}-${{ inputs.environment }}-k8s"
+          resource-group: compute-${{ matrix.regionShortCode }}-${{ inputs.environment }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
           use-kubelogin: "true"
         id: k8context
 
       - name: setup helm
         uses: azure/setup-helm@v4
-
-      - name: compute environment variables
-        run: |
-          echo "ACR_NAME=${{ inputs.acrName }}" >> $GITHUB_ENV
-          echo "APPLICATION_FOLDER=${{ inputs.applicationFolder }}" >> $GITHUB_ENV
-          echo "APPLICATION_NAME=${{ inputs.applicationName }}" >> $GITHUB_ENV
-          echo "APPLICATION_VERSION=${{ inputs.applicationVersion }}" >> $GITHUB_ENV
 
       - name: ACR login
         id: acrLogin
@@ -112,22 +133,6 @@ jobs:
           ACR_TOKEN=$(az acr login --name $ACR_NAME --expose-token --output tsv --query accessToken)
           echo "ACR_TOKEN=$ACR_TOKEN" >> $GITHUB_OUTPUT
           az acr login --name $ACR_NAME
-
-      - name: set AKS cluster
-        uses: azure/powershell@v2
-        with:
-          inlineScript: |
-            try{
-              Import-Module .\devops-azure\src\Uniphar.DevOps.psd1 -ErrorAction Stop -Force
-
-              $AKSClusterServiceAccountClientId = (Get-UniDomainServicePrincipalDetail 'devops' '${{ inputs.environment }}').AppId
-              $AzureEntraExternalTenantId = Resolve-UniEntraExternalTenantId -Environment '${{ inputs.environment }}'
-              
-              echo "AZURE_ENTRA_EXTERNAL_TENANT_ID=$AzureEntraExternalTenantId" >> $env:GITHUB_ENV
-              echo "AKS_CLUSTER_SERVICE_ACCOUNT_CLIENT_ID=$AKSClusterServiceAccountClientId" >> $env:GITHUB_ENV
-            }
-            catch {
-              Write-Error $_
               exit 1
             }
           azPSVersion: "latest"
