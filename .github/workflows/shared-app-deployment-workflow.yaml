@@ -133,9 +133,6 @@ jobs:
           ACR_TOKEN=$(az acr login --name $ACR_NAME --expose-token --output tsv --query accessToken)
           echo "ACR_TOKEN=$ACR_TOKEN" >> $GITHUB_OUTPUT
           az acr login --name $ACR_NAME
-              exit 1
-            }
-          azPSVersion: "latest"
 
       - name: get helm chart
         working-directory: ./charts/${{ env.APPLICATION_FOLDER }}
