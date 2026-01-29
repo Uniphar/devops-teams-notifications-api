@@ -3,20 +3,60 @@
 
 version: 2
 updates:
+  # .NET NuGet packages
   - package-ecosystem: nuget
-    directories:
-      - "*"
+    directory: "/"
     schedule:
       interval: daily
+      time: "03:00"
+      timezone: "Europe/Dublin"
     target-branch: "main"
+    labels:
+      - "dependencies"
+      - "nuget"
+      - "auto-merge"
+
+  # .NET SDK version
   - package-ecosystem: dotnet-sdk
     directory: "/"
     schedule:
-      interval: daily
+      interval: weekly
+      day: "monday"
+      time: "03:00"
+      timezone: "Europe/London"
     target-branch: "main"
+    labels:
+      - "dependencies"
+      - "dotnet-sdk"
+
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      # Check for updates to GitHub Actions every week
       interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Europe/Dublin"
     target-branch: "main"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "auto-merge"
+
+  # Docker base images
+  - package-ecosystem: "docker"
+    directory: "/src/Pod.Notes.Controller"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Europe/Dublin"
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "auto-merge"
