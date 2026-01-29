@@ -62,8 +62,8 @@ jobs:
         with:
           inlineScript: |
             Import-Module .\devops-azure\src\Uniphar.DevOps.psd1 -ErrorAction Stop -Force
-            . ./devops/Initialize-DevopsTeamsNotificationApiWorkload.ps1
-            Initialize-DevopsTeamsNotificationApiWorkload '${{ inputs.environment }}'
+            . ./platform/Initialize-PlatformTeamsNotificationApiWorkload.ps1
+            Initialize-PlatformTeamsNotificationApiWorkload '${{ inputs.environment }}'
           azPSVersion: "latest"
           errorActionPreference: "stop"
           failOnStandardError: true

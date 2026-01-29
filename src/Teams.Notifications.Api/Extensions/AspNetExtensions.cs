@@ -41,7 +41,7 @@ internal static class AspNetExtensions
                 {
                     microsoftIdentityOptions.Instance = "https://login.microsoftonline.com/";
                     microsoftIdentityOptions.TenantId = configuration["AZURE_ENTRA_EXTERNAL_TENANT_ID"] ?? throw new NoNullAllowedException("EXTERNAL_TENANT_ID is required");
-                    microsoftIdentityOptions.ClientId = configuration["devops-teams-notification-api-client-id"] ?? throw new NoNullAllowedException("ClientId is required");
+                    microsoftIdentityOptions.ClientId = configuration["platform-teams-notification-api-client-id"] ?? throw new NoNullAllowedException("ClientId is required");
                 },
                 "NotificationScheme");
         // authorization policies for the API

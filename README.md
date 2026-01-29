@@ -27,7 +27,7 @@ Since this uses federation we cannot use it locally, for this we will use a bot 
 
    ```
 
-2. On the Azure Bot (for local/debug: devops-debug-bot), select **Settings**, then **Configuration**, and update the **Messaging endpoint** to `{tunnel-url}/api/messages` eg: `https://kw238403-3978.eun1.devtunnels.ms/devops-teams-notification-api/api/messages`
+2. On the Azure Bot (for local/debug: devops-debug-bot), select **Settings**, then **Configuration**, and update the **Messaging endpoint** to `{tunnel-url}/api/messages` eg: `https://kw238403-3978.eun1.devtunnels.ms/platform-teams-notification-api/api/messages`
 3. Change the secret of the appsettings.local, you can find this in the keyvault under `devops-debug-bot-secret`, the client-id and tenant is already setup
 4. Run the application
 5. Add the bot to teams, select **Settings**, then **Channels**, and click on the link **Open in Teams**
@@ -42,7 +42,7 @@ The pending apps you can find in `https://admin.teams.microsoft.com/policies/man
 
 ### Where to find stuff
 
-`https://api.dev.uniphar.ie/devops-teams-notification-api/swagger` for the swagger page (change dev to the right env)
+`https://api.dev.uniphar.ie/platform-teams-notification-api/swagger` for the swagger page (change dev to the right env)
 
 ### Easy formatting
 

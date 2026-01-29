@@ -1,4 +1,4 @@
-function Initialize-DevopsTeamsNotificationApiWorkload {
+function Initialize-PlatformTeamsNotificationApiWorkload {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [parameter(Mandatory = $true, Position = 0)]
@@ -76,7 +76,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
             Name              = $deploymentName
             ResourceGroupName = $devopsDomainRgName
             TemplateFile      = $botTemplate
-            endpoint          = 'https://XXXXX.devtunnels.ms/devops-teams-notification-api/api/messages'
+            endpoint          = 'https://XXXXX.devtunnels.ms/platform-teams-notification-api/api/messages'
             environment       = 'debug'
             botName           = $devopsBotNameDebug
             devopsBotAppId    = $devopsBotEntraIdAppDebug.AppId
@@ -101,7 +101,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         Name              = $deploymentName
         ResourceGroupName = $devopsDomainRgName
         TemplateFile      = $botTemplate
-        endpoint          = "https://api.$Environment.uniphar.ie/devops-teams-notification-api/api/messages"
+        endpoint          = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
         environment       = $Environment
         botName           = $devopsBotName
         devopsBotAppId    = $aksClusterApp.AppId
@@ -110,7 +110,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
     # deploy the bot service, using the workload identity of the k8s cluster
     New-AzResourceGroupDeployment @deploymentConfig
 
-    # devops-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
+    # platform-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
     # in the future add revoke existing if needed and use a custom workload identity for the bot
     $grantPermissionConfig = @{
         ApplicationName = $devopsClusterIdentityName
