@@ -49,7 +49,7 @@ updates:
 
   # Docker base images
   - package-ecosystem: "docker"
-    directory: "/src/Pod.Notes.Controller"
+    directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
