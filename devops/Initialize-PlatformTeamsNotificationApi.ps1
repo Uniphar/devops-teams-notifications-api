@@ -125,7 +125,7 @@ function Initialize-PlatformTeamsNotificationApi {
     # platform-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
     # in the future add revoke existing if needed and use a custom workload identity for the bot
     $grantPermissionConfig = @{
-        ApplicationName = $devopsClusterIdentityName
+        ApplicationName = $sa.DisplayName
         Permissions     = $botPermissionsNeeded
         RevokeExisting  = $true
         Verbose         = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
