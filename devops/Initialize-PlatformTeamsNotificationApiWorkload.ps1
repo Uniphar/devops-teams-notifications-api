@@ -9,7 +9,7 @@ function Initialize-PlatformTeamsNotificationApiWorkload {
     $devopsBotName = Resolve-UniResourceName 'bot' $p_devopsDomain -Dev:$Dev -Environment $Environment
     
     # Deploy RBAC for devops resources (KeyVault)
-    $sa = Get-UniDomainServicePrincipalDetail 'devops-teams-notifications-api' $Environment
+    $sa = Get-UniDomainServicePrincipalDetail 'platform-teams-notifications-api' $Environment
     $principalId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
     $devopsDeploymentConfig = @{
         DeploymentName    = Resolve-DeploymentName -Suffix "-platform-teams-notification-api-devops-rbac"
