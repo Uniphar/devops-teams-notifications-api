@@ -10,7 +10,7 @@ function Initialize-PlatformTeamsNotificationApi {
     
     Select-AzSubscription -SubscriptionId (Get-UniEnvironment | Where-Object { $_.Environment -eq  $Environment } | Select-Object -First 1 -ExpandProperty SubscriptionId)
     $sa = Get-UniDomainServicePrincipalDetail 'platform-teams-notification-api'  $Environment
-    $principleId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
+    $principalId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
     $devopsDeploymentConfig = @{
         DeploymentName    = Resolve-DeploymentName -Suffix "-platform-teams-notification-api-devops-rbac"
         Mode              = 'Incremental'
@@ -116,7 +116,7 @@ function Initialize-PlatformTeamsNotificationApi {
         endpoint          = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
         environment       = $Environment
         botName           = $devopsBotName
-        devopsBotAppId    = $principleId
+        devopsBotAppId    = $principalId
         Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
     }
     # deploy the bot service, using the workload identity of the k8s cluster
