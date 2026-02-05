@@ -1,4 +1,4 @@
-function Initialize-PlatformTeamsNotificationApiWorkload {
+function Initialize-PlatformTeamsNotificationApi {
     [CmdletBinding(SupportsShouldProcess = $true)]
     param (
         [parameter(Mandatory = $true, Position = 0)]
@@ -6,11 +6,11 @@ function Initialize-PlatformTeamsNotificationApiWorkload {
         [string] $Environment 
     )
     $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\bot.bicep"
-    $devopsBotName = Resolve-UniResourceName 'bot' $p_devopsDomain -Dev:$Dev -Environment $Environment
+    $devopsBotName = Resolve-UniResourceName 'bot' $p_devopsDomain -Environment $Environment
     
-    # Deploy RBAC for devops resources (KeyVault)
-    $sa = Get-UniDomainServicePrincipalDetail 'platform-teams-notifications-api' $Environment
-    $principalId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
+    Select-AzSubscription -SubscriptionId (Get-UniEnvironment | Where-Object { $_.Environment -eq  $Environment } | Select-Object -First 1 -ExpandProperty SubscriptionId)
+    $sa = Get-UniDomainServicePrincipalDetail 'platform-teams-notification-api'  $Environment
+    $principleId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
     $devopsDeploymentConfig = @{
         DeploymentName    = Resolve-DeploymentName -Suffix "-platform-teams-notification-api-devops-rbac"
         Mode              = 'Incremental'
@@ -65,11 +65,8 @@ function Initialize-PlatformTeamsNotificationApiWorkload {
         # Read user profiles – needed for resolving user IDs to add to teams/chats/channels
         "User.Read.All"
     )
-
-    $devopsClusterIdentityName = Resolve-UniComputeDomainSAName $Environment $global:p_devopsDomain
-    $aksClusterApp = Get-AzADApplication -DisplayName $devopsClusterIdentityName
     $deploymentName = Resolve-DeploymentName -Suffix '-TeamsNotificationApiBot'
-    $devopsDomainRgName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Dev:$Dev -Environment $Environment
+    $devopsDomainRgName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Environment $Environment
     $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
     Connect-MgGraph -AccessToken $token.Token -NoWelcome
     # we need a bot service which is not the workload identity, but a separate app registration (so we can get its secret for local debugging)
@@ -119,7 +116,7 @@ function Initialize-PlatformTeamsNotificationApiWorkload {
         endpoint          = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
         environment       = $Environment
         botName           = $devopsBotName
-        devopsBotAppId    = $aksClusterApp.AppId
+        devopsBotAppId    = $principleId
         Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
     }
     # deploy the bot service, using the workload identity of the k8s cluster
