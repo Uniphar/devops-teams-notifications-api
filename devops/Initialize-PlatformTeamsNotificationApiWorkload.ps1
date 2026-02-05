@@ -7,6 +7,21 @@ function Initialize-PlatformTeamsNotificationApiWorkload {
     )
     $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\bot.bicep"
     $devopsBotName = Resolve-UniResourceName 'bot' $p_devopsDomain -Dev:$Dev -Environment $Environment
+    
+    # Deploy RBAC for devops resources (KeyVault)
+    $sa = Get-UniDomainServicePrincipalDetail 'devops-teams-notifications-api' $Environment
+    $principalId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
+    $devopsDeploymentConfig = @{
+        DeploymentName    = Resolve-DeploymentName -Suffix "-platform-teams-notification-api-devops-rbac"
+        Mode              = 'Incremental'
+        ResourceGroupName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Environment $Environment
+        TemplateFile      = Join-Path $PSScriptRoot "devops.rbac.bicep"
+        principalId       = $principalId
+        keyVaultName      = Resolve-UniResourceName 'keyvault' "$p_devopsDomain-app" -Environment $Environment
+        Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+    }
+    New-AzResourceGroupDeployment @devopsDeploymentConfig
+    
     # Minimal application permissions required for:
     # - Installing a Teams app into any team, channel, or chat
     # - Reading all messages (teams/channel/chats)
