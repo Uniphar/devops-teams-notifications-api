@@ -35,7 +35,7 @@ Since this uses federation we cannot use it locally, for this we will use a bot 
 ## Initial create of the app
 
 devops-azure will create the bot services automatically, but to be able to use the app you have to go to:
-`https://dev.teams.microsoft.com/apps` and create a new app, using all the credentials, as an example the debug bot is provided in `src\Teams.Notifications.Api\appManifest\ENV`, if you create a new app, compare the manifest with the json provided you can figure out pretty easily what you are missing (note that id is unique per org/app and that the clientId is peppered in the manifest), this is preferred over doing it by just uploading it as a zip as the manifest version might be newer!
+`https://dev.teams.microsoft.com/apps` and create a new app, using all the credentials, as an example the debug bot is provided in `src\Teams.Notifications.Api\appManifest\ENV`, if you create a new app, compare the manifest with the json provided you can figure out pretty easily what you are missing (note that id is unique per org/app and that the App id is peppered in the manifest, for the botId, make sure you use the Application ID not the object ID (application id is equal between the enterprise app and the regular app reg)), this is preferred over doing it by just uploading it as a zip as the manifest version might be newer!
 
 The pending apps you can find in `https://admin.teams.microsoft.com/policies/manage-apps` with pim you can approve these, to view, choose app type= custom app
 
