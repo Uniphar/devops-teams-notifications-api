@@ -19,7 +19,7 @@
   ],
   "bots": [
     {
-      "botId": "06c03a58-0e89-4100-b659-a8c5214afd11",
+      "botId": "9ad41a1e-8afb-49b8-8d92-86a6932056df",
       "scopes": ["team", "groupChat", "personal"],
       "isNotificationOnly": false,
       "supportsCalling": false,
@@ -29,8 +29,8 @@
   ],
   "validDomains": [],
   "webApplicationInfo": {
-    "id": "06c03a58-0e89-4100-b659-a8c5214afd11",
-    "resource": "api://botid-06c03a58-0e89-4100-b659-a8c5214afd11"
+    "id": "9ad41a1e-8afb-49b8-8d92-86a6932056df",
+    "resource": "api://botid-9ad41a1e-8afb-49b8-8d92-86a6932056df"
   },
   "permissions": ["identity", "messageTeamMembers"],
   "devicePermissions": ["notifications", "openExternal"],

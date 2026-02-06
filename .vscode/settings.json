@@ -1,1 +1,8 @@
-{}
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/src/**/*.json"],
+      "url": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json"
+    }
+  ]
+}
