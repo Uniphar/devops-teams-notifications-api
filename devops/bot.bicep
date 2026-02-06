@@ -1,7 +1,7 @@
 param botName string
-param devopsBotAppId string
-param devopsBotTenantId string = tenant().tenantId
-param botDisplayName string = 'Devops Teams Notifications'
+param teamsBotAppId string
+param tenantId string = tenant().tenantId
+param botDisplayName string = 'Teams Notifications'
 param environment string
 param endpoint string
 // Data residency
@@ -22,9 +22,9 @@ resource botService 'Microsoft.BotService/botServices@2023-09-15-preview' = {
   }
   properties: {
     displayName: 'Bot for ${botDisplayName} ${environment}'
-    msaAppId: devopsBotAppId
+    msaAppId: teamsBotAppId
     msaAppType: 'SingleTenant'
-    msaAppTenantId: devopsBotTenantId
+    msaAppTenantId: tenantId
     endpoint: endpoint
   }
 }

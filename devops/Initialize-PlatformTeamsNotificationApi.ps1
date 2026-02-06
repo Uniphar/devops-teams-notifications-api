@@ -6,9 +6,8 @@ function Initialize-PlatformTeamsNotificationApi {
         [string] $Environment 
     )
     $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\bot.bicep"
-    $devopsBotName = Resolve-UniResourceName 'bot' $p_devopsDomain -Environment $Environment
     
-    Select-AzSubscription -SubscriptionId (Get-UniEnvironment | Where-Object { $_.Environment -eq  $Environment } | Select-Object -First 1 -ExpandProperty SubscriptionId)
+    Select-AzSubscription -SubscriptionId (Get-UniEnvironment | Where-Object { $_.Environment -eq $Environment } | Select-Object -First 1 -ExpandProperty SubscriptionId)
     $sa = Get-UniDomainServicePrincipalDetail 'platform-teams-notification-api'  $Environment
     $principalId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
     $devopsDeploymentConfig = @{
@@ -65,22 +64,22 @@ function Initialize-PlatformTeamsNotificationApi {
         # Read user profiles – needed for resolving user IDs to add to teams/chats/channels
         "User.Read.All"
     )
-    $deploymentName = Resolve-DeploymentName -Suffix '-TeamsNotificationApiBot'
+    $deploymentName = Resolve-DeploymentName -Suffix '-teams-notification-api-bot'
     $devopsDomainRgName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Environment $Environment
     $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
     Connect-MgGraph -AccessToken $token.Token -NoWelcome
     # we need a bot service which is not the workload identity, but a separate app registration (so we can get its secret for local debugging)
     # so to do this we will create a debug bot in the dev environment and give it the same permissions as the workload identity
     if ($Environment -eq 'dev') {
-        $devopsBotNameDebug = Resolve-UniResourceName 'bot' $p_devopsDomain -Environment 'debug'
-        $devopsBotEntraIdAppDebug = Get-AzADApplication -DisplayName $devopsBotNameDebug
-        if (!$devopsBotEntraIdAppDebug) { 
-            $devopsBotEntraIdAppDebug = New-AzADApplication -DisplayName $devopsBotNameDebug -SigninAudience AzureADMyOrg 
+        $teamsBotNameDebug = Resolve-UniResourceName 'bot' 'platform-teams-notification-api' -Environment 'debug'
+        $teamsBotEntraIdAppDebug = Get-AzADApplication -DisplayName $teamsBotNameDebug
+        if (!$teamsBotEntraIdAppDebug) { 
+            $teamsBotEntraIdAppDebug = New-AzADApplication -DisplayName $teamsBotNameDebug -SigninAudience AzureADMyOrg 
         }
-        $devopsBotEntraIdServicePrincipalDebug = Get-AzADServicePrincipal -ApplicationId $devopsBotEntraIdAppDebug.AppId
+        $teamsBotEntraIdServicePrincipalDebug = Get-AzADServicePrincipal -ApplicationId $teamsBotEntraIdAppDebug.AppId
 
-        if (!$devopsBotEntraIdServicePrincipalDebug) {
-            $devopsBotEntraIdServicePrincipalDebug = New-AzADServicePrincipal -ApplicationId $devopsBotEntraIdAppDebug.AppId 
+        if (!$teamsBotEntraIdServicePrincipalDebug) {
+            $teamsBotEntraIdServicePrincipalDebug = New-AzADServicePrincipal -ApplicationId $teamsBotEntraIdAppDebug.AppId 
         }
         
         $debugDeploymentConfig = @{
@@ -90,8 +89,8 @@ function Initialize-PlatformTeamsNotificationApi {
             TemplateFile      = $botTemplate
             endpoint          = 'https://XXXXX.devtunnels.ms/platform-teams-notification-api/api/messages'
             environment       = 'debug'
-            botName           = $devopsBotNameDebug
-            devopsBotAppId    = $devopsBotEntraIdAppDebug.AppId
+            botName           = $teamsBotNameDebug
+            teamsBotAppId     = $teamsBotEntraIdAppDebug.AppId
             Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
         }
         # creates the resources for the bot only!
@@ -101,7 +100,7 @@ function Initialize-PlatformTeamsNotificationApi {
      
         # for debug purposes, give the same creds as the workload
         $debugGrantPermissionConfig = @{
-            ApplicationName = $devopsBotNameDebug
+            ApplicationName = $teamsBotNameDebug
             Permissions     = $botPermissionsNeeded
             RevokeExisting  = $true
             Verbose         = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
@@ -115,8 +114,8 @@ function Initialize-PlatformTeamsNotificationApi {
         TemplateFile      = $botTemplate
         endpoint          = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
         environment       = $Environment
-        botName           = $devopsBotName
-        devopsBotAppId    = $principalId
+        botName           = Resolve-UniResourceName 'bot' 'platform-teams-notification-api' -Environment $Environment
+        teamsBotAppId     = $principalId
         Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
     }
     # deploy the bot service, using the workload identity of the k8s cluster
