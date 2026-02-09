@@ -33,6 +33,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="*" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="*" />
     <PackageReference Include="Microsoft.Graph.Beta" Version="*-*" />
+    <PackageReference Include="Humanizer.Core" Version="*" />
     <PackageReference Include="Uniphar.Platform.Telemetry" Version="*" />
     <ProjectReference Include="..\Teams.Notifications.AdaptiveCardGen\Teams.Notifications.AdaptiveCardGen.csproj" OutputItemType="Analyzer" />
     <AdditionalFiles Include="Templates\**\*.json" />
