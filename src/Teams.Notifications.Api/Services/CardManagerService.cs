@@ -231,8 +231,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
         var card = AdaptiveCard.FromJson(cardJson).Card;
         // remove all actions that match the verbs
         foreach (var actionVerb in actionsToRemove)
-            foreach (var adaptiveAction in card.Actions.Where(a => a is AdaptiveExecuteAction exe && exe.Verb == actionVerb).ToList())
-                card.Actions.Remove(adaptiveAction);
+        foreach (var adaptiveAction in card.Actions.Where(a => a is AdaptiveExecuteAction exe && exe.Verb == actionVerb).ToList())
+            card.Actions.Remove(adaptiveAction);
 
         var activity = new Activity
         {
