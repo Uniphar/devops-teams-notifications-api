@@ -2,7 +2,7 @@
   "json.schemas": [
     {
       "fileMatch": ["/src/Teams.Notifications.Api/appManifest/**/*.json"],
-      "url": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json"
+      "url": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json"
     }
   ]
 }

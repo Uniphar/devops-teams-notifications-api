@@ -1,8 +1,8 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
-  "version": "1.0.6",
-  "manifestVersion": "1.23",
-  "id": "b34356eb-0f3b-4f78-86f0-5f68723631f7",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
+  "version": "1.0.0",
+  "manifestVersion": "1.24",
+  "id": "15ca3f35-d906-482e-aef9-821836373118",
   "name": { "short": "Uniphar Dev Bot", "full": "Uniphar Dev Bot" },
   "developer": {
     "name": "Uniphar",
