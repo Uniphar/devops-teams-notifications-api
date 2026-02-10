@@ -12,6 +12,7 @@ param endpoint string
   'centralindia'
 ])
 param location string = 'westeurope'
+param logAnalyticsWorkspaceId string
 
 resource botService 'Microsoft.BotService/botServices@2023-09-15-preview' = {
   name: botName
@@ -26,5 +27,43 @@ resource botService 'Microsoft.BotService/botServices@2023-09-15-preview' = {
     msaAppType: 'SingleTenant'
     msaAppTenantId: tenantId
     endpoint: endpoint
+  }
+}
+
+resource teamsChannel 'Microsoft.BotService/botServices/channels@2023-09-15-preview' = {
+  parent: botService
+  name: 'MsTeamsChannel'
+  location: location
+  properties: {
+    channelName: 'MsTeamsChannel'
+    properties: {
+      enableCalling: false
+      incomingCallRoute: 'graphPma'
+      callingWebhook: null
+      isEnabled: true
+      deploymentEnvironment: 'CommercialDeployment'
+      acceptedTerms: true
+    }
+  }
+}
+
+resource botDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: '${botName}-diagnostics'
+  scope: botService
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'allLogs'
+        enabled: true
+      }
+    
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
   }
 }

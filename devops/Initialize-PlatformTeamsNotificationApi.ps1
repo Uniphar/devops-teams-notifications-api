@@ -66,6 +66,7 @@ function Initialize-PlatformTeamsNotificationApi {
     )
     $deploymentName = Resolve-DeploymentName -Suffix '-teams-notification-api-bot'
     $devopsDomainRgName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Environment $Environment
+    $logAnalyticsWorkspace = Resolve-UniMainLogAnalytics $Environment
     $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
     Connect-MgGraph -AccessToken $token.Token -NoWelcome
     # we need a bot service which is not the workload identity, but a separate app registration (so we can get its secret for local debugging)
@@ -83,15 +84,16 @@ function Initialize-PlatformTeamsNotificationApi {
         }
         
         $debugDeploymentConfig = @{
-            Mode              = 'Incremental'
-            Name              = $deploymentName
-            ResourceGroupName = $devopsDomainRgName
-            TemplateFile      = $botTemplate
-            endpoint          = 'https://XXXXX.devtunnels.ms/platform-teams-notification-api/api/messages'
-            environment       = 'debug'
-            botName           = $teamsBotNameDebug
-            teamsBotAppId     = $teamsBotEntraIdAppDebug.AppId
-            Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+            Mode                    = 'Incremental'
+            Name                    = $deploymentName
+            ResourceGroupName       = $devopsDomainRgName
+            TemplateFile            = $botTemplate
+            endpoint                = 'https://XXXXX.devtunnels.ms/platform-teams-notification-api/api/messages'
+            environment             = 'debug'
+            botName                 = $teamsBotNameDebug
+            teamsBotAppId           = $teamsBotEntraIdAppDebug.AppId
+            logAnalyticsWorkspaceId = $logAnalyticsWorkspace.ResourceId
+            Verbose                 = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
         }
         # creates the resources for the bot only!
         # endpoint is just an example, you will need to change it all the time
@@ -108,15 +110,16 @@ function Initialize-PlatformTeamsNotificationApi {
         Grant-MicrosoftGraphPermission @debugGrantPermissionConfig
     }
     $deploymentConfig = @{
-        Mode              = 'Incremental'
-        Name              = $deploymentName
-        ResourceGroupName = $devopsDomainRgName
-        TemplateFile      = $botTemplate
-        endpoint          = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
-        environment       = $Environment
-        botName           = Resolve-UniResourceName 'bot' 'platform-teams-notification-api' -Environment $Environment
-        teamsBotAppId     = $principalId
-        Verbose           = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+        Mode                    = 'Incremental'
+        Name                    = $deploymentName
+        ResourceGroupName       = $devopsDomainRgName
+        TemplateFile            = $botTemplate
+        endpoint                = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
+        environment             = $Environment
+        botName                 = Resolve-UniResourceName 'bot' 'platform-teams-notification-api' -Environment $Environment
+        teamsBotAppId           = $principalId
+        logAnalyticsWorkspaceId = $logAnalyticsWorkspace.ResourceId
+        Verbose                 = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
     }
     # deploy the bot service, using the workload identity of the k8s cluster
     New-AzResourceGroupDeployment @deploymentConfig
