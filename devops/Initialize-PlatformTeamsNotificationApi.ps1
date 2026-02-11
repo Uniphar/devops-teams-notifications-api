@@ -3,13 +3,28 @@ function Initialize-PlatformTeamsNotificationApi {
     param (
         [parameter(Mandatory = $true, Position = 0)]
         [ValidateSet('dev', 'test', 'prod')]
-        [string] $Environment 
+        [string] $Environment,
+        
+        [parameter(Mandatory = $true)]
+        [string] $SubscriptionId,
+        
+        [parameter(Mandatory = $true)]
+        [string] $ServicePrincipalName,
+        
+        [parameter(Mandatory = $true)]
+        [string] $ResourceGroupName,
+        
+        [parameter(Mandatory = $true)]
+        [string] $LogAnalyticsWorkspaceId
     )
     $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\bot.bicep"
     
-    Select-AzSubscription -SubscriptionId (Get-UniEnvironment | Where-Object { $_.Environment -eq $Environment } | Select-Object -First 1 -ExpandProperty SubscriptionId)
-    $sa = Get-UniDomainServicePrincipalDetail 'platform-teams-notification-api'  $Environment
-    $principalId = Get-AzADServicePrincipal -DisplayName $sa.DisplayName | Select-Object -ExpandProperty Id
+    Select-AzSubscription -SubscriptionId $SubscriptionId
+    $sa = Get-AzADServicePrincipal -DisplayName $ServicePrincipalName
+    if (!$sa) {
+        throw "Service principal '$ServicePrincipalName' not found"
+    }
+    $principalId = $sa.Id
     
     # Minimal application permissions required for:
     # - Installing a Teams app into any team, channel, or chat
@@ -54,15 +69,13 @@ function Initialize-PlatformTeamsNotificationApi {
         # Read user profiles – needed for resolving user IDs to add to teams/chats/channels
         "User.Read.All"
     )
-    $deploymentName = Resolve-DeploymentName -Suffix '-teams-notification-api-bot'
-    $devopsDomainRgName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Environment $Environment
-    $logAnalyticsWorkspace = Resolve-UniMainLogAnalytics $Environment
-    $token = Get-AzAccessToken -ResourceUrl $global:g_microsoftGraphApi -AsSecureString
+    $deploymentName = "deploy-$(Get-Date -Format 'yyyyMMddHHmmss')-teams-notification-api-bot"
+    $token = Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com/" -AsSecureString
     Connect-MgGraph -AccessToken $token.Token -NoWelcome
     # we need a bot service which is not the workload identity, but a separate app registration (so we can get its secret for local debugging)
     # so to do this we will create a debug bot in the dev environment and give it the same permissions as the workload identity
     if ($Environment -eq 'dev') {
-        $teamsBotNameDebug = Resolve-UniResourceName 'bot' 'platform-teams-notification-api' -Environment 'debug'
+        $teamsBotNameDebug = "platform-teams-notification-api-debug-bot"
         $teamsBotEntraIdAppDebug = Get-AzADApplication -DisplayName $teamsBotNameDebug
         if (!$teamsBotEntraIdAppDebug) { 
             $teamsBotEntraIdAppDebug = New-AzADApplication -DisplayName $teamsBotNameDebug -SigninAudience AzureADMyOrg 
@@ -76,13 +89,13 @@ function Initialize-PlatformTeamsNotificationApi {
         $debugDeploymentConfig = @{
             Mode                    = 'Incremental'
             Name                    = $deploymentName
-            ResourceGroupName       = $devopsDomainRgName
+            ResourceGroupName       = $ResourceGroupName
             TemplateFile            = $botTemplate
             endpoint                = 'https://XXXXX.devtunnels.ms/platform-teams-notification-api/api/messages'
             environment             = 'debug'
             botName                 = $teamsBotNameDebug
             teamsBotAppId           = $teamsBotEntraIdAppDebug.AppId
-            logAnalyticsWorkspaceId = $logAnalyticsWorkspace.ResourceId
+            logAnalyticsWorkspaceId = $LogAnalyticsWorkspaceId
             Verbose                 = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
         }
         # creates the resources for the bot only!
@@ -91,24 +104,18 @@ function Initialize-PlatformTeamsNotificationApi {
 
      
         # for debug purposes, give the same creds as the workload
-        $debugGrantPermissionConfig = @{
-            ApplicationName = $teamsBotNameDebug
-            Permissions     = $botPermissionsNeeded
-            RevokeExisting  = $true
-            Verbose         = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
-        }
-        Grant-MicrosoftGraphPermission @debugGrantPermissionConfig
+        Grant-GraphPermissions -ServicePrincipalDisplayName $teamsBotNameDebug -Permissions $botPermissionsNeeded
     }
     $deploymentConfig = @{
         Mode                    = 'Incremental'
         Name                    = $deploymentName
-        ResourceGroupName       = $devopsDomainRgName
+        ResourceGroupName       = $ResourceGroupName
         TemplateFile            = $botTemplate
         endpoint                = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
         environment             = $Environment
-        botName                 = Resolve-UniResourceName 'bot' 'platform-teams-notification-api' -Environment $Environment
+        botName                 = "platform-teams-notification-api-$Environment-bot"
         teamsBotAppId           = $principalId
-        logAnalyticsWorkspaceId = $logAnalyticsWorkspace.ResourceId
+        logAnalyticsWorkspaceId = $LogAnalyticsWorkspaceId
         Verbose                 = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
     }
     # deploy the bot service, using the workload identity of the k8s cluster
@@ -116,11 +123,45 @@ function Initialize-PlatformTeamsNotificationApi {
 
     # platform-teams-notifications-api needs permissions to graph stuff, since we use workload identity we can use this
     # in the future add revoke existing if needed and use a custom workload identity for the bot
-    $grantPermissionConfig = @{
-        ApplicationName = $sa.DisplayName
-        Permissions     = $botPermissionsNeeded
-        RevokeExisting  = $true
-        Verbose         = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
+    Grant-GraphPermissions -ServicePrincipalDisplayName $ServicePrincipalName -Permissions $botPermissionsNeeded
+}
+
+function Grant-GraphPermissions {
+    [CmdletBinding()]
+    param (
+        [parameter(Mandatory = $true)]
+        [string] $ServicePrincipalDisplayName,
+        
+        [parameter(Mandatory = $true)]
+        [string[]] $Permissions
+    )
+    
+    # Get the service principal
+    $sp = Get-AzADServicePrincipal -DisplayName $ServicePrincipalDisplayName
+    if (!$sp) {
+        throw "Service principal '$ServicePrincipalDisplayName' not found"
     }
-    Grant-MicrosoftGraphPermission @grantPermissionConfig
+    
+    # Get Microsoft Graph service principal
+    $graphSp = Get-AzADServicePrincipal -Filter "displayName eq 'Microsoft Graph'"
+    
+    # Get the app roles from Microsoft Graph
+    $appRoles = $graphSp.AppRole | Where-Object { $Permissions -contains $_.Value }
+    
+    foreach ($appRole in $appRoles) {
+        # Check if permission already exists
+        $existingAssignment = Get-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $sp.Id -ErrorAction SilentlyContinue | 
+        Where-Object { $_.AppRoleId -eq $appRole.Id -and $_.ResourceId -eq $graphSp.Id }
+        
+        if (!$existingAssignment) {
+            Write-Verbose "Granting permission: $($appRole.Value)"
+            New-MgServicePrincipalAppRoleAssignment -ServicePrincipalId $sp.Id `
+                -PrincipalId $sp.Id `
+                -ResourceId $graphSp.Id `
+                -AppRoleId $appRole.Id
+        }
+        else {
+            Write-Verbose "Permission already exists: $($appRole.Value)"
+        }
+    }
 }

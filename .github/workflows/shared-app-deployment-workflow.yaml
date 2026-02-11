@@ -12,12 +12,6 @@ on:
       AZURE_SUBSCRIPTION_ID:
         required: true
         description: "Azure Subscription ID"
-      ACTIONS_AUTH_APP_ID:
-        required: true
-        description: "GitHub App ID"
-      ACTIONS_AUTH_APP_PRIVATE_KEY:
-        required: true
-        description: "GitHub App Private Key"
     inputs:
       acrName:
         type: string
@@ -43,6 +37,10 @@ on:
         type: boolean
         required: true
         description: "Deploy to a single cluster or all"
+      SERVICE_PRINCIPAL_NAME:
+        type: string
+        required: true
+        description: "Service Principal Name"
 
 jobs:
   deploy_app:
@@ -59,20 +57,6 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v6
 
-      - name: gh-app-install token
-        id: gh-app
-        uses: getsentry/action-github-app-token@v3
-        with:
-          app_id: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-          private_key: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
-
-      - name: checkout devops-azure repo
-        uses: actions/checkout@v6
-        with:
-          path: devops-azure
-          repository: Uniphar/devops-azure
-          token: ${{ steps.gh-app.outputs.token }}
-
       - name: azure login
         uses: azure/login@v2
         with:
@@ -88,13 +72,15 @@ jobs:
         with:
           inlineScript: |
             try{
-              Import-Module .\devops-azure\src\Uniphar.DevOps.psd1 -ErrorAction Stop -Force
-              
-              $AKSClusterServiceAccountClientId = (Get-UniDomainServicePrincipalDetail 'platform-teams-notification-api' '${{ inputs.environment }}').AppId
-              $AzureEntraExternalTenantId = Resolve-UniEntraExternalTenantId -Environment '${{ inputs.environment }}'
+              # Get service principal client ID
+              $sp = Get-AzADServicePrincipal -DisplayName ${{ inputs.SERVICE_PRINCIPAL_NAME }}
+              if (!$sp) {
+                throw "Service principal '${{ inputs.SERVICE_PRINCIPAL_NAME }}' not found"
+              }
+              $AKSClusterServiceAccountClientId = (Get-AzADApplication -ApplicationId $sp.AppId).AppId
               
               echo "AKS_CLUSTER_SERVICE_ACCOUNT_CLIENT_ID=$AKSClusterServiceAccountClientId" >> $env:GITHUB_ENV
-              echo "AZURE_ENTRA_EXTERNAL_TENANT_ID=$AzureEntraExternalTenantId" >> $env:GITHUB_ENV
+              echo "AZURE_ENTRA_EXTERNAL_TENANT_ID=$env:AZURE_ENTRA_EXTERNAL_TENANT_ID" >> $env:GITHUB_ENV
               echo "AKS_CLUSTER_NAME=$env:AKS_CLUSTER_NAME" >> $env:GITHUB_ENV
               # Pass inputs to environment variables
               echo "ACR_NAME=${{ inputs.acrName }}" >> $env:GITHUB_ENV
@@ -108,7 +94,6 @@ jobs:
               exit 1
             }
           azPSVersion: "latest"
-
       - name: setup kubectl
         uses: azure/use-kubelogin@v1
         env:
