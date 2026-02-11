@@ -53,7 +53,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
     with:
       environment: dev
-      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-dev-bot
+      SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-dev-k8s-sa
       RESOURCE_GROUP_NAME: devops-dev
       LOG_ANALYTICS_WORKSPACE_ID: 7acf28d1-461e-46b4-9a80-2619e9dbfc35
 
@@ -71,7 +71,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: dev
       singleCluster: ${{ inputs.singleCluster }}
-      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-dev-bot
+      SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-dev-k8s-sa
 
   app_integration_tests_dev:
     needs: app_deployment_dev
@@ -93,7 +93,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
     with:
       environment: test
-      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-test-bot
+      SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-test-k8s-sa
       RESOURCE_GROUP_NAME: devops-test
       LOG_ANALYTICS_WORKSPACE_ID: 3e66d977-3262-485b-9691-de4d52a4e12b
 
@@ -111,7 +111,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: test
       singleCluster: ${{ inputs.singleCluster }}
-      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-test-bot
+      SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-test-k8s-sa
 
   app_integration_tests_test:
     needs: app_deployment_test
@@ -134,7 +134,7 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_PROD_SUBSCRIPTION_ID }}
     with:
       environment: prod
-      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-prod-bot
+      SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-prod-k8s-sa
       RESOURCE_GROUP_NAME: devops-prod
       LOG_ANALYTICS_WORKSPACE_ID: 06bc6b5c-9b4c-43c2-92c4-c9e2edb00f8b
 
@@ -152,7 +152,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: prod
       singleCluster: ${{ inputs.singleCluster }}
-      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-prod-bot
+      SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-prod-k8s-sa
 
   app_integration_tests_prod:
     needs: app_deployment_prod
