@@ -55,7 +55,7 @@ jobs:
       environment: dev
       SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-dev-k8s-sa
       RESOURCE_GROUP_NAME: devops-dev
-      LOG_ANALYTICS_WORKSPACE_ID: 7acf28d1-461e-46b4-9a80-2619e9dbfc35
+      LOG_ANALYTICS_WORKSPACE_ID: /subscriptions/39983c36-2aa4-4c7e-907a-6dbd95860295/resourceGroups/core-env-dev/providers/Microsoft.OperationalInsights/workspaces/core-env-dev-logs
 
   app_deployment_dev:
     needs: [app_package, app_initialization_dev]
@@ -95,7 +95,7 @@ jobs:
       environment: test
       SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-test-k8s-sa
       RESOURCE_GROUP_NAME: devops-test
-      LOG_ANALYTICS_WORKSPACE_ID: 3e66d977-3262-485b-9691-de4d52a4e12b
+      LOG_ANALYTICS_WORKSPACE_ID: /subscriptions/39983c36-2aa4-4c7e-907a-6dbd95860295/resourceGroups/core-env-test/providers/Microsoft.OperationalInsights/workspaces/core-env-test-logs
 
   app_deployment_test:
     needs: [app_package, app_integration_tests_dev, app_initialization_test]
@@ -136,7 +136,7 @@ jobs:
       environment: prod
       SERVICE_PRINCIPAL_NAME: compute-aks-platform-teams-notification-api-prod-k8s-sa
       RESOURCE_GROUP_NAME: devops-prod
-      LOG_ANALYTICS_WORKSPACE_ID: 06bc6b5c-9b4c-43c2-92c4-c9e2edb00f8b
+      LOG_ANALYTICS_WORKSPACE_ID: /subscriptions/961b7071-1490-44c4-97b7-b4620c73aee5/resourceGroups/core-env-prod/providers/Microsoft.OperationalInsights/workspaces/core-env-prod-logs
 
   app_deployment_prod:
     needs: [app_package, app_integration_tests_test, app_initialization_prod]
