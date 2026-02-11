@@ -51,7 +51,7 @@ function Initialize-DevopsTeamsNotificationApiWorkload {
         "User.Read.All"
     )
 
-    $devopsClusterIdentityName = Resolve-UniComputeDomainSAName $Environment $global:p_devopsDomain
+    $devopsClusterIdentityName = Resolve-UniKubeWorkloadSAName $Environment $global:p_devopsDomain
     $aksClusterApp = Get-AzADApplication -DisplayName $devopsClusterIdentityName
     $deploymentName = Resolve-DeploymentName -Suffix '-TeamsNotificationApiBot'
     $devopsDomainRgName = Resolve-UniResourceName 'resource-group' $p_devopsDomain -Dev:$Dev -Environment $Environment
