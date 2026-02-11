@@ -53,9 +53,9 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
     with:
       environment: dev
-      SERVICE_PRINCIPAL_NAME: ${{ vars.SERVICE_PRINCIPAL_NAME_DEV }}
-      RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME_DEV }}
-      LOG_ANALYTICS_WORKSPACE_ID: ${{ vars.LOG_ANALYTICS_WORKSPACE_ID_DEV }}
+      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-dev-bot
+      RESOURCE_GROUP_NAME: devops-dev
+      LOG_ANALYTICS_WORKSPACE_ID: 7acf28d1-461e-46b4-9a80-2619e9dbfc35
 
   app_deployment_dev:
     needs: [app_package, app_initialization_dev]
@@ -71,7 +71,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: dev
       singleCluster: ${{ inputs.singleCluster }}
-      SERVICE_PRINCIPAL_NAME: ${{ vars.SERVICE_PRINCIPAL_NAME_DEV }}
+      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-dev-bot
 
   app_integration_tests_dev:
     needs: app_deployment_dev
@@ -93,9 +93,9 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
     with:
       environment: test
-      SERVICE_PRINCIPAL_NAME: ${{ vars.SERVICE_PRINCIPAL_NAME_TEST }}
-      RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME_TEST }}
-      LOG_ANALYTICS_WORKSPACE_ID: ${{ vars.LOG_ANALYTICS_WORKSPACE_ID_TEST }}
+      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-test-bot
+      RESOURCE_GROUP_NAME: devops-test
+      LOG_ANALYTICS_WORKSPACE_ID: 3e66d977-3262-485b-9691-de4d52a4e12b
 
   app_deployment_test:
     needs: [app_package, app_integration_tests_dev, app_initialization_test]
@@ -111,7 +111,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: test
       singleCluster: ${{ inputs.singleCluster }}
-      SERVICE_PRINCIPAL_NAME: ${{ vars.SERVICE_PRINCIPAL_NAME_TEST }}
+      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-test-bot
 
   app_integration_tests_test:
     needs: app_deployment_test
@@ -134,9 +134,9 @@ jobs:
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_PROD_SUBSCRIPTION_ID }}
     with:
       environment: prod
-      SERVICE_PRINCIPAL_NAME: ${{ vars.SERVICE_PRINCIPAL_NAME_PROD }}
-      RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_NAME_PROD }}
-      LOG_ANALYTICS_WORKSPACE_ID: ${{ vars.LOG_ANALYTICS_WORKSPACE_ID_PROD }}
+      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-prod-bot
+      RESOURCE_GROUP_NAME: devops-prod
+      LOG_ANALYTICS_WORKSPACE_ID: 06bc6b5c-9b4c-43c2-92c4-c9e2edb00f8b
 
   app_deployment_prod:
     needs: [app_package, app_integration_tests_test, app_initialization_prod]
@@ -152,7 +152,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: prod
       singleCluster: ${{ inputs.singleCluster }}
-      SERVICE_PRINCIPAL_NAME: ${{ vars.SERVICE_PRINCIPAL_NAME_PROD }}
+      SERVICE_PRINCIPAL_NAME: platform-teams-notification-api-prod-bot
 
   app_integration_tests_prod:
     needs: app_deployment_prod
