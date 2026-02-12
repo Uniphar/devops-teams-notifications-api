@@ -1,7 +1,7 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
-  "version": "1.0.4",
-  "manifestVersion": "1.23",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
+  "version": "1.0.5",
+  "manifestVersion": "1.24",
   "id": "13b7427c-6df3-4032-acd1-4633ddfdccaa",
   "name": { "short": "Uniphar Test Bot", "full": "Uniphar Test Bot" },
   "developer": {
@@ -19,7 +19,7 @@
   ],
   "bots": [
     {
-      "botId": "7fcfe79f-21e8-4fbd-ae4d-48329d52870b",
+      "botId": "342dfee8-780b-4041-8718-51bc5f972486",
       "scopes": ["team", "groupChat", "personal"],
       "isNotificationOnly": false,
       "supportsCalling": false,
@@ -29,10 +29,9 @@
   ],
   "validDomains": [],
   "webApplicationInfo": {
-    "id": "7fcfe79f-21e8-4fbd-ae4d-48329d52870b",
-    "resource": "api://botid-7fcfe79f-21e8-4fbd-ae4d-48329d52870b"
+    "id": "342dfee8-780b-4041-8718-51bc5f972486",
+    "resource": "api://botid-342dfee8-780b-4041-8718-51bc5f972486"
   },
-  "permissions": ["identity", "messageTeamMembers"],
   "devicePermissions": ["notifications", "openExternal"],
   "defaultGroupCapability": {
     "team": "bot",
