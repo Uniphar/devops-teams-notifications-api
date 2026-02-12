@@ -1,7 +1,7 @@
 # This folder contains no application-specific settings and can be reused as is.
 replicaCount: 1
-nameOverride: devops-teams-notification-api
-appPath: /devops-teams-notification-api
+nameOverride: platform-teams-notification-api
+appPath: /platform-teams-notification-api
 healthUrl: /health
 environment: dev
 env:

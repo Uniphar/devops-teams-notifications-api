@@ -1,11 +1,10 @@
-# DevOps Teams Notifications API
+# Platform Teams Notifications API
 
 This is the first iteration of the Notifications API. In this iteration, the API will handle a single API call to:
 
 1. Create an app.
 2. Place it in the appropriate Teams channel.
 3. Set up a card in the Teams channel with two buttons:
-
    - One for reprocessing (dummy functionality).
    - One to view a file.
 
@@ -27,8 +26,8 @@ Since this uses federation we cannot use it locally, for this we will use a bot 
 
    ```
 
-2. On the Azure Bot (for local/debug: devops-debug-bot), select **Settings**, then **Configuration**, and update the **Messaging endpoint** to `{tunnel-url}/api/messages` eg: `https://kw238403-3978.eun1.devtunnels.ms/devops-teams-notification-api/api/messages`
-3. Change the secret of the appsettings.local, you can find this in the keyvault under `devops-debug-bot-secret`, the client-id and tenant is already setup
+2. On the Azure Bot (for local/debug: devops-debug-bot), select **Settings**, then **Configuration**, and update the **Messaging endpoint** to `{tunnel-url}/api/messages` eg: `https://kw238403-3978.eun1.devtunnels.ms/platform-teams-notification-api/api/messages`
+3. Change the secret of the appsettings.local, you can create this by hand, the client-id and tenant is already setup but might need to be changed if this is a new application
 4. Run the application
 5. Add the bot to teams, select **Settings**, then **Channels**, and click on the link **Open in Teams**
 6. Select a channel, you might need to send a message in the channel to be able to initiate the bot for the first time, this is since we do not get the notification that it has been installed if the bot was already installed on that team.
@@ -36,13 +35,13 @@ Since this uses federation we cannot use it locally, for this we will use a bot 
 ## Initial create of the app
 
 devops-azure will create the bot services automatically, but to be able to use the app you have to go to:
-`https://dev.teams.microsoft.com/apps` and create a new app, using all the credentials, as an example the debug bot is provided in `src\Teams.Notifications.Api\appManifest\ENV`, if you create a new app, compare the manifest with the json provided you can figure out pretty easily what you are missing (note that id is unique per org/app and that the clientId is peppered in the manifest), this is preferred over doing it by just uploading it as a zip as the manifest version might be newer!
+`https://dev.teams.microsoft.com/apps` and create a new app, using all the credentials, as an example the debug bot is provided in `src\Teams.Notifications.Api\appManifest\ENV`, if you create a new app, compare the manifest with the json provided you can figure out pretty easily what you are missing (note that id is unique per org/app and that the App id is peppered in the manifest, for the botId, make sure you use the Application ID not the object ID (application id is equal between the enterprise app and the regular app reg)), this is preferred over doing it by just uploading it as a zip as the manifest version might be newer!
 
 The pending apps you can find in `https://admin.teams.microsoft.com/policies/manage-apps` with pim you can approve these, to view, choose app type= custom app
 
 ### Where to find stuff
 
-`https://api.dev.uniphar.ie/devops-teams-notification-api/swagger` for the swagger page (change dev to the right env)
+`https://api.dev.uniphar.ie/platform-teams-notification-api/swagger` for the swagger page (change dev to the right env)
 
 ### Easy formatting
 

@@ -29,9 +29,7 @@ jobs:
       AZURE_PLATFORM_SUBSCRIPTION_ID: ${{ secrets.AZURE_PLATFORM_SUBSCRIPTION_ID }}
       AZURE_DEV_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
       AZURE_PROD_SUBSCRIPTION_ID: ${{ secrets.AZURE_PROD_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       applicationFolder: Teams.Notifications.Api
-      applicationName: devops-teams-notification-api
+      applicationName: platform-teams-notification-api
       singleCluster: false

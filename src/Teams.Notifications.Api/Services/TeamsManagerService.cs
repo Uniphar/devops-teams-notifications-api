@@ -250,12 +250,12 @@ public class TeamsManagerService(GraphServiceClient graphClient, IConfiguration 
 
     public async Task<ChatMessage?> GetMessageByUniqueId(string teamId, string channelId, string jsonFileName, string uniqueId, CancellationToken token)
     {
-        // we have to get the full thing since select or filter is not allowed, but we can request 100 messages at a time
+        // can't filter, default page size is 20, lets just stick with that and check each
         var messagesResponse = await graphClient
             .Teams[teamId]
             .Channels[channelId]
             .Messages
-            .GetAsync(x => { x.QueryParameters.Top = 100; }, token);
+            .GetAsync(cancellationToken: token);
         var responses = messagesResponse
             ?.Value
             ?.Where(x => x.DeletedDateTime == null &&

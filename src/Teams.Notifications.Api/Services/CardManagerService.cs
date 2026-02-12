@@ -9,6 +9,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
     public async Task DeleteCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
+        var stopwatch = Stopwatch.StartNew();
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
         await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
@@ -28,7 +29,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     {
                         ["Team"] = teamName,
                         ["Channel"] = channelName,
-                        ["Id"] = id
+                        ["Id"] = id,
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -36,16 +38,27 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
     public async Task<string?> GetCardAsync(string jsonFileName, string uniqueId, string teamName, string channelName, CancellationToken token)
     {
+        var stopwatch = Stopwatch.StartNew();
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
         await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
         var chatMessage = await teamsManagerService.GetMessageByUniqueId(teamId, channelId, jsonFileName, uniqueId, token);
+        telemetry.TrackEvent("ChannelGetCard",
+            new()
+            {
+                ["Team"] = teamName,
+                ["Channel"] = channelName,
+                ["JsonFileName"] = jsonFileName,
+                ["UniqueId"] = uniqueId,
+                ["Duration"] = stopwatch.ElapsedMilliseconds
+            });
         // check that we found the item to delete
         return chatMessage?.GetAdaptiveCardFromChatMessage();
     }
 
     public async Task CreateMessageToUserAsync(string message, string user, CancellationToken token)
     {
+        var stopwatch = Stopwatch.StartNew();
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
         if (string.IsNullOrWhiteSpace(installedAppId)) throw new InvalidOperationException($"Unable to install or retrieve chat app for user '{user}'");
@@ -61,7 +74,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 telemetry.TrackEvent("ChatNewMessage",
                     new()
                     {
-                        ["MessageId"] = newResult.Id
+                        ["MessageId"] = newResult.Id,
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -69,6 +83,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, T model, string user, CancellationToken token) where T : BaseTemplateModel
     {
+        var stopwatch = Stopwatch.StartNew();
         var userAadObjectId = await teamsManagerService.GetUserAadObjectIdAsync(user, token);
 
         var installedAppId = await teamsManagerService.GetOrInstallChatAppIdAsync(userAadObjectId, token);
@@ -115,7 +130,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     telemetry.TrackEvent("ChatNewMessage",
                         new()
                         {
-                            ["MessageId"] = newResult.Id
+                            ["MessageId"] = newResult.Id,
+                            ["Duration"] = stopwatch.ElapsedMilliseconds
                         });
                     return;
                 }
@@ -125,7 +141,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 telemetry.TrackEvent("ChatUpdateMessage",
                     new()
                     {
-                        ["MessageId"] = updateResult.Id
+                        ["MessageId"] = updateResult.Id,
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -134,6 +151,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
     public async Task CreateOrUpdateAsync<T>(string jsonFileName, IFormFile? file, T model, string teamName, string channelName, CancellationToken token) where T : BaseTemplateModel
     {
+        var stopwatch = Stopwatch.StartNew();
         var teamId = await teamsManagerService.GetTeamIdAsync(teamName, token);
         await teamsManagerService.CheckOrInstallBotIsInTeam(teamId, token);
         var channelId = await teamsManagerService.GetChannelIdAsync(teamId, channelName, token);
@@ -172,7 +190,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                         {
                             ["Team"] = teamName,
                             ["Channel"] = channelName,
-                            ["MessageId"] = newResult.Id
+                            ["MessageId"] = newResult.Id,
+                            ["Duration"] = stopwatch.ElapsedMilliseconds
                         });
                     return;
                 }
@@ -184,7 +203,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     {
                         ["Team"] = teamName,
                         ["Channel"] = channelName,
-                        ["MessageId"] = updateResult.Id
+                        ["MessageId"] = updateResult.Id,
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -192,6 +212,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
 
     public async Task RemoveActionsFromCardAsync(string teamId, string channelId, string messageId, string[] actionsToRemove, CancellationToken token)
     {
+        var stopwatch = Stopwatch.StartNew();
         // to get the card, this doesn't get provided by the action invoke
         var chatMessage = await teamsManagerService.GetMessageById(teamId, channelId, messageId, token);
         var cardJson = chatMessage?.GetAdaptiveCardFromChatMessage();
@@ -241,7 +262,8 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                         ["Team"] = teamId,
                         ["Channel"] = channelId,
                         ["MessageId"] = updateResult.Id,
-                        ["ActionsRemoved"] = string.Join(",", actionsToRemove)
+                        ["ActionsRemoved"] = string.Join(",", actionsToRemove),
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);

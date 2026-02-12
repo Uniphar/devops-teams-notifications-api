@@ -1,8 +1,8 @@
 {
-  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.23/MicrosoftTeams.schema.json",
-  "version": "1.0.4",
-  "manifestVersion": "1.23",
-  "id": "b34356eb-0f3b-4f78-86f0-5f68723631f7",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
+  "version": "1.0.1",
+  "manifestVersion": "1.24",
+  "id": "15ca3f35-d906-482e-aef9-821836373118",
   "name": { "short": "Uniphar Dev Bot", "full": "Uniphar Dev Bot" },
   "developer": {
     "name": "Uniphar",
@@ -19,7 +19,7 @@
   ],
   "bots": [
     {
-      "botId": "06c03a58-0e89-4100-b659-a8c5214afd11",
+      "botId": "208bce8c-d9ed-4567-aa5d-89e3ffcac81f",
       "scopes": ["team", "groupChat", "personal"],
       "isNotificationOnly": false,
       "supportsCalling": false,
@@ -29,10 +29,9 @@
   ],
   "validDomains": [],
   "webApplicationInfo": {
-    "id": "06c03a58-0e89-4100-b659-a8c5214afd11",
-    "resource": "api://botid-06c03a58-0e89-4100-b659-a8c5214afd11"
+    "id": "208bce8c-d9ed-4567-aa5d-89e3ffcac81f",
+    "resource": "api://botid-208bce8c-d9ed-4567-aa5d-89e3ffcac81f"
   },
-  "permissions": ["identity", "messageTeamMembers"],
   "devicePermissions": ["notifications", "openExternal"],
   "defaultGroupCapability": {
     "team": "bot",
