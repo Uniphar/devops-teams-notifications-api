@@ -30,7 +30,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                         ["Team"] = teamName,
                         ["Channel"] = channelName,
                         ["Id"] = id,
-                        ["Duration"] = stopwatch.Elapsed.Humanize()
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -50,7 +50,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                 ["Channel"] = channelName,
                 ["JsonFileName"] = jsonFileName,
                 ["UniqueId"] = uniqueId,
-                ["Duration"] = stopwatch.Elapsed.Humanize()
+                ["Duration"] = stopwatch.ElapsedMilliseconds
             });
         // check that we found the item to delete
         return chatMessage?.GetAdaptiveCardFromChatMessage();
@@ -75,7 +75,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     new()
                     {
                         ["MessageId"] = newResult.Id,
-                        ["Duration"] = stopwatch.Elapsed.Humanize()
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -131,7 +131,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                         new()
                         {
                             ["MessageId"] = newResult.Id,
-                            ["Duration"] = stopwatch.Elapsed.Humanize()
+                            ["Duration"] = stopwatch.ElapsedMilliseconds
                         });
                     return;
                 }
@@ -142,7 +142,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                     new()
                     {
                         ["MessageId"] = updateResult.Id,
-                        ["Duration"] = stopwatch.Elapsed.Humanize()
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -191,7 +191,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                             ["Team"] = teamName,
                             ["Channel"] = channelName,
                             ["MessageId"] = newResult.Id,
-                            ["Duration"] = stopwatch.Elapsed.Humanize()
+                            ["Duration"] = stopwatch.ElapsedMilliseconds
                         });
                     return;
                 }
@@ -204,7 +204,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                         ["Team"] = teamName,
                         ["Channel"] = channelName,
                         ["MessageId"] = updateResult.Id,
-                        ["Duration"] = stopwatch.Elapsed.Humanize()
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);
@@ -263,7 +263,7 @@ public sealed class CardManagerService(IChannelAdapter adapter, ITeamsManagerSer
                         ["Channel"] = channelId,
                         ["MessageId"] = updateResult.Id,
                         ["ActionsRemoved"] = string.Join(",", actionsToRemove),
-                        ["Duration"] = stopwatch.Elapsed.Humanize()
+                        ["Duration"] = stopwatch.ElapsedMilliseconds
                     });
             },
             token);

@@ -20,7 +20,6 @@ global using System.Threading.Tasks;
 global using AdaptiveCards;
 global using Azure.Core;
 global using Azure.Identity;
-global using Humanizer;
 global using Microsoft.Agents.Authentication;
 global using Microsoft.Agents.Builder;
 global using Microsoft.Agents.Builder.App;
