@@ -73,7 +73,7 @@ global using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 global using WebApplication = Microsoft.AspNetCore.Builder.WebApplication;
 
 
-const string appPathPrefix = "devops-teams-notification-api";
+const string appPathPrefix = "platform-teams-notification-api";
 
 var builder = WebApplication.CreateBuilder(args);
 

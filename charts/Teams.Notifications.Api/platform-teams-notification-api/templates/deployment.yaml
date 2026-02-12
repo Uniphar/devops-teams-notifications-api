@@ -1,4 +1,4 @@
-{{- $name := include "devops-teams-notification-api.name" . -}}
+{{- $name := include "platform-teams-notification-api.name" . -}}
 kind: Deployment
 apiVersion: apps/v1
 metadata:
@@ -23,7 +23,7 @@ spec:
         app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
         azure.workload.identity/use: "true"
     spec:
-      serviceAccountName: "compute-aks-devops-{{ .Values.environment }}-k8s-sa"
+      serviceAccountName: "compute-aks-platform-teams-notification-api-{{ .Values.environment }}-k8s-sa"
       containers:
         - name: {{ $name }}
           image: computeaksacr.azurecr.io/{{ $name }}:{{ .Chart.AppVersion }}

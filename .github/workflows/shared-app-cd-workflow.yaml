@@ -18,12 +18,6 @@ on:
       AZURE_PROD_SUBSCRIPTION_ID:
         required: true
         description: "Azure Prod Subscription ID"
-      ACTIONS_AUTH_APP_ID:
-        required: true
-        description: "GitHub App ID"
-      ACTIONS_AUTH_APP_PRIVATE_KEY:
-        required: true
-        description: "GitHub App Private Key"
     inputs:
       applicationFolder:
         type: string
@@ -57,10 +51,11 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       environment: dev
+      SERVICE_PRINCIPAL_NAME: ${{ vars.PRINCIPAL_NAME_DEV }}
+      RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_DEV }}
+      LOG_ANALYTICS_WORKSPACE_ID: ${{ vars.WORKSPACE_ID_DEV }}
 
   app_deployment_dev:
     needs: [app_package, app_initialization_dev]
@@ -69,8 +64,6 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       acrName: computeaksacr
       applicationFolder: ${{ inputs.applicationFolder }}
@@ -78,6 +71,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: dev
       singleCluster: ${{ inputs.singleCluster }}
+      SERVICE_PRINCIPAL_NAME: ${{ vars.PRINCIPAL_NAME_DEV }}
 
   app_integration_tests_dev:
     needs: app_deployment_dev
@@ -86,8 +80,6 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       applicationFolder: ${{ inputs.applicationFolder }}
       environment: dev
@@ -99,10 +91,11 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       environment: test
+      SERVICE_PRINCIPAL_NAME: ${{ vars.PRINCIPAL_NAME_TEST }}
+      RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_TEST }}
+      LOG_ANALYTICS_WORKSPACE_ID: ${{ vars.WORKSPACE_ID_TEST }}
 
   app_deployment_test:
     needs: [app_package, app_integration_tests_dev, app_initialization_test]
@@ -111,8 +104,6 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       acrName: computeaksacr
       applicationFolder: ${{ inputs.applicationFolder }}
@@ -120,6 +111,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: test
       singleCluster: ${{ inputs.singleCluster }}
+      SERVICE_PRINCIPAL_NAME: ${{ vars.PRINCIPAL_NAME_TEST }}
 
   app_integration_tests_test:
     needs: app_deployment_test
@@ -128,8 +120,6 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_DEV_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       applicationFolder: ${{ inputs.applicationFolder }}
       environment: test
@@ -142,10 +132,11 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_PROD_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       environment: prod
+      SERVICE_PRINCIPAL_NAME: ${{ vars.PRINCIPAL_NAME_PROD }}
+      RESOURCE_GROUP_NAME: ${{ vars.RESOURCE_GROUP_PROD }}
+      LOG_ANALYTICS_WORKSPACE_ID: ${{ vars.WORKSPACE_ID_PROD }}
 
   app_deployment_prod:
     needs: [app_package, app_integration_tests_test, app_initialization_prod]
@@ -154,8 +145,6 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_PROD_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       acrName: computeaksacr
       applicationFolder: ${{ inputs.applicationFolder }}
@@ -163,6 +152,7 @@ jobs:
       applicationVersion: ${{ needs.app_package.outputs.applicationVersion }}
       environment: prod
       singleCluster: ${{ inputs.singleCluster }}
+      SERVICE_PRINCIPAL_NAME: ${{ vars.PRINCIPAL_NAME_PROD }}
 
   app_integration_tests_prod:
     needs: app_deployment_prod
@@ -171,8 +161,6 @@ jobs:
       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_PROD_SUBSCRIPTION_ID }}
-      ACTIONS_AUTH_APP_ID: ${{ secrets.ACTIONS_AUTH_APP_ID }}
-      ACTIONS_AUTH_APP_PRIVATE_KEY: ${{ secrets.ACTIONS_AUTH_APP_PRIVATE_KEY }}
     with:
       applicationFolder: ${{ inputs.applicationFolder }}
       environment: prod

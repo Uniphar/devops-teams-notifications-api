@@ -1,4 +1,4 @@
-{{- $name := include "devops-teams-notification-api.name" . -}}
+{{- $name := include "platform-teams-notification-api.name" . -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:

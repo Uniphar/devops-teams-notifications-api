@@ -32,7 +32,6 @@
     "id": "208bce8c-d9ed-4567-aa5d-89e3ffcac81f",
     "resource": "api://botid-208bce8c-d9ed-4567-aa5d-89e3ffcac81f"
   },
-  "permissions": ["identity", "messageTeamMembers"],
   "devicePermissions": ["notifications", "openExternal"],
   "defaultGroupCapability": {
     "team": "bot",
