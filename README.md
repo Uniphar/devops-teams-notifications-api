@@ -27,7 +27,7 @@ Since this uses federation we cannot use it locally, for this we will use a bot 
    ```
 
 2. On the Azure Bot (for local/debug: devops-debug-bot), select **Settings**, then **Configuration**, and update the **Messaging endpoint** to `{tunnel-url}/api/messages` eg: `https://kw238403-3978.eun1.devtunnels.ms/platform-teams-notification-api/api/messages`
-3. Change the secret of the appsettings.local, you can find this in the keyvault under `devops-debug-bot-secret`, the client-id and tenant is already setup
+3. Change the secret of the appsettings.local, you can create this by hand, the client-id and tenant is already setup but might need to be changed if this is a new application
 4. Run the application
 5. Add the bot to teams, select **Settings**, then **Channels**, and click on the link **Open in Teams**
 6. Select a channel, you might need to send a message in the channel to be able to initiate the bot for the first time, this is since we do not get the notification that it has been installed if the bot was already installed on that team.

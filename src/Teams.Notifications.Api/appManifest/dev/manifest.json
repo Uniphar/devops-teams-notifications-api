@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "manifestVersion": "1.24",
   "id": "15ca3f35-d906-482e-aef9-821836373118",
   "name": { "short": "Uniphar Dev Bot", "full": "Uniphar Dev Bot" },
@@ -32,7 +32,6 @@
     "id": "208bce8c-d9ed-4567-aa5d-89e3ffcac81f",
     "resource": "api://botid-208bce8c-d9ed-4567-aa5d-89e3ffcac81f"
   },
-  "permissions": ["identity", "messageTeamMembers"],
   "devicePermissions": ["notifications", "openExternal"],
   "defaultGroupCapability": {
     "team": "bot",

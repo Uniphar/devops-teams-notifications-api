@@ -1,4 +1,7 @@
 {
+  "files.associations": {
+    "**/appsettings.local.json": "jsonc"
+  },
   "json.schemas": [
     {
       "fileMatch": ["/src/Teams.Notifications.Api/appManifest/**/*.json"],
