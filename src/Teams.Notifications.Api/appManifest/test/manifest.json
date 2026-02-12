@@ -1,6 +1,6 @@
 {
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "manifestVersion": "1.24",
   "id": "13b7427c-6df3-4032-acd1-4633ddfdccaa",
   "name": {
@@ -34,7 +34,7 @@
   ],
   "bots": [
     {
-      "botId": "342dfee8-780b-4041-8718-51bc5f972486",
+      "botId": "e3ee59e4-5bb9-4523-93e3-4f7712e4200c",
       "scopes": ["team", "groupChat", "personal"],
       "isNotificationOnly": false,
       "supportsCalling": false,
@@ -44,8 +44,8 @@
   ],
   "validDomains": [],
   "webApplicationInfo": {
-    "id": "342dfee8-780b-4041-8718-51bc5f972486",
-    "resource": "api://botid-342dfee8-780b-4041-8718-51bc5f972486"
+    "id": "e3ee59e4-5bb9-4523-93e3-4f7712e4200c",
+    "resource": "api://botid-e3ee59e4-5bb9-4523-93e3-4f7712e4200c"
   },
   "devicePermissions": ["notifications", "openExternal"],
   "defaultGroupCapability": {
