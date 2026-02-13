@@ -20,11 +20,10 @@ function Initialize-PlatformTeamsNotificationApi {
     $botTemplate = Join-Path $PSScriptRoot -ChildPath ".\bot.bicep"
     
     Select-AzSubscription -SubscriptionId $SubscriptionId
-    $sa = Get-AzADServicePrincipal -DisplayName $ServicePrincipalName
-    if (!$sa) {
+    $envSA = Get-AzADServicePrincipal -DisplayName $ServicePrincipalName
+    if (!$envSA) {
         throw "Service principal '$ServicePrincipalName' not found"
     }
-    $principalId = $sa.Id
     
     # Minimal application permissions required for:
     # - Installing a Teams app into any team, channel, or chat
@@ -114,7 +113,7 @@ function Initialize-PlatformTeamsNotificationApi {
         endpoint                = "https://api.$Environment.uniphar.ie/platform-teams-notification-api/api/messages"
         environment             = $Environment
         botName                 = "platform-teams-notification-api-$Environment-bot"
-        teamsBotAppId           = $principalId
+        teamsBotAppId           = $envSA.AppId
         logAnalyticsWorkspaceId = $LogAnalyticsWorkspaceId
         Verbose                 = ($PSCmdlet.MyInvocation.BoundParameters["Verbose"].IsPresent -eq $true)
     }
