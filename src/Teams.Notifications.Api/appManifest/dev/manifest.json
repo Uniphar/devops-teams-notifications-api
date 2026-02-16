@@ -1,21 +1,36 @@
 {
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "manifestVersion": "1.24",
   "id": "15ca3f35-d906-482e-aef9-821836373118",
-  "name": { "short": "Uniphar Dev Bot", "full": "Uniphar Dev Bot" },
+  "name": {
+    "short": "Uniphar Dev Bot",
+    "full": "Uniphar Dev Bot"
+  },
   "developer": {
     "name": "Uniphar",
     "websiteUrl": "https://www.uniphar.ie/",
     "privacyUrl": "https://www.uniphar.ie/static/privacy-statement/",
     "termsOfUseUrl": "https://www.uniphar.ie/static/terms-conditions"
   },
-  "description": { "short": "Uniphar Dev Bot", "full": "Uniphar Dev Bot" },
-  "icons": { "outline": "outline.png", "color": "color.png" },
+  "description": {
+    "short": "Uniphar Dev Bot",
+    "full": "Uniphar Dev Bot"
+  },
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
   "accentColor": "#FFFFFF",
   "staticTabs": [
-    { "entityId": "conversations", "scopes": ["personal"] },
-    { "entityId": "about", "scopes": ["personal"] }
+    {
+      "entityId": "conversations",
+      "scopes": ["personal"]
+    },
+    {
+      "entityId": "about",
+      "scopes": ["personal"]
+    }
   ],
   "bots": [
     {
@@ -41,20 +56,62 @@
   "authorization": {
     "permissions": {
       "resourceSpecific": [
-        { "name": "Channel.Create.Group", "type": "Application" },
-        { "name": "TeamsActivity.Send.Group", "type": "Application" },
-        { "name": "TeamMember.Read.Group", "type": "Application" },
-        { "name": "Member.Read.Group", "type": "Application" },
-        { "name": "Owner.Read.Group", "type": "Application" },
-        { "name": "ChannelSettings.ReadWrite.Group", "type": "Application" },
-        { "name": "ChannelMessage.Read.Group", "type": "Application" },
-        { "name": "ChannelMessage.Send.Group", "type": "Application" },
-        { "name": "ChannelSettings.Read.Group", "type": "Application" },
-        { "name": "Channel.Delete.Group", "type": "Application" },
-        { "name": "TeamsActivity.Send.User", "type": "Application" },
-        { "name": "Chat.Manage.Chat", "type": "Application" },
-        { "name": "ChatMessage.Send.Chat", "type": "Application" },
-        { "name": "ChatMessage.Read.Chat", "type": "Application" }
+        {
+          "name": "Channel.Create.Group",
+          "type": "Application"
+        },
+        {
+          "name": "TeamsActivity.Send.Group",
+          "type": "Application"
+        },
+        {
+          "name": "TeamMember.Read.Group",
+          "type": "Application"
+        },
+        {
+          "name": "Member.Read.Group",
+          "type": "Application"
+        },
+        {
+          "name": "Owner.Read.Group",
+          "type": "Application"
+        },
+        {
+          "name": "ChannelSettings.ReadWrite.Group",
+          "type": "Application"
+        },
+        {
+          "name": "ChannelMessage.Read.Group",
+          "type": "Application"
+        },
+        {
+          "name": "ChannelMessage.Send.Group",
+          "type": "Application"
+        },
+        {
+          "name": "ChannelSettings.Read.Group",
+          "type": "Application"
+        },
+        {
+          "name": "Channel.Delete.Group",
+          "type": "Application"
+        },
+        {
+          "name": "TeamsActivity.Send.User",
+          "type": "Application"
+        },
+        {
+          "name": "Chat.Manage.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "ChatMessage.Send.Chat",
+          "type": "Application"
+        },
+        {
+          "name": "ChatMessage.Read.Chat",
+          "type": "Application"
+        }
       ]
     }
   },

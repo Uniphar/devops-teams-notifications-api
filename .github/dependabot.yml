@@ -49,7 +49,7 @@ updates:
 
   # Docker base images
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/src/Teams.Notifications.Api"
     schedule:
       interval: "weekly"
       day: "monday"

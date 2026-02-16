@@ -29,15 +29,20 @@ Since this uses federation we cannot use it locally, for this we will use a bot 
 2. On the Azure Bot (for local/debug: devops-debug-bot), select **Settings**, then **Configuration**, and update the **Messaging endpoint** to `{tunnel-url}/api/messages` eg: `https://kw238403-3978.eun1.devtunnels.ms/platform-teams-notification-api/api/messages`
 3. Change the secret of the appsettings.local, you can create this by hand, the client-id and tenant is already setup but might need to be changed if this is a new application
 4. Run the application
-5. Add the bot to teams, select **Settings**, then **Channels**, and click on the link **Open in Teams**
-6. Select a channel, you might need to send a message in the channel to be able to initiate the bot for the first time, this is since we do not get the notification that it has been installed if the bot was already installed on that team.
+5. Add the bot to teams, select **Settings**, then **Channels**, and click on the link **Open in Teams** or let the bot install it for you
 
 ## Initial create of the app
 
 devops-azure will create the bot services automatically, but to be able to use the app you have to go to:
-`https://dev.teams.microsoft.com/apps` and create a new app, using all the credentials, as an example the debug bot is provided in `src\Teams.Notifications.Api\appManifest\ENV`, if you create a new app, compare the manifest with the json provided you can figure out pretty easily what you are missing (note that id is unique per org/app and that the App id is peppered in the manifest, for the botId, make sure you use the Application ID not the object ID (application id is equal between the enterprise app and the regular app reg)), this is preferred over doing it by just uploading it as a zip as the manifest version might be newer!
+`https://dev.teams.microsoft.com/apps` and create a new app, use the templates from `src\Teams.Notifications.Api\appManifest\ENV`
+You will have to change the following:
 
-The pending apps you can find in `https://admin.teams.microsoft.com/policies/manage-apps` with pim you can approve these, to view, choose app type= custom app
+1. Manifest.id (take that from the manifest that is created when you create the app)
+2. The bots.botId/webApplicationInfo.id and resource, leave the `api://botid-` part for the resource, just do a guid replace, the ID should be the AppId of the app, this is equal to the `Microsoft App ID` in the `Configuration` of your bot that is under `Bot services`
+   1. `Initialize-PlatformTeamsNotificationApi.ps1` will auto create the right permissions, this is needed to install the bot, read messages that are not sent to the bot etc
+3. You might want to change the names, logo's etc, we use Uniphar since that is what we use it for
+
+The pending apps you can find in `https://admin.teams.microsoft.com/policies/manage-apps` with pim you can approve these, to view, choose app type= custom app or search for the name, it will take a few hours to propagate, if you open teams in the browser it tends to be there quicker.
 
 ### Where to find stuff
 
