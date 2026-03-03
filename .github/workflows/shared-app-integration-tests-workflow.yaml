@@ -75,7 +75,7 @@ jobs:
           targetdir: "coverage-results" # REQUIRED # The directory where the generated report should be saved.
           reporttypes: "HtmlInline;MarkdownSummaryGithub"
       - name: Upload test results in case manual view
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: "coverage-results-${{ inputs.environment }}"
           path: coverage-results
